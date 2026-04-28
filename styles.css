@@ -43,37 +43,27 @@ html { height:100%; }
 
 body {
   background: #070b1a;
-  background-image:
-    radial-gradient(ellipse at 20% 20%, rgba(99,102,241,.25) 0%, transparent 55%),
-    radial-gradient(ellipse at 80% 80%, rgba(16,201,126,.18) 0%, transparent 55%),
-    radial-gradient(ellipse at 60% 10%, rgba(245,158,11,.12) 0%, transparent 45%);
   font-family: 'Outfit', sans-serif;
-  display: flex; justify-content: center; align-items: center;
   min-height: 100vh;
-  padding: 20px 0;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 0;
 }
 
 /* ─── PHONE SHELL ─── */
 .phone {
-  width: 390px;
-  height: 844px;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
   background: var(--cream);
-  border-radius: 50px;
+  border-radius: 0;
   overflow: hidden;
-  box-shadow:
-    0 0 0 10px #0d1433,
-    0 0 0 11px rgba(99,102,241,.4),
-    0 40px 100px rgba(0,0,0,.7),
-    0 0 80px rgba(99,102,241,.2);
+  box-shadow: none;
   position: relative;
   display: flex; flex-direction: column;
 }
 
-.notch {
-  position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-  width: 120px; height: 34px; background: #0d1433;
-  border-radius: 0 0 20px 20px; z-index: 999;
-}
+.notch { display: none; }
 
 /* ─── SCREENS ─── */
 .screen {
