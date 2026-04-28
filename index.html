@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>NutriPro App</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,300&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ══ PHONE ══ -->
+<div class="phone">
+  <div class="notch"></div>
+
+  <!-- ═══ S0: SPLASH ═══ -->
+  <div class="screen active" id="s-splash">
+    <div class="splash-rings"></div>
+    <div class="splash-leaf">🌿</div>
+    <div class="splash-logo">NutriPro</div>
+    <div class="splash-tagline">Nutrición de alto rendimiento</div>
+    <button class="btn-splash" onclick="goScreen('s-goal')">Comenzar →</button>
+  </div>
+
+  <!-- ═══ S1: GOAL ═══ -->
+  <div class="screen" id="s-goal" style="overflow-y:auto">
+    <div style="padding:60px 24px 32px;width:100%;box-sizing:border-box">
+      <div class="ob-header">
+        <div class="ob-step-label">Paso 1 de 2</div>
+        <div class="ob-title">¿Cuál es<br>tu objetivo?</div>
+        <div class="ob-sub">Personaliza tu plan nutricional según tu meta principal</div>
+      </div>
+      <div class="goal-chips">
+        <div class="goal-chip sel" onclick="selChip(this)">Perder grasa</div>
+        <div class="goal-chip" onclick="selChip(this)">Mantenerme</div>
+        <div class="goal-chip" onclick="selChip(this)">Ganar músculo</div>
+      </div>
+      <div class="diet-cards">
+        <div class="diet-card diet-keto sel" onclick="selDiet(this)">
+          <div class="diet-icon">🥑</div>
+          <div class="diet-info"><h4>Keto / Low Carb</h4><p>Alto en grasas saludables, proteína moderada</p></div>
+          <div class="diet-radio"></div>
+        </div>
+        <div class="diet-card diet-vegan" onclick="selDiet(this)">
+          <div class="diet-icon">🌱</div>
+          <div class="diet-info"><h4>Vegano / Plant-based</h4><p>Basado en alimentos de origen vegetal</p></div>
+          <div class="diet-radio"></div>
+        </div>
+        <div class="diet-card diet-med" onclick="selDiet(this)">
+          <div class="diet-icon">🫒</div>
+          <div class="diet-info"><h4>Mediterráneo</h4><p>Alimentos integrales y grasas naturales</p></div>
+          <div class="diet-radio"></div>
+        </div>
+        <div class="diet-card diet-high" onclick="selDiet(this)">
+          <div class="diet-icon">🍗</div>
+          <div class="diet-info"><h4>Alto en Proteína</h4><p>Optimizado para rendimiento y músculo</p></div>
+          <div class="diet-radio"></div>
+        </div>
+      </div>
+      <button class="btn-full btn-terra" onclick="goScreen('s-datos')">Siguiente →</button>
+      <div style="height:28px"></div>
+    </div>
+  </div>
+
+  <!-- ═══ S2: DATOS ═══ -->
+  <div class="screen" id="s-datos" style="overflow-y:auto">
+    <div style="padding:60px 24px 32px;width:100%;box-sizing:border-box">
+      <div class="ob-header">
+        <div class="ob-step-label">Paso 2 de 2</div>
+        <div class="ob-title">Tus datos<br>personales</div>
+        <div class="ob-sub">Calculamos tus macros exactas con esta información</div>
+      </div>
+      <div class="data-fields">
+        <div class="field-group">
+          <label class="field-label">Tu nombre</label>
+          <input class="field-inp" id="f-nombre" placeholder="Ej: Carlos Mendoza" type="text">
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Peso (kg)</label>
+            <input class="field-inp" id="f-peso" placeholder="75" type="number" step="0.1">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Talla (cm)</label>
+            <input class="field-inp" id="f-talla" placeholder="178" type="number">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Edad</label>
+            <input class="field-inp" id="f-edad" placeholder="26" type="number">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Sexo</label>
+            <select class="field-inp" id="f-sexo">
+              <option value="m">Masculino</option>
+              <option value="f">Femenino</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Nivel de actividad</label>
+          <div class="act-pills">
+            <div class="act-pill" onclick="selAct(this,1.2)">Sedentario</div>
+            <div class="act-pill" onclick="selAct(this,1.375)">Ligero 1-3d</div>
+            <div class="act-pill sel" onclick="selAct(this,1.55)">Moderado 3-5d</div>
+            <div class="act-pill" onclick="selAct(this,1.725)">Activo 6-7d</div>
+          </div>
+        </div>
+      </div>
+      <button class="btn-full btn-bark" onclick="finishOnboarding()">Ver mi plan 🚀</button>
+      <div style="height:32px"></div>
+    </div>
+  </div>
+
+  <!-- ═══ APP SHELL ═══ -->
+  <div class="screen" id="s-app" style="flex:1;display:flex;flex-direction:column;height:100%">
+    <div style="flex:1;overflow:hidden;position:relative">
+
+      <!-- DASHBOARD -->
+      <div id="s-dash" style="position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden">
+        <div class="top-bar">
+          <div>
+            <div style="font-size:12px;color:var(--bark2);opacity:.55;font-weight:500;margin-bottom:2px">Buenos días ☀️</div>
+            <div class="top-bar-title" id="greet-name">Atleta</div>
+          </div>
+          <button class="top-icon-btn" onclick="openChat()">🦅</button>
+        </div>
+        <div class="dash-scroll">
+          <div class="macro-hero">
+            <div class="donut-wrap">
+              <svg viewBox="0 0 96 96">
+                <circle cx="48" cy="48" r="38" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="9"/>
+                <circle id="ring-cho" cx="48" cy="48" r="38" fill="none" stroke="#c9a84c" stroke-width="9" stroke-linecap="round" stroke-dasharray="238.8" stroke-dashoffset="60"/>
+                <circle id="ring-fat2" cx="48" cy="48" r="38" fill="none" stroke="#6b8f71" stroke-width="9" stroke-linecap="round" stroke-dasharray="238.8" stroke-dashoffset="168" opacity=".8"/>
+              </svg>
+              <div class="donut-center">
+                <div class="donut-pct">45%</div>
+                <div class="donut-sub">Proteína</div>
+              </div>
+            </div>
+            <div class="macro-legend">
+              <h3>Macros de Hoy</h3>
+              <div class="legend-item"><div class="legend-dot" style="background:var(--terracota)"></div><span class="legend-name">Proteína</span><span class="legend-val" id="l-prot">148g</span></div>
+              <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div><span class="legend-name">Carbos</span><span class="legend-val" id="l-cho">320g</span></div>
+              <div class="legend-item"><div class="legend-dot" style="background:var(--sage)"></div><span class="legend-name">Grasas</span><span class="legend-val" id="l-fat">75g</span></div>
+            </div>
+          </div>
+
+          <div class="sec-head"><h2>Mi Plan de Comidas</h2><a onclick="goTab('diary')">Ver todo</a></div>
+          <div class="meals-scroll">
+            <div class="meal-card" onclick="openFood('🥑','Tostada de Aguacate','Desayuno',380)">
+              <div class="meal-img-bg" style="background:linear-gradient(145deg,#f5ebe0,#e8d5b7)">🥑</div>
+              <div class="meal-body"><div class="meal-type">Desayuno</div><div class="meal-name">Tostada de Aguacate</div><div class="meal-kcal">380 kcal <span class="meal-star" onclick="event.stopPropagation()">☆</span></div></div>
+            </div>
+            <div class="meal-card" onclick="openFood('🐟','Salmón a la Parrilla','Almuerzo',520)">
+              <div class="meal-img-bg" style="background:linear-gradient(145deg,#edf3f7,#d5e8f0)">🐟</div>
+              <div class="meal-body"><div class="meal-type">Almuerzo</div><div class="meal-name">Salmón a la Parrilla</div><div class="meal-kcal">520 kcal <span class="meal-star" onclick="event.stopPropagation()">⭐</span></div></div>
+            </div>
+            <div class="meal-card" onclick="openFood('🥦','Bowl Proteico Verde','Cena',460)">
+              <div class="meal-img-bg" style="background:linear-gradient(145deg,#e8f2e9,#d5ecd6)">🥦</div>
+              <div class="meal-body"><div class="meal-type">Cena</div><div class="meal-name">Bowl Proteico Verde</div><div class="meal-kcal">460 kcal <span class="meal-star" onclick="event.stopPropagation()">☆</span></div></div>
+            </div>
+            <div class="meal-card" onclick="openFood('🍌','Snack Energético','Snack',180)">
+              <div class="meal-img-bg" style="background:linear-gradient(145deg,#fdf8ec,#f5ecd5)">🍌</div>
+              <div class="meal-body"><div class="meal-type">Snack</div><div class="meal-name">Snack Energético</div><div class="meal-kcal">180 kcal <span class="meal-star" onclick="event.stopPropagation()">☆</span></div></div>
+            </div>
+          </div>
+
+          <div class="stats-row">
+            <div class="stat-tile"><div class="stat-tile-icon">🔥</div><div class="stat-tile-val" id="st-tdee">—</div><div class="stat-tile-lbl">TDEE</div></div>
+            <div class="stat-tile"><div class="stat-tile-icon">💧</div><div class="stat-tile-val" id="st-agua">2.4L</div><div class="stat-tile-lbl">Agua</div></div>
+            <div class="stat-tile"><div class="stat-tile-icon">💪</div><div class="stat-tile-val" id="st-prot">—</div><div class="stat-tile-lbl">Prot/kg</div></div>
+          </div>
+
+          <div class="water-card">
+            <div class="water-header"><span>💧</span><h4>Hidratación</h4><span id="w-liters">2.4L</span></div>
+            <div class="water-cups" id="water-cups"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MACROS -->
+      <div id="s-macros" style="position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;opacity:0;pointer-events:none">
+        <div class="top-bar"><div class="top-bar-title">Mis Macros</div><button class="top-icon-btn" onclick="openChat()">🤖</button></div>
+        <div class="macros-scroll">
+          <div class="macro-big-card" style="background:var(--terra-l)">
+            <div class="mbcard-top">
+              <div class="mbcard-icon" style="background:var(--terracota)">💪</div>
+              <div><div class="mbcard-title">Proteínas</div><div style="font-size:11px;color:var(--bark2);opacity:.6">2.2 g/kg peso corporal</div></div>
+              <span class="mbcard-badge" style="background:var(--terracota);color:white">En rango</span>
+            </div>
+            <div class="mbcard-progress-track"><div class="mbcard-progress-fill" id="pb-prot" style="width:0%;background:var(--terracota)"></div></div>
+            <div class="mbcard-nums"><span><b id="mn-prot">148</b>g consumidos</span><span id="mn-prot-meta">172</span>g meta</div>
+            <div class="mbcard-sources">🥩 Pollo · 🥚 Huevos · 🐟 Atún · 🥛 Whey · 🫘 Legumbres</div>
+          </div>
+          <div class="macro-big-card" style="background:var(--mist-l)">
+            <div class="mbcard-top">
+              <div class="mbcard-icon" style="background:var(--mist)">⚡</div>
+              <div><div class="mbcard-title">Carbohidratos</div><div style="font-size:11px;color:var(--bark2);opacity:.6">5.8 g/kg · Energía principal</div></div>
+              <span class="mbcard-badge" style="background:var(--mist-l);color:var(--mist);border:1px solid var(--mist)">Ajustar</span>
+            </div>
+            <div class="mbcard-progress-track"><div class="mbcard-progress-fill" id="pb-cho" style="width:0%;background:var(--mist)"></div></div>
+            <div class="mbcard-nums"><span><b id="mn-cho">320</b>g consumidos</span><span id="mn-cho-meta">453</span>g meta</div>
+            <div class="mbcard-sources">🍚 Arroz · 🌾 Avena · 🍌 Plátano · 🥔 Papa · 🍎 Frutas</div>
+          </div>
+          <div class="macro-big-card" style="background:var(--sage-l)">
+            <div class="mbcard-top">
+              <div class="mbcard-icon" style="background:var(--sage)">🥑</div>
+              <div><div class="mbcard-title">Grasas</div><div style="font-size:11px;color:var(--bark2);opacity:.6">1.1 g/kg · Hormonas y vitaminas</div></div>
+              <span class="mbcard-badge" style="background:var(--sage);color:white">Óptimo</span>
+            </div>
+            <div class="mbcard-progress-track"><div class="mbcard-progress-fill" id="pb-fat" style="width:0%;background:var(--sage)"></div></div>
+            <div class="mbcard-nums"><span><b id="mn-fat">75</b>g consumidos</span><span id="mn-fat-meta">86</span>g meta</div>
+            <div class="mbcard-sources">🫒 Aceite oliva · 🥑 Aguacate · 🐟 Salmón · 🌰 Nueces</div>
+          </div>
+          <div class="micro-card">
+            <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:var(--bark);margin-bottom:4px">Micronutrientes</div>
+            <div style="font-size:12px;color:var(--bark2);opacity:.6">Vitaminas y minerales clave</div>
+            <div class="micro-bars">
+              <div class="micro-bar-col"><div class="micro-bar-track"><div class="micro-bar-fill" style="height:72%;background:var(--terracota)"></div></div><div class="micro-bar-lbl">Vit C</div></div>
+              <div class="micro-bar-col"><div class="micro-bar-track"><div class="micro-bar-fill" style="height:45%;background:var(--gold)"></div></div><div class="micro-bar-lbl">Vit D</div></div>
+              <div class="micro-bar-col"><div class="micro-bar-track"><div class="micro-bar-fill" style="height:88%;background:var(--sage)"></div></div><div class="micro-bar-lbl">Hierro</div></div>
+              <div class="micro-bar-col"><div class="micro-bar-track"><div class="micro-bar-fill" style="height:95%;background:var(--mist)"></div></div><div class="micro-bar-lbl">Calcio</div></div>
+              <div class="micro-bar-col"><div class="micro-bar-track"><div class="micro-bar-fill" style="height:60%;background:var(--bark2)"></div></div><div class="micro-bar-lbl">Zinc</div></div>
+              <div class="micro-bar-col"><div class="micro-bar-track"><div class="micro-bar-fill" style="height:80%;background:var(--terracota)"></div></div><div class="micro-bar-lbl">Mg</div></div>
+            </div>
+            <div class="micro-goal-line"></div>
+            <div class="micro-legend">
+              <div class="micro-leg-item"><div class="micro-leg-dot" style="background:var(--terracota)"></div>Actual</div>
+              <div class="micro-leg-item"><div class="micro-leg-dot" style="background:var(--border)"></div>Meta</div>
+            </div>
+          </div>
+          <div style="height:12px"></div>
+        </div>
+      </div>
+
+      <!-- FOOD DETAIL -->
+      <div id="s-food" style="position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;opacity:0;pointer-events:none">
+        <div style="flex:1;overflow-y:auto">
+          <div class="food-hero-img" id="food-emoji" style="position:relative">🥑
+            <button class="food-back" onclick="closeFood()" style="position:absolute;top:52px;left:16px">←</button>
+          </div>
+          <div style="padding:20px 24px 0">
+            <div style="display:flex;gap:8px;margin-bottom:6px">
+              <span id="food-type-tag" class="food-tag" style="background:var(--terra-l);color:var(--terracota)">Desayuno</span>
+              <span class="food-tag">⭐ Favorito</span>
+            </div>
+            <div class="food-title" id="food-title">Tostada de Aguacate</div>
+            <div class="food-kcal-row">
+              <span class="food-kcal" id="food-kcal">380 kcal</span>
+              <span class="food-tag">35g prot</span>
+              <span class="food-tag">42g carbs</span>
+              <span class="food-tag">14g fat</span>
+            </div>
+          </div>
+          <div class="ingr-section">
+            <h3>Ingredientes</h3>
+            <div class="ingr-grid">
+              <div class="ingr-item"><div class="ingr-emoji">🥑</div><div><div class="ingr-name">Aguacate</div><div class="ingr-amt">½ pieza · 80g</div></div></div>
+              <div class="ingr-item"><div class="ingr-emoji">🍞</div><div><div class="ingr-name">Pan integral</div><div class="ingr-amt">2 rebanadas · 60g</div></div></div>
+              <div class="ingr-item"><div class="ingr-emoji">🥚</div><div><div class="ingr-name">Huevo pochado</div><div class="ingr-amt">2 unidades · 100g</div></div></div>
+              <div class="ingr-item"><div class="ingr-emoji">🍋</div><div><div class="ingr-name">Limón</div><div class="ingr-amt">½ pieza · 30g</div></div></div>
+              <div class="ingr-item"><div class="ingr-emoji">🧂</div><div><div class="ingr-name">Sal marina</div><div class="ingr-amt">1 pizca</div></div></div>
+              <div class="ingr-item"><div class="ingr-emoji">🌶️</div><div><div class="ingr-name">Chile flakes</div><div class="ingr-amt">al gusto</div></div></div>
+            </div>
+          </div>
+          <div class="method-section">
+            <h3>Preparación</h3>
+            <div class="method-step"><div class="step-num">1</div><div class="step-text">Tuesta el pan integral hasta obtener el nivel de crujiente deseado.</div></div>
+            <div class="method-step"><div class="step-num">2</div><div class="step-text">Tritura el aguacate con jugo de limón, sal y chile al gusto.</div></div>
+            <div class="method-step"><div class="step-num">3</div><div class="step-text">Pocha los huevos en agua con un chorrito de vinagre por 3-4 minutos.</div></div>
+            <div class="method-step"><div class="step-num">4</div><div class="step-text">Unta la mezcla de aguacate y coloca los huevos encima. Sirve de inmediato.</div></div>
+          </div>
+          <div class="add-food-bar"><button class="btn-add-food" onclick="toast('✅ Añadido a tu diario')">+ Añadir a mi diario</button></div>
+        </div>
+      </div>
+
+      <!-- DIARY -->
+      <div id="s-diary" style="position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;opacity:0;pointer-events:none">
+        <div class="top-bar"><div class="top-bar-title">Diario Alimentario</div><button class="top-icon-btn">📅</button></div>
+        <div style="flex:1;overflow-y:auto;padding:0 20px 20px">
+          <div class="calendar-card">
+            <div class="cal-nav">
+              <button class="cal-arrow">‹</button>
+              <div class="cal-month">Abril 2025</div>
+              <button class="cal-arrow">›</button>
+            </div>
+            <div class="cal-days-header">
+              <div class="cal-day-h">D</div><div class="cal-day-h">L</div><div class="cal-day-h">M</div>
+              <div class="cal-day-h">X</div><div class="cal-day-h">J</div><div class="cal-day-h">V</div><div class="cal-day-h">S</div>
+            </div>
+            <div class="cal-grid" id="cal-grid"></div>
+          </div>
+          <div class="sec-head"><h2>Hoy</h2></div>
+          <div class="diary-log">
+            <div class="diary-entry" onclick="openFood('🥑','Tostada de Aguacate','Desayuno',380)">
+              <div class="diary-dot" style="background:var(--gold)"></div>
+              <div class="diary-entry-name">🌅 Desayuno · Tostada de Aguacate</div>
+              <div class="diary-entry-kcal">380 kcal</div>
+            </div>
+            <div class="diary-entry" onclick="openFood('🐟','Salmón a la Parrilla','Almuerzo',520)">
+              <div class="diary-dot" style="background:var(--mist)"></div>
+              <div class="diary-entry-name">☀️ Almuerzo · Salmón a la Parrilla</div>
+              <div class="diary-entry-kcal">520 kcal</div>
+            </div>
+            <div class="diary-entry" onclick="openFood('🍌','Snack de Plátano','Snack',180)">
+              <div class="diary-dot" style="background:var(--sage)"></div>
+              <div class="diary-entry-name">⚡ Snack · Plátano + Nueces</div>
+              <div class="diary-entry-kcal">180 kcal</div>
+            </div>
+            <div class="diary-add-row" onclick="toast('📝 Escribe el nombre del alimento')">
+              <span style="font-size:18px">+</span>
+              <span class="diary-add-label">Añadir alimento</span>
+            </div>
+          </div>
+          <div class="keyboard-card" style="margin-top:16px">
+            <div class="keyboard-input" id="kb-display">Buscar alimento...</div>
+            <div class="keyboard-grid" id="kb-row1"></div>
+            <div class="key-row2" id="kb-row2"></div>
+            <div class="key-row3">
+              <button class="key-btn key-special" onclick="kbType('','del')">⌫</button>
+              <button class="key-space" onclick="kbType(' ')"></button>
+              <button class="key-add" onclick="kbSearch()">Buscar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div id="s-settings" style="position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;opacity:0;pointer-events:none">
+        <div class="top-bar"><div class="top-bar-title">Mi Perfil</div><button class="top-icon-btn">✏️</button></div>
+        <div style="flex:1;overflow-y:auto;padding:0 20px 24px">
+          <div class="profile-card">
+            <div class="profile-avatar">🏃</div>
+            <div>
+              <div class="profile-name" id="prof-name">Atleta</div>
+              <div class="profile-sub" id="prof-sub">78.4 kg · 178 cm · 26 años</div>
+            </div>
+            <div class="profile-badge">PRO</div>
+          </div>
+          <div class="settings-group">
+            <div class="settings-group-title">Configuración del Plan</div>
+            <div class="setting-item">
+              <div class="setting-icon-wrap" style="background:var(--terra-l)">🎯</div>
+              <div class="setting-label">Protocolo IGE</div>
+              <label class="toggle"><input type="checkbox" checked><div class="toggle-slider"></div></label>
+            </div>
+            <div class="setting-item">
+              <div class="setting-icon-wrap" style="background:var(--gold-l)">⚖️</div>
+              <div class="setting-label">Macros</div>
+              <div class="setting-val">Balanceado</div>
+              <div class="setting-arrow">›</div>
+            </div>
+          </div>
+          <div class="settings-group">
+            <div class="settings-group-title">Metas de Macros</div>
+            <div class="macro-goals-row">
+              <div class="mg-pill sel">Balanceado</div>
+              <div class="mg-pill" onclick="selMgPill(this)">Alto Prot.</div>
+              <div class="mg-pill" onclick="selMgPill(this)">Keto</div>
+              <div class="mg-pill" onclick="selMgPill(this)">Vegano</div>
+            </div>
+          </div>
+          <div class="settings-group">
+            <div class="settings-group-title">Preferencias Dietarias</div>
+            <div class="setting-item">
+              <div class="setting-icon-wrap" style="background:var(--mist-l)">🥛</div>
+              <div class="setting-label">Sin Lácteos</div>
+              <label class="toggle"><input type="checkbox"><div class="toggle-slider"></div></label>
+            </div>
+            <div class="setting-item">
+              <div class="setting-icon-wrap" style="background:var(--sage-l)">🌾</div>
+              <div class="setting-label">Sin Gluten</div>
+              <label class="toggle"><input type="checkbox"><div class="toggle-slider"></div></label>
+            </div>
+            <div class="setting-item">
+              <div class="setting-icon-wrap" style="background:var(--terra-l)">🌱</div>
+              <div class="setting-label">Vegano</div>
+              <label class="toggle"><input type="checkbox"><div class="toggle-slider"></div></label>
+            </div>
+          </div>
+          <div class="settings-group">
+            <div class="settings-group-title">Recordatorios</div>
+            <div class="setting-item">
+              <div class="setting-icon-wrap" style="background:var(--gold-l)">🔔</div>
+              <div class="setting-label">Recordatorio de comidas</div>
+              <label class="toggle"><input type="checkbox" checked><div class="toggle-slider"></div></label>
+            </div>
+            <div class="setting-item">
+              <div class="setting-icon-wrap" style="background:var(--mist-l)">💧</div>
+              <div class="setting-label">Recordatorio de agua</div>
+              <label class="toggle"><input type="checkbox" checked><div class="toggle-slider"></div></label>
+            </div>
+          </div>
+          <div class="settings-group">
+            <div class="settings-group-title">Cuenta</div>
+            <div class="setting-item" onclick="toast('📋 Mis recetas próximamente')">
+              <div class="setting-icon-wrap" style="background:var(--sage-l)">📋</div>
+              <div class="setting-label">Mis Recetas</div>
+              <div class="setting-arrow">›</div>
+            </div>
+            <div class="setting-item" onclick="toast('📊 Historial de progreso')">
+              <div class="setting-icon-wrap" style="background:var(--terra-l)">📊</div>
+              <div class="setting-label">Historial de Progreso</div>
+              <div class="setting-arrow">›</div>
+            </div>
+            <div class="setting-item" onclick="goScreen('s-splash')">
+              <div class="setting-icon-wrap" style="background:var(--cream2)">🚪</div>
+              <div class="setting-label">Reiniciar perfil</div>
+              <div class="setting-arrow">›</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /app-screens -->
+
+    <!-- BOTTOM NAV -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" id="nav-dash" onclick="goTab('dash')">
+        <span class="nav-icon">🏠</span><div class="nav-dot"></div><span class="nav-label">Inicio</span>
+      </button>
+      <button class="nav-item" id="nav-macros" onclick="goTab('macros')">
+        <span class="nav-icon">🍽️</span><div class="nav-dot"></div><span class="nav-label">Macros</span>
+      </button>
+      <button class="nav-item" id="nav-diary" onclick="goTab('diary')">
+        <span class="nav-icon">📔</span><div class="nav-dot"></div><span class="nav-label">Diario</span>
+      </button>
+      <button class="nav-item" id="nav-ai" onclick="openChat()">
+        <span class="nav-icon">🦅</span><div class="nav-dot"></div><span class="nav-label">NutriBot</span>
+      </button>
+      <button class="nav-item" id="nav-settings" onclick="goTab('settings')">
+        <span class="nav-icon">👤</span><div class="nav-dot"></div><span class="nav-label">Perfil</span>
+      </button>
+    </nav>
+  </div><!-- /s-app -->
+</div><!-- /phone -->
+
+<!-- AI CHAT OVERLAY -->
+<div class="chat-overlay" id="chat-overlay">
+  <div class="chat-sheet">
+    <div class="chat-handle"></div>
+    <div class="chat-sheet-head">
+      <div class="chat-avatar">🦅</div>
+      <div>
+        <div class="chat-head-name">NutriBot Pro</div>
+        <div class="chat-head-status"><div class="chat-status-dot"></div>En línea · IA Nutricional</div>
+      </div>
+      <button class="chat-close" onclick="closeChat()">✕</button>
+    </div>
+    <div class="chat-msgs-area" id="chat-msgs">
+      <div class="chat-bubble-wrap ai">
+        <div class="chat-bub">¡Hola! 🌿 Soy tu nutricionista IA.<br><br>Puedo explicar tus métricas, calcular macros o responder dudas sobre nutrición deportiva. ¿En qué te ayudo?</div>
+        <div class="chat-bub-time">Ahora</div>
+      </div>
+    </div>
+    <div class="chat-chips">
+      <div class="chat-chip" onclick="quickChat('¿Qué es el TDEE?')">¿Qué es TDEE?</div>
+      <div class="chat-chip" onclick="quickChat('¿Cuánta proteína necesito?')">Proteína diaria</div>
+      <div class="chat-chip" onclick="quickChat('¿Para qué sirve la creatina?')">Creatina</div>
+      <div class="chat-chip" onclick="quickChat('¿Qué comer post-entreno?')">Post-entreno</div>
+      <div class="chat-chip" onclick="quickChat('¿Cómo mejorar mi hidratación?')">Hidratación</div>
+    </div>
+    <div class="chat-input-area">
+      <textarea class="chat-inp" id="chat-inp" rows="1" placeholder="Escribe tu pregunta nutricional…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"></textarea>
+      <button class="chat-send-btn" onclick="sendMsg()">➤</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-host" id="toast-host"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
