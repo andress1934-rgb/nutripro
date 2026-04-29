@@ -2,256 +2,987 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-...">
-  <title>NutriPro App</title>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunc...">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>NutriPro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
-
-  <!-- PWA -->
   <link rel="manifest" href="manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="NutriPro">
   <link rel="apple-touch-icon" href="icon-192.png">
-
 </head>
 <body>
 
 <!-- ══ PHONE ══ -->
 <div class="phone">
-  <div class="notch"></div>
 
-  <!-- ═══ S0: SPLASH ═══ -->
-  <div class="screen active" id="s-splash">
-    <div class="splash-rings"></div>
-    <div class="splash-leaf">🌿</div>
-    <div class="splash-logo">NutriPro</div>
-    <div class="splash-tagline">Nutrición de alto rendimiento</div>
-    <button class="btn-splash" onclick="goScreen('s-goal')">Comenzar →</button>
-  </div>
-
-  <!-- ═══ S1: GOAL ═══ -->
-  <div class="screen" id="s-goal" style="overflow-y:auto">
-    <div style="padding:60px 24px 32px;width:100%;box-sizing:border-box">
-      <div class="ob-header">
-        <div class="ob-step-label">Paso 1 de 2</div>
-        <div class="ob-title">¿Cuál es<br>tu objetivo?</div>
-        <div class="ob-sub">Personaliza tu plan nutricional según tu meta principal</div>
+  <!-- ═══ 1. S-WELCOME ═══ -->
+  <div class="screen active" id="s-welcome">
+    <div class="welcome-food-circle">🥗</div>
+    <div class="welcome-logo">
+      <div class="welcome-logo-mark">
+        <span></span><span></span><span></span>
       </div>
-      <div class="goal-chips">
-        <div class="goal-chip sel" onclick="selChip(this)">Perder grasa</div>
-        <div class="goal-chip" onclick="selChip(this)">Mantenerme</div>
-        <div class="goal-chip" onclick="selChip(this)">Ganar músculo</div>
-      </div>
-      <div class="diet-cards">
-        <div class="diet-card diet-keto sel" onclick="selDiet(this)">
-          <div class="diet-icon">🥑</div>
-          <div class="diet-info"><h4>Keto / Low Carb</h4><p>Alto en grasas saludables, proteína moderada</p></div>
-          <div class="diet-radio"></div>
-        </div>
-        <div class="diet-card diet-vegan" onclick="selDiet(this)">
-          <div class="diet-icon">🌱</div>
-          <div class="diet-info"><h4>Vegano / Plant-based</h4><p>Basado en alimentos de origen vegetal</p></div>
-          <div class="diet-radio"></div>
-        </div>
-        <div class="diet-card diet-med" onclick="selDiet(this)">
-          <div class="diet-icon">🫒</div>
-          <div class="diet-info"><h4>Mediterráneo</h4><p>Alimentos integrales y grasas naturales</p></div>
-          <div class="diet-radio"></div>
-        </div>
-        <div class="diet-card diet-high" onclick="selDiet(this)">
-          <div class="diet-icon">🍗</div>
-          <div class="diet-info"><h4>Alto en Proteína</h4><p>Optimizado para rendimiento y músculo</p></div>
-          <div class="diet-radio"></div>
-        </div>
-      </div>
-      <button class="btn-full btn-terra" onclick="goScreen('s-datos')">Siguiente →</button>
-      <div style="height:28px"></div>
+      <span class="welcome-logo-text">NutriPro</span>
+    </div>
+    <button class="theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()" title="Cambiar tema">
+      <span id="theme-icon">☀️</span>
+    </button>
+    <div style="flex:1"></div>
+    <div class="welcome-content">
+      <div class="welcome-title">Come mejor,<br>obtén resultados</div>
+    </div>
+    <div class="welcome-buttons">
+      <button class="btn-yellow" onclick="goScreen('s-goal')">Comenzar</button>
+    </div>
+    <div class="welcome-signin">
+      ¿Ya tienes una cuenta? <span onclick="toast('📧 Inicio de sesión próximamente')">Inicia Sesión</span>
     </div>
   </div>
 
-  <!-- ═══ S2: DATOS ═══ -->
-  <div class="screen" id="s-datos" style="overflow-y:auto">
-    <div style="padding:60px 24px 32px;width:100%;box-sizing:border-box">
-      <div class="ob-header">
-        <div class="ob-step-label">Paso 2 de 2</div>
-        <div class="ob-title">Tus datos<br>personales</div>
-        <div class="ob-sub">Calculamos tus macros exactas con esta información</div>
-      </div>
-      <div class="data-fields">
-        <div class="field-group">
-          <label class="field-label">Tu nombre</label>
-          <input class="field-inp" id="f-nombre" placeholder="Ej: Carlos Mendoza" type="text">
-        </div>
-        <div class="field-row">
-          <div class="field-group">
-            <label class="field-label">Peso (kg)</label>
-            <input class="field-inp" id="f-peso" placeholder="75" type="number" step="0.1">
-          </div>
-          <div class="field-group">
-            <label class="field-label">Talla (cm)</label>
-            <input class="field-inp" id="f-talla" placeholder="178" type="number">
-          </div>
-        </div>
-        <div class="field-row">
-          <div class="field-group">
-            <label class="field-label">Edad</label>
-            <input class="field-inp" id="f-edad" placeholder="26" type="number">
-          </div>
-          <div class="field-group">
-            <label class="field-label">Sexo</label>
-            <select class="field-inp" id="f-sexo">
-              <option value="m">Masculino</option>
-              <option value="f">Femenino</option>
-            </select>
-          </div>
-        </div>
-        <div class="field-group">
-          <label class="field-label">Nivel de actividad</label>
-          <div class="act-pills">
-            <div class="act-pill" onclick="selAct(this,1.2)">Sedentario</div>
-            <div class="act-pill" onclick="selAct(this,1.375)">Ligero 1-3d</div>
-            <div class="act-pill sel" onclick="selAct(this,1.55)">Moderado 3-5d</div>
-            <div class="act-pill" onclick="selAct(this,1.725)">Activo 6-7d</div>
-          </div>
+  <!-- ═══ 2. S-GOAL ═══ -->
+  <div class="screen" id="s-goal" style="overflow:hidden">
+    <div class="ob-top">
+      <button class="ob-back" onclick="goScreen('s-welcome')">←</button>
+      <div style="flex:1"></div>
+    </div>
+    <div class="ob-progress" style="margin-top:12px">
+      <div class="ob-progress-fill" style="width:12.5%"></div>
+    </div>
+    <div class="ob-body">
+      <div class="ob-icon-circle" style="margin-bottom:16px">🎯</div>
+      <div class="ob-title">¿Cuál es tu objetivo?</div>
+      <div class="ob-sub">Calcularemos tus calorías necesarias para lograrlo</div>
+
+      <div class="opt-card" id="goal-perder" onclick="selGoal(this,'perder')">
+        <div class="opt-card-icon">🔥</div>
+        <div class="opt-card-info">
+          <div class="opt-card-title">Perder Grasa</div>
+          <div class="opt-card-sub">Optimiza la pérdida de peso y conserva tu masa muscular</div>
         </div>
       </div>
-      <button class="btn-full btn-bark" onclick="finishOnboarding()">Ver mi plan 🚀</button>
-      <div style="height:32px"></div>
+      <div class="opt-card" id="goal-musculo" onclick="selGoal(this,'musculo')">
+        <div class="opt-card-icon">💪</div>
+        <div class="opt-card-info">
+          <div class="opt-card-title">Ganar Músculo</div>
+          <div class="opt-card-sub">Incrementa tu peso y hazte más fuerte</div>
+        </div>
+      </div>
+      <div class="opt-card" id="goal-mantener" onclick="selGoal(this,'mantener')">
+        <div class="opt-card-icon">❤️</div>
+        <div class="opt-card-info">
+          <div class="opt-card-title">Mantener Peso</div>
+          <div class="opt-card-sub">Mantén tu peso estable y busca la recomposición corporal</div>
+        </div>
+      </div>
+      <div style="height:20px"></div>
+    </div>
+  </div>
+
+  <!-- ═══ 3. S-METHOD ═══ -->
+  <div class="screen" id="s-method" style="overflow:hidden">
+    <div class="ob-top">
+      <button class="ob-back" onclick="goScreen('s-goal')">←</button>
+    </div>
+    <div class="ob-progress" style="margin-top:12px">
+      <div class="ob-progress-fill" style="width:25%"></div>
+    </div>
+    <div class="ob-body">
+      <div class="ob-icon-circle" style="margin-bottom:16px">🚩</div>
+      <div class="ob-title">¿Cómo deseas conseguirlo?</div>
+      <div class="ob-sub">No te preocupes, luego lo puedes cambiar</div>
+
+      <div class="opt-card" id="method-plan" onclick="selMethod(this,'plan')">
+        <div class="opt-card-icon">❓</div>
+        <div class="opt-card-info">
+          <div class="opt-card-title">Necesito un plan nutricional</div>
+          <div class="opt-card-sub">No sé qué comer. Necesito sugerencias de comidas</div>
+        </div>
+        <div class="opt-card-radio"></div>
+      </div>
+      <div class="opt-card" id="method-track" onclick="selMethod(this,'track')">
+        <div class="opt-card-icon">🍎</div>
+        <div class="opt-card-info">
+          <div class="opt-card-title">Necesito contar mis calorías</div>
+          <div class="opt-card-sub">Sé qué comer. Necesito monitorear mis calorías y macronutrientes</div>
+        </div>
+        <div class="opt-card-radio"></div>
+      </div>
+      <div style="height:20px"></div>
+    </div>
+    <button class="btn-yellow" id="btn-method-next" disabled onclick="goScreen('s-calorie-intro')">Continuar</button>
+    <div style="height:8px"></div>
+  </div>
+
+  <!-- ═══ 4. S-CALORIE-INTRO ═══ -->
+  <div class="screen" id="s-calorie-intro">
+    <div class="ob-top" style="padding-bottom:0">
+      <button class="ob-back" onclick="goScreen('s-method')">←</button>
+    </div>
+    <div class="centered-screen">
+      <div class="big-ring-circle">🔥</div>
+      <div class="centered-title">¡Perfecto! Primero descubramos cuántas calorías necesitas al día</div>
+    </div>
+    <button class="btn-yellow" onclick="goScreen('s-profile')">Continuar</button>
+    <div style="height:32px"></div>
+  </div>
+
+  <!-- ═══ 5. S-PROFILE ═══ -->
+  <div class="screen" id="s-profile" style="overflow:hidden">
+    <div class="ob-top">
+      <button class="ob-back" onclick="goScreen('s-calorie-intro')">←</button>
+    </div>
+    <div class="ob-progress" style="margin-top:12px">
+      <div class="ob-progress-fill" style="width:37.5%"></div>
+    </div>
+    <div class="ob-body">
+      <div class="ob-icon-circle" style="margin-bottom:16px">📋</div>
+      <div class="ob-title">Sobre ti</div>
+      <div class="ob-sub">Esta información nos ayudará a calcular tus calorías objetivo</div>
+
+      <div class="row-sel" onclick="openSheet('sheet-sexo')">
+        <div class="row-sel-icon">👤</div>
+        <div class="row-sel-label">Sexo</div>
+        <div class="row-sel-val" id="display-sexo">Hombre</div>
+        <div class="row-sel-chevron">›</div>
+      </div>
+      <div class="row-sel" onclick="openSheet('sheet-edad')">
+        <div class="row-sel-icon">🎂</div>
+        <div class="row-sel-label">Edad</div>
+        <div class="row-sel-val" id="display-edad">25 años</div>
+        <div class="row-sel-chevron">›</div>
+      </div>
+      <div class="row-sel" onclick="openSheet('sheet-altura')">
+        <div class="row-sel-icon">📏</div>
+        <div class="row-sel-label">Altura</div>
+        <div class="row-sel-val" id="display-altura">170 cm</div>
+        <div class="row-sel-chevron">›</div>
+      </div>
+      <div class="row-sel" onclick="openSheet('sheet-peso')">
+        <div class="row-sel-icon">⚖️</div>
+        <div class="row-sel-label">Peso</div>
+        <div class="row-sel-val" id="display-peso">70 kg</div>
+        <div class="row-sel-chevron">›</div>
+      </div>
+      <div style="height:20px"></div>
+    </div>
+    <button class="btn-yellow" onclick="goScreen('s-activity')">Continuar</button>
+    <div style="height:8px"></div>
+  </div>
+
+  <!-- ═══ 6. S-ACTIVITY ═══ -->
+  <div class="screen" id="s-activity" style="overflow:hidden">
+    <div class="ob-top">
+      <button class="ob-back" onclick="goScreen('s-profile')">←</button>
+    </div>
+    <div class="ob-progress" style="margin-top:12px">
+      <div class="ob-progress-fill" style="width:50%"></div>
+    </div>
+    <div class="ob-body">
+      <div class="ob-icon-circle" style="margin-bottom:16px">💪</div>
+      <div class="ob-title">¿Cuál es tu nivel de actividad?</div>
+
+      <div class="opt-card" onclick="selActivity(this,1.2,'No Hago Ejercicio')">
+        <div class="opt-card-icon">🚫</div>
+        <div class="opt-card-info"><div class="opt-card-title">No Hago Ejercicio</div></div>
+      </div>
+      <div class="opt-card" onclick="selActivity(this,1.375,'1-2 días por semana')">
+        <div class="opt-card-icon">🔥</div>
+        <div class="opt-card-info"><div class="opt-card-title">1-2 días por semana</div></div>
+      </div>
+      <div class="opt-card" onclick="selActivity(this,1.55,'3-4 días por semana')">
+        <div class="opt-card-icon">🔥</div>
+        <div class="opt-card-info"><div class="opt-card-title">3-4 días por semana</div></div>
+      </div>
+      <div class="opt-card" onclick="selActivity(this,1.725,'5-6 días por semana')">
+        <div class="opt-card-icon">🔥</div>
+        <div class="opt-card-info"><div class="opt-card-title">5-6 días por semana</div></div>
+      </div>
+      <div class="opt-card" onclick="selActivity(this,1.9,'Diario')">
+        <div class="opt-card-icon">🔥</div>
+        <div class="opt-card-info"><div class="opt-card-title">Diario</div></div>
+      </div>
+      <div class="ob-footnote" style="text-align:left;margin:0 0 20px">No te preocupes, luego lo puedes cambiar</div>
+    </div>
+  </div>
+
+  <!-- ═══ 7. S-LIFESTYLE ═══ -->
+  <div class="screen" id="s-lifestyle" style="overflow:hidden">
+    <div class="ob-top">
+      <button class="ob-back" onclick="goScreen('s-activity')">←</button>
+    </div>
+    <div class="ob-progress" style="margin-top:12px">
+      <div class="ob-progress-fill" style="width:62.5%"></div>
+    </div>
+    <div class="ob-body">
+      <div class="ob-icon-circle" style="margin-bottom:16px">🧍</div>
+      <div class="ob-title">¿Cuál es tu estilo de vida?</div>
+      <div class="ob-sub">Solo toma en consideración tu movimiento diario, no tus entrenamientos.</div>
+
+      <div class="opt-card" onclick="selRow(this);setTimeout(()=>goScreen('s-diet'),280)">
+        <div class="opt-card-icon">🧑‍💻</div>
+        <div class="opt-card-info">
+          <div class="opt-card-title">Mayormente sentado</div>
+          <div class="opt-card-sub">Trabajo de escritorio o desde casa</div>
+        </div>
+      </div>
+      <div class="opt-card" onclick="selRow(this);setTimeout(()=>goScreen('s-diet'),280)">
+        <div class="opt-card-icon">🚶</div>
+        <div class="opt-card-info">
+          <div class="opt-card-title">A veces de pie</div>
+          <div class="opt-card-sub">Mezcla de estar sentado y moverte</div>
+        </div>
+      </div>
+      <div class="opt-card" onclick="selRow(this);setTimeout(()=>goScreen('s-diet'),280)">
+        <div class="opt-card-icon">🚶‍♂️</div>
+        <div class="opt-card-info">
+          <div class="opt-card-title">Mayormente de pie</div>
+          <div class="opt-card-sub">De pie o caminando con regularidad</div>
+        </div>
+      </div>
+      <div class="opt-card" onclick="selRow(this);setTimeout(()=>goScreen('s-diet'),280)">
+        <div class="opt-card-icon">🏃</div>
+        <div class="opt-card-info">
+          <div class="opt-card-title">En movimiento todo el día</div>
+          <div class="opt-card-sub">Trabajo físico o caminatas frecuentes</div>
+        </div>
+      </div>
+      <div class="opt-card" onclick="selRow(this);setTimeout(()=>goScreen('s-diet'),280)">
+        <div class="opt-card-icon">👷</div>
+        <div class="opt-card-info">
+          <div class="opt-card-title">Trabajo físico intenso</div>
+          <div class="opt-card-sub">Labor pesada</div>
+        </div>
+      </div>
+      <div style="height:20px"></div>
+    </div>
+  </div>
+
+  <!-- ═══ 8. S-DIET ═══ -->
+  <div class="screen" id="s-diet" style="overflow:hidden">
+    <div class="ob-top">
+      <button class="ob-back" onclick="goScreen('s-lifestyle')">←</button>
+    </div>
+    <div class="ob-progress" style="margin-top:12px">
+      <div class="ob-progress-fill" style="width:75%"></div>
+    </div>
+    <div class="ob-body">
+      <div class="ob-icon-circle" style="margin-bottom:16px">🍴</div>
+      <div class="ob-title">¿Qué tipo de dieta prefieres?</div>
+
+      <div class="opt-card" onclick="selRow(this);S.dietType='balanced';setTimeout(()=>goScreen('s-personalize'),280)">
+        <div class="opt-card-icon">✨</div>
+        <div class="opt-card-info">
+          <div class="opt-card-title">Recomendada</div>
+          <div class="opt-card-sub">La mejor para ti. Mezcla óptima de proteínas, carbohidratos y grasas</div>
+        </div>
+      </div>
+      <div class="opt-card" onclick="selRow(this);S.dietType='highprot';setTimeout(()=>goScreen('s-personalize'),280)">
+        <div class="opt-card-icon">🍗</div>
+        <div class="opt-card-info">
+          <div class="opt-card-title">Alta en Proteína</div>
+          <div class="opt-card-sub">Más proteínas, menos carbohidratos y grasas</div>
+        </div>
+      </div>
+      <div class="opt-card" onclick="selRow(this);S.dietType='lowcarb';setTimeout(()=>goScreen('s-personalize'),280)">
+        <div class="opt-card-icon">🥑</div>
+        <div class="opt-card-info">
+          <div class="opt-card-title">Baja en Carbohidratos</div>
+          <div class="opt-card-sub">Menos carbohidratos, más grasas y proteínas moderadas</div>
+        </div>
+      </div>
+      <div class="opt-card" onclick="selRow(this);S.dietType='keto';setTimeout(()=>goScreen('s-personalize'),280)">
+        <div class="opt-card-icon">🫙</div>
+        <div class="opt-card-info">
+          <div class="opt-card-title">Keto</div>
+          <div class="opt-card-sub">Muy baja en carbohidratos, alta en grasas y proteínas moderadas</div>
+        </div>
+      </div>
+      <div class="opt-card" onclick="selRow(this);S.dietType='lowfat';setTimeout(()=>goScreen('s-personalize'),280)">
+        <div class="opt-card-icon">🥔</div>
+        <div class="opt-card-info">
+          <div class="opt-card-title">Baja en Grasas</div>
+          <div class="opt-card-sub">Menos grasas, más carbohidratos y proteínas moderadas</div>
+        </div>
+      </div>
+      <div style="height:20px"></div>
+    </div>
+  </div>
+
+  <!-- ═══ 9. S-PERSONALIZE ═══ -->
+  <div class="screen" id="s-personalize" style="overflow:hidden">
+    <div class="ob-top">
+      <button class="ob-back" onclick="goScreen('s-diet')">←</button>
+    </div>
+    <div class="ob-progress" style="margin-top:12px">
+      <div class="ob-progress-fill" style="width:87.5%"></div>
+    </div>
+    <div class="ob-body">
+      <div class="ob-icon-circle" style="margin-bottom:16px">✏️</div>
+      <div class="ob-title">Personaliza tu objetivo</div>
+      <div class="ob-sub">Último paso para conocer tus calorías y macros</div>
+
+      <div class="row-sel" onclick="openSheet('sheet-peso-actual')">
+        <div class="row-sel-icon">⚖️</div>
+        <div class="row-sel-label">Peso actual</div>
+        <div class="row-sel-val" id="display-peso-actual">70 kg</div>
+        <div class="row-sel-chevron">›</div>
+      </div>
+      <div class="row-sel" onclick="openSheet('sheet-peso-obj')">
+        <div class="row-sel-icon">🎯</div>
+        <div class="row-sel-label">Peso objetivo</div>
+        <div class="row-sel-val accent-text" id="display-peso-obj">Seleccionar</div>
+        <div class="row-sel-chevron">›</div>
+      </div>
+      <div class="row-sel" onclick="toast('⚙️ Velocidad recomendada seleccionada')">
+        <div class="row-sel-icon">🕐</div>
+        <div class="row-sel-label">Velocidad</div>
+        <div class="row-sel-val">Recomendado</div>
+        <div class="row-sel-chevron">›</div>
+      </div>
+      <div style="height:20px"></div>
+    </div>
+    <button class="btn-yellow" id="btn-crear-plan" disabled onclick="calcMetrics();goScreen('s-results')">Crear Mi Plan</button>
+    <div style="height:8px"></div>
+  </div>
+
+  <!-- ═══ 10. S-RESULTS ═══ -->
+  <div class="screen" id="s-results" style="overflow:hidden">
+    <div class="ob-top">
+      <button class="ob-back" onclick="goScreen('s-personalize')">←</button>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding-top:20px">
+      <div class="results-check">✓</div>
+      <div class="results-title">¡Genial! Estas son las calorías que necesitas al día</div>
+      <div class="results-card">
+        <div class="results-kcal" id="res-kcal">1,800</div>
+        <div class="results-kcal-sub">kcal por día</div>
+        <div class="results-range" id="res-range">1,500 — 2,100</div>
+        <svg class="weight-chart-svg" viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <polyline points="0,50 40,45 80,38 120,32 160,28 200,24 240,20 280,18" stroke="#F5C518" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <polygon points="0,50 40,45 80,38 120,32 160,28 200,24 240,20 280,18 280,60 0,60" fill="rgba(245,197,24,0.15)"/>
+        </svg>
+        <div class="results-macros">
+          <div class="results-macro-col">
+            <div class="results-macro-val" id="res-prot">130g</div>
+            <div class="results-macro-lbl">Proteínas</div>
+          </div>
+          <div class="results-macro-col">
+            <div class="results-macro-val" id="res-cho">200g</div>
+            <div class="results-macro-lbl">Carbs</div>
+          </div>
+          <div class="results-macro-col">
+            <div class="results-macro-val" id="res-fat">60g</div>
+            <div class="results-macro-lbl">Grasas</div>
+          </div>
+        </div>
+      </div>
+      <div style="height:8px"></div>
+      <div class="dot-indicators"><div class="dot-ind active"></div><div class="dot-ind"></div></div>
+    </div>
+    <button class="btn-yellow" onclick="goScreen('s-progress-preview')">Siguiente</button>
+    <div style="height:8px"></div>
+  </div>
+
+  <!-- ═══ 11. S-PROGRESS-PREVIEW ═══ -->
+  <div class="screen" id="s-progress-preview" style="overflow:hidden">
+    <div class="ob-top">
+      <button class="ob-back" onclick="goScreen('s-results')">←</button>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding-top:20px">
+      <div class="results-check">✓</div>
+      <div class="results-title">...y así será tu progreso</div>
+      <div class="weight-chart-wrap">
+        <div class="weight-chart-labels">
+          <span id="chart-start-weight">70 kg</span>
+          <span id="chart-end-weight">65 kg</span>
+        </div>
+        <svg class="weight-chart-svg" viewBox="0 0 300 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="0,10 60,20 120,45 180,70 240,90 300,110 300,120 0,120" fill="rgba(245,197,24,0.2)"/>
+          <polyline points="0,10 60,20 120,45 180,70 240,90 300,110" stroke="#F5C518" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="0" cy="10" r="5" fill="#F5C518"/>
+          <circle cx="300" cy="110" r="5" fill="#34C759"/>
+        </svg>
+        <div class="weight-chart-labels" style="margin-top:8px">
+          <span style="color:var(--muted);font-size:11px">Hoy</span>
+          <span style="color:var(--green);font-size:11px;font-weight:700">Meta</span>
+        </div>
+      </div>
+      <div class="dot-indicators"><div class="dot-ind"></div><div class="dot-ind active"></div></div>
+    </div>
+    <button class="btn-yellow" onclick="goScreen('s-mealplan-intro')">Continuar</button>
+    <div style="height:8px"></div>
+  </div>
+
+  <!-- ═══ 12. S-MEALPLAN-INTRO ═══ -->
+  <div class="screen" id="s-mealplan-intro">
+    <div class="ob-top" style="padding-bottom:0">
+      <button class="ob-back" onclick="goScreen('s-progress-preview')">←</button>
+    </div>
+    <div class="centered-screen">
+      <div class="big-ring-peach">📋</div>
+      <div class="centered-title">Ahora, personalicemos tu plan de comidas para alcanzar tus calorías diarias</div>
+    </div>
+    <button class="btn-yellow" onclick="goScreen('s-meals-count')">Continuar</button>
+    <div style="height:32px"></div>
+  </div>
+
+  <!-- ═══ 13. S-MEALS-COUNT ═══ -->
+  <div class="screen" id="s-meals-count" style="overflow:hidden">
+    <div class="ob-top">
+      <button class="ob-back" onclick="goScreen('s-mealplan-intro')">←</button>
+    </div>
+    <div class="ob-progress" style="margin-top:12px">
+      <div class="ob-progress-fill" style="width:100%"></div>
+    </div>
+    <div class="ob-body">
+      <div class="ob-icon-circle" style="margin-bottom:16px">🍽️</div>
+      <div class="ob-title">¿Cuántas comidas al día deseas?</div>
+      <div class="ob-sub">Elige al menos 2 comidas principales</div>
+
+      <div class="check-row checked" onclick="toggleCheck(this)">
+        <div class="check-circle">✓</div>
+        <div>
+          <div class="check-row-label">Desayuno</div>
+          <div class="check-row-sub">Principal</div>
+        </div>
+      </div>
+      <div class="check-row checked" onclick="toggleCheck(this)">
+        <div class="check-circle">✓</div>
+        <div>
+          <div class="check-row-label">Almuerzo</div>
+          <div class="check-row-sub">Principal</div>
+        </div>
+      </div>
+      <div class="check-row checked" onclick="toggleCheck(this)">
+        <div class="check-circle">✓</div>
+        <div>
+          <div class="check-row-label">Cena</div>
+          <div class="check-row-sub">Principal</div>
+        </div>
+      </div>
+      <div class="check-row checked" onclick="toggleCheck(this)">
+        <div class="check-circle">✓</div>
+        <div>
+          <div class="check-row-label">Snacks</div>
+          <div class="check-row-sub"></div>
+        </div>
+      </div>
+      <div class="check-row" onclick="toggleCheck(this)">
+        <div class="check-circle"></div>
+        <div>
+          <div class="check-row-label">Snacks 2</div>
+          <div class="check-row-sub"></div>
+        </div>
+      </div>
+      <div class="ob-footnote" style="text-align:left;margin:8px 0 20px">No te preocupes, luego lo puedes cambiar</div>
+    </div>
+    <button class="btn-yellow" onclick="goScreen('s-meal-style')">Continuar</button>
+    <div style="height:8px"></div>
+  </div>
+
+  <!-- ═══ 14. S-MEAL-STYLE ═══ -->
+  <div class="screen" id="s-meal-style" style="overflow:hidden">
+    <div class="ob-top">
+      <button class="ob-back" onclick="goScreen('s-meals-count')">←</button>
+    </div>
+    <div class="ob-progress" style="margin-top:12px">
+      <div class="ob-progress-fill" style="width:100%"></div>
+    </div>
+    <div class="ob-body">
+      <div class="ob-icon-circle" style="margin-bottom:16px">✨</div>
+      <div class="ob-title">¿Cómo prefieres tus sugerencias de comidas?</div>
+
+      <div class="opt-card" onclick="selRow(this);setTimeout(()=>goScreen('s-foods'),280)">
+        <div class="opt-card-icon">📖</div>
+        <div class="opt-card-info">
+          <div class="opt-card-title">Recetas</div>
+          <div class="opt-card-sub">Instrucciones paso a paso</div>
+        </div>
+      </div>
+      <div class="opt-card" onclick="selRow(this);setTimeout(()=>goScreen('s-foods'),280)">
+        <div class="opt-card-icon">🛒</div>
+        <div class="opt-card-info">
+          <div class="opt-card-title">Solo ingredientes</div>
+          <div class="opt-card-sub">Puedes prepararlo como quieras</div>
+        </div>
+      </div>
+      <div style="height:20px"></div>
+    </div>
+  </div>
+
+  <!-- ═══ 15. S-FOODS ═══ -->
+  <div class="screen" id="s-foods" style="overflow:hidden">
+    <div class="ob-top">
+      <button class="ob-back" onclick="goScreen('s-meal-style')">←</button>
+    </div>
+    <div class="ob-progress" style="margin-top:12px">
+      <div class="ob-progress-fill" style="width:100%"></div>
+    </div>
+    <div class="ob-body">
+      <div class="ob-icon-circle" style="margin-bottom:16px">🍎</div>
+      <div class="ob-title">Selecciona tus alimentos disponibles</div>
+      <div class="ob-sub">Tu plan depende de tus elecciones</div>
+
+      <!-- Proteínas -->
+      <div class="chips-section-head">
+        <div class="chips-section-title">Proteínas</div>
+        <div class="chips-select-all" onclick="selectAllChips(this)">Seleccionar todo</div>
+      </div>
+      <div class="chips-grid">
+        <div class="food-chip sel" onclick="toggleChip(this)">🍗 Pollo</div>
+        <div class="food-chip sel" onclick="toggleChip(this)">🥩 Carne</div>
+        <div class="food-chip" onclick="toggleChip(this)">🐟 Pescado</div>
+        <div class="food-chip sel" onclick="toggleChip(this)">🐠 Atún</div>
+        <div class="food-chip" onclick="toggleChip(this)">🦐 Camarones</div>
+        <div class="food-chip sel" onclick="toggleChip(this)">🥚 Huevo</div>
+        <div class="food-chip" onclick="toggleChip(this)">🦃 Pavo</div>
+        <div class="food-chip" onclick="toggleChip(this)">🐷 Cerdo</div>
+        <div class="food-chip" onclick="toggleChip(this)">🍖 Jamón</div>
+        <div class="food-chip" onclick="toggleChip(this)">🫘 Tofu</div>
+        <div class="food-chip" onclick="toggleChip(this)">🌿 Carne De Soya</div>
+        <div class="food-chip" onclick="toggleChip(this)">🍄 Tempeh</div>
+        <div class="food-chip" onclick="toggleChip(this)">🌾 Seitán</div>
+        <div class="food-chip" onclick="toggleChip(this)">💪 Proteína En Polvo</div>
+      </div>
+
+      <!-- Carbohidratos -->
+      <div class="chips-section-head">
+        <div class="chips-section-title">Carbohidratos</div>
+        <div class="chips-select-all" onclick="selectAllChips(this)">Seleccionar todo</div>
+      </div>
+      <div class="chips-grid">
+        <div class="food-chip sel" onclick="toggleChip(this)">🍚 Arroz</div>
+        <div class="food-chip sel" onclick="toggleChip(this)">🥔 Papa</div>
+        <div class="food-chip" onclick="toggleChip(this)">🍠 Camote</div>
+        <div class="food-chip" onclick="toggleChip(this)">🌿 Yuca</div>
+        <div class="food-chip" onclick="toggleChip(this)">🫘 Lentejas</div>
+        <div class="food-chip" onclick="toggleChip(this)">🫘 Frijoles</div>
+        <div class="food-chip" onclick="toggleChip(this)">🫘 Garbanzos</div>
+        <div class="food-chip" onclick="toggleChip(this)">🌱 Arvejas</div>
+        <div class="food-chip" onclick="toggleChip(this)">🌾 Quinua</div>
+        <div class="food-chip sel" onclick="toggleChip(this)">🍝 Pasta</div>
+        <div class="food-chip" onclick="toggleChip(this)">🌽 Choclo</div>
+        <div class="food-chip" onclick="toggleChip(this)">🍿 Popcorn</div>
+        <div class="food-chip sel" onclick="toggleChip(this)">🌾 Avena</div>
+        <div class="food-chip sel" onclick="toggleChip(this)">🍞 Pan</div>
+        <div class="food-chip" onclick="toggleChip(this)">🫓 Tortilla</div>
+        <div class="food-chip" onclick="toggleChip(this)">🥣 Cereal</div>
+      </div>
+
+      <!-- Grasas -->
+      <div class="chips-section-head">
+        <div class="chips-section-title">Grasas</div>
+        <div class="chips-select-all" onclick="selectAllChips(this)">Seleccionar todo</div>
+      </div>
+      <div class="chips-grid">
+        <div class="food-chip sel" onclick="toggleChip(this)">🥑 Aguacate</div>
+        <div class="food-chip" onclick="toggleChip(this)">🥜 Maní</div>
+        <div class="food-chip" onclick="toggleChip(this)">🥜 Mantequilla De Maní</div>
+        <div class="food-chip" onclick="toggleChip(this)">🌰 Almendras</div>
+        <div class="food-chip" onclick="toggleChip(this)">🌰 Nueces Pecanas</div>
+        <div class="food-chip" onclick="toggleChip(this)">🥜 Cashews</div>
+        <div class="food-chip" onclick="toggleChip(this)">🌰 Nueces</div>
+        <div class="food-chip" onclick="toggleChip(this)">🫒 Aceitunas</div>
+        <div class="food-chip" onclick="toggleChip(this)">🌱 Chía</div>
+        <div class="food-chip" onclick="toggleChip(this)">🍫 Chocolate</div>
+      </div>
+
+      <!-- Frutas -->
+      <div class="chips-section-head">
+        <div class="chips-section-title">Frutas</div>
+        <div class="chips-select-all" onclick="selectAllChips(this)">Seleccionar todo</div>
+      </div>
+      <div class="chips-grid">
+        <div class="food-chip sel" onclick="toggleChip(this)">🍌 Banano</div>
+        <div class="food-chip" onclick="toggleChip(this)">🍓 Fresas</div>
+        <div class="food-chip sel" onclick="toggleChip(this)">🍎 Manzana</div>
+        <div class="food-chip" onclick="toggleChip(this)">🫐 Arándanos</div>
+        <div class="food-chip" onclick="toggleChip(this)">🍍 Piña</div>
+        <div class="food-chip" onclick="toggleChip(this)">🍈 Papaya</div>
+        <div class="food-chip" onclick="toggleChip(this)">🍊 Mandarina</div>
+        <div class="food-chip" onclick="toggleChip(this)">🍊 Naranja</div>
+        <div class="food-chip" onclick="toggleChip(this)">🥝 Kiwi</div>
+        <div class="food-chip" onclick="toggleChip(this)">🥭 Mango</div>
+        <div class="food-chip" onclick="toggleChip(this)">🍉 Sandía</div>
+        <div class="food-chip" onclick="toggleChip(this)">🍐 Pera</div>
+        <div class="food-chip" onclick="toggleChip(this)">🍑 Durazno</div>
+        <div class="food-chip" onclick="toggleChip(this)">🍇 Uvas</div>
+        <div class="food-chip" onclick="toggleChip(this)">🌺 Granadilla</div>
+        <div class="food-chip" onclick="toggleChip(this)">🍈 Melón</div>
+        <div class="food-chip" onclick="toggleChip(this)">🌴 Dátiles</div>
+        <div class="food-chip" onclick="toggleChip(this)">🐉 Pitahaya</div>
+      </div>
+
+      <!-- Verduras -->
+      <div class="chips-section-head">
+        <div class="chips-section-title">Verduras</div>
+        <div class="chips-select-all" onclick="selectAllChips(this)">Seleccionar todo</div>
+      </div>
+      <div class="chips-grid">
+        <div class="food-chip sel" onclick="toggleChip(this)">🥬 Lechuga</div>
+        <div class="food-chip sel" onclick="toggleChip(this)">🍅 Tomate</div>
+        <div class="food-chip sel" onclick="toggleChip(this)">🥦 Brócoli</div>
+        <div class="food-chip" onclick="toggleChip(this)">🥕 Zanahoria</div>
+        <div class="food-chip" onclick="toggleChip(this)">🌿 Espinaca</div>
+        <div class="food-chip" onclick="toggleChip(this)">🧅 Cebolla</div>
+        <div class="food-chip" onclick="toggleChip(this)">🥒 Pepino</div>
+        <div class="food-chip" onclick="toggleChip(this)">🥒 Zucchini</div>
+        <div class="food-chip" onclick="toggleChip(this)">🥬 Repollo</div>
+        <div class="food-chip" onclick="toggleChip(this)">🌿 Acelga</div>
+        <div class="food-chip" onclick="toggleChip(this)">🌱 Espárrago</div>
+        <div class="food-chip" onclick="toggleChip(this)">🌿 Apio</div>
+        <div class="food-chip" onclick="toggleChip(this)">🌿 Cebollín</div>
+        <div class="food-chip" onclick="toggleChip(this)">🌸 Alcachofa</div>
+        <div class="food-chip" onclick="toggleChip(this)">🌿 Albahaca</div>
+        <div class="food-chip" onclick="toggleChip(this)">🥦 Coliflor</div>
+        <div class="food-chip" onclick="toggleChip(this)">🎃 Zapallo</div>
+        <div class="food-chip" onclick="toggleChip(this)">🫑 Pimiento</div>
+        <div class="food-chip" onclick="toggleChip(this)">🌿 Vainitas</div>
+        <div class="food-chip" onclick="toggleChip(this)">🥀 Remolacha</div>
+        <div class="food-chip" onclick="toggleChip(this)">🌶 Rábano</div>
+        <div class="food-chip" onclick="toggleChip(this)">🍆 Berenjena</div>
+        <div class="food-chip" onclick="toggleChip(this)">🍄 Champiñones</div>
+      </div>
+
+      <!-- Bebidas y Lácteos -->
+      <div class="chips-section-head">
+        <div class="chips-section-title">Bebidas y Lácteos</div>
+        <div class="chips-select-all" onclick="selectAllChips(this)">Seleccionar todo</div>
+      </div>
+      <div class="chips-grid">
+        <div class="food-chip sel" onclick="toggleChip(this)">🥛 Leche</div>
+        <div class="food-chip sel" onclick="toggleChip(this)">🥛 Yogurt</div>
+        <div class="food-chip" onclick="toggleChip(this)">🧀 Queso Blanco</div>
+        <div class="food-chip" onclick="toggleChip(this)">🧀 Queso Amarillo</div>
+        <div class="food-chip" onclick="toggleChip(this)">🌰 Bebida De Almendras</div>
+        <div class="food-chip" onclick="toggleChip(this)">🌿 Bebida De Soya</div>
+        <div class="food-chip" onclick="toggleChip(this)">🥥 Bebida De Coco</div>
+      </div>
+
+      <!-- Condimentos -->
+      <div class="chips-section-head">
+        <div class="chips-section-title">Condimentos</div>
+        <div class="chips-select-all" onclick="selectAllChips(this)">Seleccionar todo</div>
+      </div>
+      <div class="chips-grid">
+        <div class="food-chip" onclick="toggleChip(this)">🌭 Mostaza</div>
+        <div class="food-chip" onclick="toggleChip(this)">🍶 Salsa De Soya</div>
+        <div class="food-chip" onclick="toggleChip(this)">🍅 Salsa De Tomate</div>
+        <div class="food-chip" onclick="toggleChip(this)">🌶 Pimentón</div>
+        <div class="food-chip" onclick="toggleChip(this)">🌿 Canela</div>
+        <div class="food-chip" onclick="toggleChip(this)">🌿 Cúrcuma</div>
+        <div class="food-chip" onclick="toggleChip(this)">🍫 Cacao En Polvo</div>
+        <div class="food-chip" onclick="toggleChip(this)">🌿 Curry</div>
+      </div>
+
+      <div style="height:24px"></div>
+    </div>
+    <button class="btn-yellow" onclick="goScreen('s-planning')">Crear Mi Plan</button>
+    <div style="height:8px"></div>
+  </div>
+
+  <!-- ═══ 16. S-PLANNING ═══ -->
+  <div class="screen" id="s-planning" style="overflow:hidden">
+    <div class="ob-top">
+      <button class="ob-back" onclick="goScreen('s-foods')">←</button>
+    </div>
+    <div class="ob-body">
+      <div class="ob-icon-circle" style="margin-bottom:16px">✅</div>
+      <div class="ob-title">¿Cómo deseas planificar tus comidas?</div>
+
+      <div class="opt-card" onclick="selRow(this);setTimeout(()=>goScreen('s-variety'),280)">
+        <div class="opt-card-icon">👆</div>
+        <div class="opt-card-info">
+          <div class="opt-card-title">Quiero elegir mis comidas</div>
+          <div class="opt-card-sub">Te daremos sugerencias y tú elegirás tus comidas para cada día</div>
+        </div>
+      </div>
+      <div class="opt-card" onclick="selRow(this);setTimeout(()=>goScreen('s-variety'),280)">
+        <div class="opt-card-icon">✨</div>
+        <div class="opt-card-info">
+          <div class="opt-card-title">Dejar que NutriPro elija por mí</div>
+          <div class="opt-card-sub">Evita elegir tus comidas. Nosotros llenaremos tu plan de comidas por ti</div>
+        </div>
+      </div>
+      <div style="height:20px"></div>
+    </div>
+  </div>
+
+  <!-- ═══ 17. S-VARIETY ═══ -->
+  <div class="screen" id="s-variety" style="overflow:hidden">
+    <div class="ob-top">
+      <button class="ob-back" onclick="goScreen('s-planning')">←</button>
+    </div>
+    <div class="ob-body">
+      <div class="ob-icon-circle" style="margin-bottom:16px">🔀</div>
+      <div class="ob-title">¿Cuánta variedad te gustaría en tus comidas?</div>
+
+      <div class="opt-card" onclick="selRow(this);setTimeout(()=>goScreen('s-rating'),280)">
+        <div class="opt-card-icon">🔀</div>
+        <div class="opt-card-info">
+          <div class="opt-card-title">Mucha Variedad</div>
+          <div class="opt-card-sub">Ideal si te gusta preparar diferentes platos cada día</div>
+        </div>
+      </div>
+      <div class="opt-card" onclick="selRow(this);setTimeout(()=>goScreen('s-rating'),280)">
+        <div class="opt-card-icon">🔄</div>
+        <div class="opt-card-info">
+          <div class="opt-card-title">Variedad Moderada</div>
+          <div class="opt-card-sub">Buena si te gusta repetir platos pero también quieres algo de variedad</div>
+        </div>
+      </div>
+      <div class="opt-card" onclick="selRow(this);setTimeout(()=>goScreen('s-rating'),280)">
+        <div class="opt-card-icon">🔁</div>
+        <div class="opt-card-info">
+          <div class="opt-card-title">Poca Variedad</div>
+          <div class="opt-card-sub">Perfecta para hacer más fácil la planificación de comidas</div>
+        </div>
+      </div>
+      <div style="height:20px"></div>
+    </div>
+  </div>
+
+  <!-- ═══ 18. S-RATING ═══ -->
+  <div class="screen" id="s-rating" style="overflow:hidden">
+    <div class="ob-top">
+      <button class="ob-back" onclick="goScreen('s-variety')">←</button>
+    </div>
+    <div class="ob-body">
+      <div class="ob-icon-circle" style="margin-bottom:16px">📋</div>
+      <div class="ob-title">Hasta ahora, ¿cómo calificarías tu experiencia?</div>
+
+      <div class="rating-numbers" id="rating-nums">
+        <div class="rating-num" onclick="selRating(this)">1</div>
+        <div class="rating-num" onclick="selRating(this)">2</div>
+        <div class="rating-num" onclick="selRating(this)">3</div>
+        <div class="rating-num" onclick="selRating(this)">4</div>
+        <div class="rating-num" onclick="selRating(this)">5</div>
+        <div class="rating-num" onclick="selRating(this)">6</div>
+        <div class="rating-num" onclick="selRating(this)">7</div>
+        <div class="rating-num" onclick="selRating(this)">8</div>
+        <div class="rating-num" onclick="selRating(this)">9</div>
+        <div class="rating-num" onclick="selRating(this)">10</div>
+      </div>
+      <div class="rating-labels">
+        <span>Mala</span>
+        <span>Excelente</span>
+      </div>
+      <div style="height:20px"></div>
+    </div>
+    <button class="btn-yellow" onclick="goScreen('s-notifications')">Continuar</button>
+    <div class="ob-footnote">
+      <a onclick="goScreen('s-notifications')">Saltar</a>
+    </div>
+  </div>
+
+  <!-- ═══ 19. S-NOTIFICATIONS ═══ -->
+  <div class="screen" id="s-notifications" style="overflow:hidden">
+    <div class="ob-top">
+      <button class="ob-back-circle" onclick="goScreen('s-rating')">←</button>
+    </div>
+    <div class="ob-body">
+      <div class="ob-icon-circle" style="margin-bottom:16px;width:56px;height:56px;font-size:28px">🔔</div>
+      <div class="ob-title">No olvides tus comidas</div>
+      <div class="notif-stat">
+        <strong>El 80%</strong> de usuarios que consiguieron progresar la semana anterior, usan notificaciones
+      </div>
+      <div class="notif-card">
+        <div class="notif-card-icon">🍽️</div>
+        <div>
+          <div class="notif-card-title">Hora de comer — Almuerzo</div>
+          <div class="notif-card-sub">¡No olvides tu almuerzo de hoy!</div>
+        </div>
+      </div>
+      <div class="notif-card">
+        <div class="notif-card-icon">💧</div>
+        <div>
+          <div class="notif-card-title">Hidratación</div>
+          <div class="notif-card-sub">Recuerda tomar agua — llevas 1.5L hoy</div>
+        </div>
+      </div>
+      <div style="height:20px"></div>
+    </div>
+    <button class="btn-yellow" onclick="goScreen('s-register')">Permitir recordatorios</button>
+    <div class="ob-footnote"><a onclick="goScreen('s-register')">Tal vez después</a></div>
+  </div>
+
+  <!-- ═══ 20. S-REGISTER ═══ -->
+  <div class="screen" id="s-register" style="overflow:hidden">
+    <div class="ob-top">
+      <button class="ob-back-circle" onclick="goScreen('s-notifications')">←</button>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px">
+      <div class="results-check" style="margin-bottom:20px">✓</div>
+      <div style="font-size:20px;font-weight:800;color:var(--dark);text-align:center;line-height:1.3;margin-bottom:32px">
+        ¡Todo listo! Únete ahora para obtener tu plan personalizado
+      </div>
+    </div>
+    <button class="btn-black" onclick="finishSetup()">
+      🍎 &nbsp;Continuar con Apple
+    </button>
+    <button class="btn-outline" onclick="finishSetup()">
+      G &nbsp; Continuar con Google
+    </button>
+    <button class="btn-outline" onclick="finishSetup()">
+      ✉ &nbsp; Continuar con Email
+    </button>
+    <div class="ob-footnote" style="margin-top:10px">
+      Al registrarte aceptas los <a>Términos de Servicio</a> y <a>Política de Privacidad</a>
     </div>
   </div>
 
   <!-- ═══ APP SHELL ═══ -->
-  <div class="screen" id="s-app" style="flex:1;display:flex;flex-direction:column;height:100%">
+  <div class="screen" id="s-app">
     <div style="flex:1;overflow:hidden;position:relative">
 
-      <!-- DASHBOARD -->
+      <!-- ── DASHBOARD ── -->
       <div id="s-dash" style="position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden">
         <div class="top-bar">
           <div>
-            <div style="font-size:12px;color:var(--bark2);opacity:.55;font-weight:500;margin-bottom:2px">Buenos días ☀️</div>
-            <div class="top-bar-title" id="greet-name">Atleta</div>
+            <div class="dash-greeting-sub">Buenos días ☀️</div>
+            <div class="dash-greeting-name" id="greet-name">Atleta</div>
           </div>
-          <button class="top-icon-btn" onclick="openChat()">🦅</button>
+          <div class="dash-avatar" onclick="openChat()">🤖</div>
         </div>
         <div class="dash-scroll">
-          <div class="macro-hero">
+          <!-- Calorie Ring Card -->
+          <div class="cal-ring-card">
             <div class="donut-wrap">
-              <svg viewBox="0 0 96 96">
-                <circle cx="48" cy="48" r="38" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="9"/>
-                <circle id="ring-cho" cx="48" cy="48" r="38" fill="none" stroke="#c9a84c" stroke-width="9" stroke-linecap="round" stroke-dasharray="238.8" stroke-dashoffset="60"/>
-                <circle id="ring-fat2" cx="48" cy="48" r="38" fill="none" stroke="#6b8f71" stroke-width="9" stroke-linecap="round" stroke-dasharray="238.8" stroke-dashoffset="168" opacity=".8"/>
+              <svg viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(26,26,26,.08)" stroke-width="10"/>
+                <circle id="ring-prot" cx="50" cy="50" r="40" fill="none" stroke="#F5C518" stroke-width="10" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="50"/>
+                <circle id="ring-cho" cx="50" cy="50" r="40" fill="none" stroke="#34C759" stroke-width="10" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="130" opacity=".7"/>
+                <circle id="ring-fat2" cx="50" cy="50" r="40" fill="none" stroke="#FF9500" stroke-width="10" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="200" opacity=".7"/>
               </svg>
               <div class="donut-center">
-                <div class="donut-pct">45%</div>
-                <div class="donut-sub">Proteína</div>
+                <div class="donut-kcal" id="ring-kcal">—</div>
+                <div class="donut-sub">kcal</div>
               </div>
             </div>
-            <div class="macro-legend">
-              <h3>Macros de Hoy</h3>
-              <div class="legend-item"><div class="legend-dot" style="background:var(--terracota)"></div><span class="legend-name">Proteína</span><span class="legend-val" id="l-prot">148g</span></div>
-              <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div><span class="legend-name">Carbos</span><span class="legend-val" id="l-cho">320g</span></div>
-              <div class="legend-item"><div class="legend-dot" style="background:var(--sage)"></div><span class="legend-name">Grasas</span><span class="legend-val" id="l-fat">75g</span></div>
+            <div class="cal-ring-info">
+              <div class="cal-ring-title">Macros de Hoy</div>
+              <div class="macro-mini-row">
+                <div class="macro-mini-dot" style="background:#F5C518"></div>
+                <span class="macro-mini-name">Proteína</span>
+                <div class="macro-mini-track"><div class="macro-mini-fill" style="width:70%;background:#F5C518"></div></div>
+                <span class="macro-mini-val" id="l-prot">148g</span>
+              </div>
+              <div class="macro-mini-row">
+                <div class="macro-mini-dot" style="background:#34C759"></div>
+                <span class="macro-mini-name">Carbos</span>
+                <div class="macro-mini-track"><div class="macro-mini-fill" style="width:55%;background:#34C759"></div></div>
+                <span class="macro-mini-val" id="l-cho">220g</span>
+              </div>
+              <div class="macro-mini-row">
+                <div class="macro-mini-dot" style="background:#FF9500"></div>
+                <span class="macro-mini-name">Grasas</span>
+                <div class="macro-mini-track"><div class="macro-mini-fill" style="width:80%;background:#FF9500"></div></div>
+                <span class="macro-mini-val" id="l-fat">75g</span>
+              </div>
             </div>
           </div>
 
           <div class="sec-head"><h2>Mi Plan de Comidas</h2><a onclick="goTab('diary')">Ver todo</a></div>
           <div class="meals-scroll">
             <div class="meal-card" onclick="openFood('🥑','Tostada de Aguacate','Desayuno',380)">
-              <div class="meal-img-bg" style="background:linear-gradient(145deg,#f5ebe0,#e8d5b7)">🥑</div>
-              <div class="meal-body"><div class="meal-type">Desayuno</div><div class="meal-name">Tostada de Aguacate</div><div class="meal-kcal">380 kcal <span class="meal-star" onclick="event.stopPropagation()">☆</span></div></div>
+              <div class="meal-img-bg">🥑</div>
+              <div class="meal-body"><div class="meal-type">Desayuno</div><div class="meal-name">Tostada de Aguacate</div><div class="meal-kcal">380 kcal</div></div>
             </div>
             <div class="meal-card" onclick="openFood('🐟','Salmón a la Parrilla','Almuerzo',520)">
-              <div class="meal-img-bg" style="background:linear-gradient(145deg,#edf3f7,#d5e8f0)">🐟</div>
-              <div class="meal-body"><div class="meal-type">Almuerzo</div><div class="meal-name">Salmón a la Parrilla</div><div class="meal-kcal">520 kcal <span class="meal-star" onclick="event.stopPropagation()">⭐</span></div></div>
+              <div class="meal-img-bg">🐟</div>
+              <div class="meal-body"><div class="meal-type">Almuerzo</div><div class="meal-name">Salmón a la Parrilla</div><div class="meal-kcal">520 kcal</div></div>
             </div>
-            <div class="meal-card" onclick="openFood('🥦','Bowl Proteico Verde','Cena',460)">
-              <div class="meal-img-bg" style="background:linear-gradient(145deg,#e8f2e9,#d5ecd6)">🥦</div>
-              <div class="meal-body"><div class="meal-type">Cena</div><div class="meal-name">Bowl Proteico Verde</div><div class="meal-kcal">460 kcal <span class="meal-star" onclick="event.stopPropagation()">☆</span></div></div>
+            <div class="meal-card" onclick="openFood('🥦','Bowl Proteico','Cena',460)">
+              <div class="meal-img-bg">🥦</div>
+              <div class="meal-body"><div class="meal-type">Cena</div><div class="meal-name">Bowl Proteico Verde</div><div class="meal-kcal">460 kcal</div></div>
             </div>
             <div class="meal-card" onclick="openFood('🍌','Snack Energético','Snack',180)">
-              <div class="meal-img-bg" style="background:linear-gradient(145deg,#fdf8ec,#f5ecd5)">🍌</div>
-              <div class="meal-body"><div class="meal-type">Snack</div><div class="meal-name">Snack Energético</div><div class="meal-kcal">180 kcal <span class="meal-star" onclick="event.stopPropagation()">☆</span></div></div>
+              <div class="meal-img-bg">🍌</div>
+              <div class="meal-body"><div class="meal-type">Snack</div><div class="meal-name">Snack Energético</div><div class="meal-kcal">180 kcal</div></div>
             </div>
           </div>
 
           <div class="stats-row">
             <div class="stat-tile"><div class="stat-tile-icon">🔥</div><div class="stat-tile-val" id="st-tdee">—</div><div class="stat-tile-lbl">TDEE</div></div>
             <div class="stat-tile"><div class="stat-tile-icon">💧</div><div class="stat-tile-val" id="st-agua">2.4L</div><div class="stat-tile-lbl">Agua</div></div>
-            <div class="stat-tile"><div class="stat-tile-icon">💪</div><div class="stat-tile-val" id="st-prot">—</div><div class="stat-tile-lbl">Prot/kg</div></div>
+            <div class="stat-tile"><div class="stat-tile-icon">💪</div><div class="stat-tile-val" id="st-prot">2.2g</div><div class="stat-tile-lbl">Prot/kg</div></div>
           </div>
 
           <div class="water-card">
-            <div class="water-header"><span>💧</span><h4>Hidratación</h4><span id="w-liters">2.4L</span></div>
+            <div class="water-header">
+              <span>💧</span>
+              <h4>Hidratación</h4>
+              <span class="water-liter" id="w-liters">2.4L</span>
+            </div>
             <div class="water-cups" id="water-cups"></div>
           </div>
+          <div style="height:8px"></div>
         </div>
       </div>
 
-      <!-- MACROS -->
+      <!-- ── MACROS ── -->
       <div id="s-macros" style="position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;opacity:0;pointer-events:none">
         <div class="top-bar"><div class="top-bar-title">Mis Macros</div><button class="top-icon-btn" onclick="openChat()">🤖</button></div>
         <div class="macros-scroll">
-          <div class="macro-big-card" style="background:var(--terra-l)">
+          <div class="macro-big-card">
             <div class="mbcard-top">
-              <div class="mbcard-icon" style="background:var(--terracota)">💪</div>
-              <div><div class="mbcard-title">Proteínas</div><div style="font-size:11px;color:var(--bark2);opacity:.6">2.2 g/kg peso corporal</div></div>
-              <span class="mbcard-badge" style="background:var(--terracota);color:white">En rango</span>
+              <div class="mbcard-icon">💪</div>
+              <div><div class="mbcard-title">Proteínas</div><div class="mbcard-sub">2.2 g/kg peso corporal</div></div>
+              <span class="mbcard-badge green">En rango</span>
             </div>
-            <div class="mbcard-progress-track"><div class="mbcard-progress-fill" id="pb-prot" style="width:0%;background:var(--terracota)"></div></div>
-            <div class="mbcard-nums"><span><b id="mn-prot">148</b>g consumidos</span><span id="mn-prot-meta">172</span>g meta</div>
+            <div class="mbcard-progress-track"><div class="mbcard-progress-fill" id="pb-prot" style="width:0%"></div></div>
+            <div class="mbcard-nums"><span><b id="mn-prot">148</b>g consumidos</span><span><span id="mn-prot-meta">172</span>g meta</span></div>
             <div class="mbcard-sources">🥩 Pollo · 🥚 Huevos · 🐟 Atún · 🥛 Whey · 🫘 Legumbres</div>
           </div>
-          <div class="macro-big-card" style="background:var(--mist-l)">
+          <div class="macro-big-card">
             <div class="mbcard-top">
-              <div class="mbcard-icon" style="background:var(--mist)">⚡</div>
-              <div><div class="mbcard-title">Carbohidratos</div><div style="font-size:11px;color:var(--bark2);opacity:.6">5.8 g/kg · Energía principal</div></div>
-              <span class="mbcard-badge" style="background:var(--mist-l);color:var(--mist);border:1px solid var(--mist)">Ajustar</span>
+              <div class="mbcard-icon">⚡</div>
+              <div><div class="mbcard-title">Carbohidratos</div><div class="mbcard-sub">Energía principal</div></div>
+              <span class="mbcard-badge yellow">Ajustar</span>
             </div>
-            <div class="mbcard-progress-track"><div class="mbcard-progress-fill" id="pb-cho" style="width:0%;background:var(--mist)"></div></div>
-            <div class="mbcard-nums"><span><b id="mn-cho">320</b>g consumidos</span><span id="mn-cho-meta">453</span>g meta</div>
+            <div class="mbcard-progress-track"><div class="mbcard-progress-fill" id="pb-cho" style="width:0%"></div></div>
+            <div class="mbcard-nums"><span><b id="mn-cho">220</b>g consumidos</span><span><span id="mn-cho-meta">320</span>g meta</span></div>
             <div class="mbcard-sources">🍚 Arroz · 🌾 Avena · 🍌 Plátano · 🥔 Papa · 🍎 Frutas</div>
           </div>
-          <div class="macro-big-card" style="background:var(--sage-l)">
+          <div class="macro-big-card">
             <div class="mbcard-top">
-              <div class="mbcard-icon" style="background:var(--sage)">🥑</div>
-              <div><div class="mbcard-title">Grasas</div><div style="font-size:11px;color:var(--bark2);opacity:.6">1.1 g/kg · Hormonas y vitaminas</div></div>
-              <span class="mbcard-badge" style="background:var(--sage);color:white">Óptimo</span>
+              <div class="mbcard-icon">🥑</div>
+              <div><div class="mbcard-title">Grasas</div><div class="mbcard-sub">Hormonas y vitaminas</div></div>
+              <span class="mbcard-badge green">Óptimo</span>
             </div>
-            <div class="mbcard-progress-track"><div class="mbcard-progress-fill" id="pb-fat" style="width:0%;background:var(--sage)"></div></div>
-            <div class="mbcard-nums"><span><b id="mn-fat">75</b>g consumidos</span><span id="mn-fat-meta">86</span>g meta</div>
+            <div class="mbcard-progress-track"><div class="mbcard-progress-fill" id="pb-fat" style="width:0%"></div></div>
+            <div class="mbcard-nums"><span><b id="mn-fat">65</b>g consumidos</span><span><span id="mn-fat-meta">75</span>g meta</span></div>
             <div class="mbcard-sources">🫒 Aceite oliva · 🥑 Aguacate · 🐟 Salmón · 🌰 Nueces</div>
           </div>
           <div class="micro-card">
-            <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:var(--bark);margin-bottom:4px">Micronutrientes</div>
-            <div style="font-size:12px;color:var(--bark2);opacity:.6">Vitaminas y minerales clave</div>
+            <div style="font-size:17px;font-weight:800;color:var(--dark);margin-bottom:2px">Micronutrientes</div>
+            <div style="font-size:12px;color:var(--muted)">Vitaminas y minerales clave</div>
             <div class="micro-bars">
-              <div class="micro-bar-col"><div class="micro-bar-track"><div class="micro-bar-fill" style="height:72%;background:var(--terracota)"></div></div><div class="micro-bar-lbl">Vit C</div></div>
-              <div class="micro-bar-col"><div class="micro-bar-track"><div class="micro-bar-fill" style="height:45%;background:var(--gold)"></div></div><div class="micro-bar-lbl">Vit D</div></div>
-              <div class="micro-bar-col"><div class="micro-bar-track"><div class="micro-bar-fill" style="height:88%;background:var(--sage)"></div></div><div class="micro-bar-lbl">Hierro</div></div>
-              <div class="micro-bar-col"><div class="micro-bar-track"><div class="micro-bar-fill" style="height:95%;background:var(--mist)"></div></div><div class="micro-bar-lbl">Calcio</div></div>
-              <div class="micro-bar-col"><div class="micro-bar-track"><div class="micro-bar-fill" style="height:60%;background:var(--bark2)"></div></div><div class="micro-bar-lbl">Zinc</div></div>
-              <div class="micro-bar-col"><div class="micro-bar-track"><div class="micro-bar-fill" style="height:80%;background:var(--terracota)"></div></div><div class="micro-bar-lbl">Mg</div></div>
-            </div>
-            <div class="micro-goal-line"></div>
-            <div class="micro-legend">
-              <div class="micro-leg-item"><div class="micro-leg-dot" style="background:var(--terracota)"></div>Actual</div>
-              <div class="micro-leg-item"><div class="micro-leg-dot" style="background:var(--border)"></div>Meta</div>
+              <div class="micro-bar-col"><div class="micro-bar-track"><div class="micro-bar-fill" style="height:72%"></div></div><div class="micro-bar-lbl">Vit C</div></div>
+              <div class="micro-bar-col"><div class="micro-bar-track"><div class="micro-bar-fill" style="height:45%;background:#34C759"></div></div><div class="micro-bar-lbl">Vit D</div></div>
+              <div class="micro-bar-col"><div class="micro-bar-track"><div class="micro-bar-fill" style="height:88%;background:#FF9500"></div></div><div class="micro-bar-lbl">Hierro</div></div>
+              <div class="micro-bar-col"><div class="micro-bar-track"><div class="micro-bar-fill" style="height:95%"></div></div><div class="micro-bar-lbl">Calcio</div></div>
+              <div class="micro-bar-col"><div class="micro-bar-track"><div class="micro-bar-fill" style="height:60%;background:#34C759"></div></div><div class="micro-bar-lbl">Zinc</div></div>
+              <div class="micro-bar-col"><div class="micro-bar-track"><div class="micro-bar-fill" style="height:80%"></div></div><div class="micro-bar-lbl">Mg</div></div>
             </div>
           </div>
           <div style="height:12px"></div>
         </div>
       </div>
 
-      <!-- FOOD DETAIL -->
+      <!-- ── FOOD DETAIL ── -->
       <div id="s-food" style="position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;opacity:0;pointer-events:none">
         <div style="flex:1;overflow-y:auto">
           <div class="food-hero-img" id="food-emoji" style="position:relative">🥑
-            <button class="food-back" onclick="closeFood()" style="position:absolute;top:52px;left:16px">←</button>
+            <button class="food-back" onclick="closeFood()">←</button>
           </div>
-          <div style="padding:20px 24px 0">
+          <div style="padding:18px 20px 0">
             <div style="display:flex;gap:8px;margin-bottom:6px">
-              <span id="food-type-tag" class="food-tag" style="background:var(--terra-l);color:var(--terracota)">Desayuno</span>
+              <span id="food-type-tag" class="food-tag">Desayuno</span>
               <span class="food-tag">⭐ Favorito</span>
             </div>
             <div class="food-title" id="food-title">Tostada de Aguacate</div>
@@ -284,14 +1015,14 @@
         </div>
       </div>
 
-      <!-- DIARY -->
+      <!-- ── DIARY ── -->
       <div id="s-diary" style="position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;opacity:0;pointer-events:none">
         <div class="top-bar"><div class="top-bar-title">Diario Alimentario</div><button class="top-icon-btn">📅</button></div>
         <div style="flex:1;overflow-y:auto;padding:0 20px 20px">
           <div class="calendar-card">
             <div class="cal-nav">
               <button class="cal-arrow">‹</button>
-              <div class="cal-month">Abril 2025</div>
+              <div class="cal-month" id="cal-month-label">Abril 2025</div>
               <button class="cal-arrow">›</button>
             </div>
             <div class="cal-days-header">
@@ -303,22 +1034,22 @@
           <div class="sec-head"><h2>Hoy</h2></div>
           <div class="diary-log">
             <div class="diary-entry" onclick="openFood('🥑','Tostada de Aguacate','Desayuno',380)">
-              <div class="diary-dot" style="background:var(--gold)"></div>
+              <div class="diary-dot" style="background:#F5C518"></div>
               <div class="diary-entry-name">🌅 Desayuno · Tostada de Aguacate</div>
               <div class="diary-entry-kcal">380 kcal</div>
             </div>
             <div class="diary-entry" onclick="openFood('🐟','Salmón a la Parrilla','Almuerzo',520)">
-              <div class="diary-dot" style="background:var(--mist)"></div>
+              <div class="diary-dot" style="background:#34C759"></div>
               <div class="diary-entry-name">☀️ Almuerzo · Salmón a la Parrilla</div>
               <div class="diary-entry-kcal">520 kcal</div>
             </div>
             <div class="diary-entry" onclick="openFood('🍌','Snack de Plátano','Snack',180)">
-              <div class="diary-dot" style="background:var(--sage)"></div>
+              <div class="diary-dot" style="background:#FF9500"></div>
               <div class="diary-entry-name">⚡ Snack · Plátano + Nueces</div>
               <div class="diary-entry-kcal">180 kcal</div>
             </div>
             <div class="diary-add-row" onclick="toast('📝 Escribe el nombre del alimento')">
-              <span style="font-size:18px">+</span>
+              <span style="font-size:18px;color:var(--muted)">+</span>
               <span class="diary-add-label">Añadir alimento</span>
             </div>
           </div>
@@ -335,7 +1066,7 @@
         </div>
       </div>
 
-      <!-- SETTINGS -->
+      <!-- ── SETTINGS / PROFILE ── -->
       <div id="s-settings" style="position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;opacity:0;pointer-events:none">
         <div class="top-bar"><div class="top-bar-title">Mi Perfil</div><button class="top-icon-btn">✏️</button></div>
         <div style="flex:1;overflow-y:auto;padding:0 20px 24px">
@@ -343,19 +1074,20 @@
             <div class="profile-avatar">🏃</div>
             <div>
               <div class="profile-name" id="prof-name">Atleta</div>
-              <div class="profile-sub" id="prof-sub">78.4 kg · 178 cm · 26 años</div>
+              <div class="profile-sub" id="prof-sub">70 kg · 170 cm · 25 años</div>
             </div>
             <div class="profile-badge">PRO</div>
           </div>
           <div class="settings-group">
             <div class="settings-group-title">Configuración del Plan</div>
             <div class="setting-item">
-              <div class="setting-icon-wrap" style="background:var(--terra-l)">🎯</div>
-              <div class="setting-label">Protocolo IGE</div>
-              <label class="toggle"><input type="checkbox" checked><div class="toggle-slider"></div></label>
+              <div class="setting-icon-wrap">🎯</div>
+              <div class="setting-label">Objetivo</div>
+              <div class="setting-val" id="prof-objetivo">Perder Grasa</div>
+              <div class="setting-arrow">›</div>
             </div>
             <div class="setting-item">
-              <div class="setting-icon-wrap" style="background:var(--gold-l)">⚖️</div>
+              <div class="setting-icon-wrap">⚖️</div>
               <div class="setting-label">Macros</div>
               <div class="setting-val">Balanceado</div>
               <div class="setting-arrow">›</div>
@@ -373,17 +1105,17 @@
           <div class="settings-group">
             <div class="settings-group-title">Preferencias Dietarias</div>
             <div class="setting-item">
-              <div class="setting-icon-wrap" style="background:var(--mist-l)">🥛</div>
+              <div class="setting-icon-wrap">🥛</div>
               <div class="setting-label">Sin Lácteos</div>
               <label class="toggle"><input type="checkbox"><div class="toggle-slider"></div></label>
             </div>
             <div class="setting-item">
-              <div class="setting-icon-wrap" style="background:var(--sage-l)">🌾</div>
+              <div class="setting-icon-wrap">🌾</div>
               <div class="setting-label">Sin Gluten</div>
               <label class="toggle"><input type="checkbox"><div class="toggle-slider"></div></label>
             </div>
             <div class="setting-item">
-              <div class="setting-icon-wrap" style="background:var(--terra-l)">🌱</div>
+              <div class="setting-icon-wrap">🌱</div>
               <div class="setting-label">Vegano</div>
               <label class="toggle"><input type="checkbox"><div class="toggle-slider"></div></label>
             </div>
@@ -391,12 +1123,12 @@
           <div class="settings-group">
             <div class="settings-group-title">Recordatorios</div>
             <div class="setting-item">
-              <div class="setting-icon-wrap" style="background:var(--gold-l)">🔔</div>
+              <div class="setting-icon-wrap">🔔</div>
               <div class="setting-label">Recordatorio de comidas</div>
               <label class="toggle"><input type="checkbox" checked><div class="toggle-slider"></div></label>
             </div>
             <div class="setting-item">
-              <div class="setting-icon-wrap" style="background:var(--mist-l)">💧</div>
+              <div class="setting-icon-wrap">💧</div>
               <div class="setting-label">Recordatorio de agua</div>
               <label class="toggle"><input type="checkbox" checked><div class="toggle-slider"></div></label>
             </div>
@@ -404,17 +1136,17 @@
           <div class="settings-group">
             <div class="settings-group-title">Cuenta</div>
             <div class="setting-item" onclick="toast('📋 Mis recetas próximamente')">
-              <div class="setting-icon-wrap" style="background:var(--sage-l)">📋</div>
+              <div class="setting-icon-wrap">📋</div>
               <div class="setting-label">Mis Recetas</div>
               <div class="setting-arrow">›</div>
             </div>
             <div class="setting-item" onclick="toast('📊 Historial de progreso')">
-              <div class="setting-icon-wrap" style="background:var(--terra-l)">📊</div>
+              <div class="setting-icon-wrap">📊</div>
               <div class="setting-label">Historial de Progreso</div>
               <div class="setting-arrow">›</div>
             </div>
-            <div class="setting-item" onclick="goScreen('s-splash')">
-              <div class="setting-icon-wrap" style="background:var(--cream2)">🚪</div>
+            <div class="setting-item" onclick="goScreen('s-welcome')">
+              <div class="setting-icon-wrap">🚪</div>
               <div class="setting-label">Reiniciar perfil</div>
               <div class="setting-arrow">›</div>
             </div>
@@ -430,19 +1162,73 @@
         <span class="nav-icon">🏠</span><div class="nav-dot"></div><span class="nav-label">Inicio</span>
       </button>
       <button class="nav-item" id="nav-macros" onclick="goTab('macros')">
-        <span class="nav-icon">🍽️</span><div class="nav-dot"></div><span class="nav-label">Macros</span>
+        <span class="nav-icon">📊</span><div class="nav-dot"></div><span class="nav-label">Macros</span>
       </button>
       <button class="nav-item" id="nav-diary" onclick="goTab('diary')">
         <span class="nav-icon">📔</span><div class="nav-dot"></div><span class="nav-label">Diario</span>
       </button>
       <button class="nav-item" id="nav-ai" onclick="openChat()">
-        <span class="nav-icon">🦅</span><div class="nav-dot"></div><span class="nav-label">NutriBot</span>
+        <span class="nav-icon">🤖</span><div class="nav-dot"></div><span class="nav-label">NutriBot</span>
       </button>
       <button class="nav-item" id="nav-settings" onclick="goTab('settings')">
         <span class="nav-icon">👤</span><div class="nav-dot"></div><span class="nav-label">Perfil</span>
       </button>
     </nav>
   </div><!-- /s-app -->
+
+  <!-- ── BOTTOM SHEETS (profile editor) ── -->
+  <div class="sheet-overlay" id="sheet-overlay" onclick="closeSheet()"></div>
+
+  <!-- Sexo -->
+  <div class="bottom-sheet" id="sheet-sexo">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Sexo</div>
+    <div class="sheet-options">
+      <div class="sheet-option sel" onclick="setSexo('m',this)">Hombre</div>
+      <div class="sheet-option" onclick="setSexo('f',this)">Mujer</div>
+    </div>
+  </div>
+
+  <!-- Edad -->
+  <div class="bottom-sheet" id="sheet-edad">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Edad</div>
+    <input class="sheet-input" id="input-edad" type="number" min="10" max="100" value="25" placeholder="25">
+    <button class="btn-yellow" style="width:100%;margin:0" onclick="setEdad()">Guardar</button>
+  </div>
+
+  <!-- Altura -->
+  <div class="bottom-sheet" id="sheet-altura">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Altura (cm)</div>
+    <input class="sheet-input" id="input-altura" type="number" min="100" max="250" value="170" placeholder="170">
+    <button class="btn-yellow" style="width:100%;margin:0" onclick="setAltura()">Guardar</button>
+  </div>
+
+  <!-- Peso -->
+  <div class="bottom-sheet" id="sheet-peso">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Peso (kg)</div>
+    <input class="sheet-input" id="input-peso" type="number" min="30" max="300" value="70" step="0.5" placeholder="70">
+    <button class="btn-yellow" style="width:100%;margin:0" onclick="setPeso()">Guardar</button>
+  </div>
+
+  <!-- Peso actual (personalize screen) -->
+  <div class="bottom-sheet" id="sheet-peso-actual">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Peso actual (kg)</div>
+    <input class="sheet-input" id="input-peso-actual" type="number" min="30" max="300" value="70" step="0.5" placeholder="70">
+    <button class="btn-yellow" style="width:100%;margin:0" onclick="setPesoActual()">Guardar</button>
+  </div>
+
+  <!-- Peso objetivo -->
+  <div class="bottom-sheet" id="sheet-peso-obj">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Peso objetivo (kg)</div>
+    <input class="sheet-input" id="input-peso-obj" type="number" min="30" max="300" value="65" step="0.5" placeholder="65">
+    <button class="btn-yellow" style="width:100%;margin:0" onclick="setPesoObj()">Guardar</button>
+  </div>
+
 </div><!-- /phone -->
 
 <!-- AI CHAT OVERLAY -->
@@ -450,7 +1236,7 @@
   <div class="chat-sheet">
     <div class="chat-handle"></div>
     <div class="chat-sheet-head">
-      <div class="chat-avatar">🦅</div>
+      <div class="chat-avatar">🤖</div>
       <div>
         <div class="chat-head-name">NutriBot Pro</div>
         <div class="chat-head-status"><div class="chat-status-dot"></div>En línea · IA Nutricional</div>
@@ -459,7 +1245,7 @@
     </div>
     <div class="chat-msgs-area" id="chat-msgs">
       <div class="chat-bubble-wrap ai">
-        <div class="chat-bub">¡Hola! 🌿 Soy tu nutricionista IA.<br><br>Puedo explicar tus métricas, calcular macros o responder dudas sobre nutrición deportiva. ¿En qué te ayudo?</div>
+        <div class="chat-bub">¡Hola! 🌿 Soy tu nutricionista IA.<br><br>Puedo explicar tus métricas, calcular macros o responder dudas sobre nutrición. ¿En qué te ayudo?</div>
         <div class="chat-bub-time">Ahora</div>
       </div>
     </div>
