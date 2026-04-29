@@ -6,31 +6,35 @@ if ('serviceWorker' in navigator) {
 
 /* ══ THEME ══ */
 let isDark = false;
-function toggleTheme() {
-  isDark = !isDark;
+
+function applyTheme(dark) {
+  isDark = dark;
   const phone = document.querySelector('.phone');
   const icon  = document.getElementById('theme-icon');
-  phone.classList.toggle('dark', isDark);
-  document.body.classList.toggle('dark-body', isDark);
-  icon.textContent = isDark ? '🌙' : '☀️';
-  localStorage.setItem('nutripro-theme', isDark ? 'dark' : 'light');
-  toast(isDark ? '🌙 Modo oscuro' : '☀️ Modo claro');
+  phone.classList.toggle('dark', dark);
+  /* body bg siempre igual al phone para cero gaps */
+  document.body.style.background = dark ? '#0F0F0F' : '#F7F5ED';
+  if (icon) icon.textContent = dark ? '🌙' : '☀️';
 }
 
-/* Restore saved theme on load */
-document.addEventListener('DOMContentLoaded', () => {
-  if (localStorage.getItem('nutripro-theme') === 'dark') {
-    isDark = true;
-    document.querySelector('.phone').classList.add('dark');
-    document.body.classList.add('dark-body');
-    const icon = document.getElementById('theme-icon');
-    if (icon) icon.textContent = '🌙';
-  }
+function toggleTheme() {
+  applyTheme(!isDark);
+  localStorage.setItem('nutripro-theme', isDark ? 'dark' : 'light');
+  toast(isDark ? '🌙 Modo oscuro activado' : '☀️ Modo claro activado');
+}
 
-  /* Block page-level scroll/bounce on non-scrollable areas */
+/* Restaurar tema guardado y bloquear scroll de página */
+document.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('nutripro-theme');
+  if (saved === 'dark') applyTheme(true);
+  else applyTheme(false);               /* fuerza body=cream desde el inicio */
+
+  /* Bloquear bounce/scroll global excepto en áreas scrollables */
   document.addEventListener('touchmove', (e) => {
-    const scrollable = e.target.closest('.ob-body, .dash-scroll, .macros-scroll, .chat-msgs-area, .bottom-sheet');
-    if (!scrollable) e.preventDefault();
+    const ok = e.target.closest(
+      '.ob-body, .dash-scroll, .macros-scroll, .chat-msgs-area, .bottom-sheet, .meals-scroll'
+    );
+    if (!ok) e.preventDefault();
   }, { passive: false });
 });
 

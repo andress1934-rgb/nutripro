@@ -64,20 +64,28 @@
 
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 
-html, body {
-  margin: 0; padding: 0;
-  width: 100%; height: 100%;
+html {
+  height: 100%;
+  height: 100dvh;
   overflow: hidden;
-  background: #0D0D0D;
+}
+
+body {
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background: #F7F5ED;        /* coincide con --bg claro */
   font-family: 'Inter', system-ui, sans-serif;
   touch-action: none;
+  transition: background .35s ease;
 }
-body.dark-body { background: #000000; }
+body.dark-body { background: #0F0F0F; }  /* coincide con --bg oscuro */
 
-/* ─── PHONE SHELL — fills full viewport, no gaps ─── */
+/* ─── PHONE SHELL — 100% sin gaps ─── */
 .phone {
-  position: fixed;
-  inset: 0;
+  width: 100%;
+  height: 100%;
   background: var(--bg);
   overflow: hidden;
   display: flex;
@@ -90,14 +98,15 @@ body.dark-body { background: #000000; }
 .screen {
   position: absolute; inset: 0;
   display: flex; flex-direction: column;
-  background: var(--bg);
+  background: var(--bg);          /* hereda el tema del .phone */
+  transition: background .35s ease, opacity .3s ease;
   opacity: 0; pointer-events: none;
-  transition: opacity .3s ease;
   overflow: hidden;
 }
 .screen.active {
   opacity: 1; pointer-events: all;
   position: relative; flex: 1;
+  min-height: 0;                  /* evita que flex hijo se desborde */
 }
 #s-app.active {
   display: flex; flex-direction: column; height: 100%;
@@ -307,12 +316,13 @@ body.dark-body { background: #000000; }
    S-WELCOME
 ───────────────────────────────────────── */
 #s-welcome {
-  background: #0D0D0D;
+  background: var(--welcome-bg, #1A1A1A);
   justify-content: flex-end;
   padding-bottom: 0;
   overflow: hidden;
   touch-action: none;
   overscroll-behavior: none;
+  transition: background .35s ease;
 }
 .welcome-food-circle {
   position: absolute;
@@ -334,26 +344,48 @@ body.dark-body { background: #000000; }
 .welcome-logo-mark span {
   display: block; width: 100%; height: 2px; background: var(--dark); border-radius: 1px;
 }
-.welcome-logo-text { font-size: 16px; font-weight: 700; color: white; letter-spacing: -.02em; }
+.welcome-logo-text {
+  font-size: 16px; font-weight: 700; letter-spacing: -.02em;
+  color: var(--welcome-text, #FFFFFF);
+  transition: color .35s;
+}
 
 .welcome-content {
   padding: 40px 28px 0; position: relative; z-index: 2;
 }
 .welcome-title {
-  font-size: 34px; font-weight: 900; color: white;
+  font-size: 34px; font-weight: 900;
+  color: var(--welcome-text, #FFFFFF);
   line-height: 1.15; letter-spacing: -.03em; margin-bottom: 40px;
+  transition: color .35s;
 }
 .welcome-buttons { padding: 0 0 20px; }
 .welcome-signin {
-  text-align: center; font-size: 13px; color: rgba(255,255,255,.55);
+  text-align: center; font-size: 13px;
+  color: var(--welcome-sub, rgba(255,255,255,.55));
   padding: 16px 20px 32px; cursor: pointer;
+  transition: color .35s;
 }
 .welcome-signin span { color: var(--accent); font-weight: 600; }
 
+/* ─── Tema claro en welcome ─── */
+.phone:not(.dark) {
+  --welcome-bg:   #1A1A1A;
+  --welcome-text: #FFFFFF;
+  --welcome-sub:  rgba(255,255,255,.55);
+}
+/* ─── Tema oscuro en welcome (igual de oscuro) ─── */
+.phone.dark {
+  --welcome-bg:   #0F0F0F;
+  --welcome-text: #F2F2F7;
+  --welcome-sub:  rgba(242,242,247,.5);
+}
+
+/* ─── Botón de tema ─── */
 .theme-toggle {
   position: absolute; top: 52px; right: 24px;
   width: 40px; height: 40px; border-radius: 50%;
-  background: rgba(255,255,255,.15);
+  background: rgba(255,255,255,.12);
   border: 1.5px solid rgba(255,255,255,.2);
   display: flex; align-items: center; justify-content: center;
   font-size: 18px; cursor: pointer; z-index: 10;
@@ -361,7 +393,7 @@ body.dark-body { background: #000000; }
   backdrop-filter: blur(8px);
 }
 .theme-toggle:active { transform: scale(.92); }
-.theme-toggle:hover { background: rgba(255,255,255,.25); }
+.theme-toggle:hover  { background: rgba(255,255,255,.22); }
 
 /* ─────────────────────────────────────────
    S-CALORIE-INTRO / S-MEALPLAN-INTRO
