@@ -26,6 +26,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const icon = document.getElementById('theme-icon');
     if (icon) icon.textContent = '🌙';
   }
+
+  /* Block page-level scroll/bounce on non-scrollable areas */
+  document.addEventListener('touchmove', (e) => {
+    const scrollable = e.target.closest('.ob-body, .dash-scroll, .macros-scroll, .chat-msgs-area, .bottom-sheet');
+    if (!scrollable) e.preventDefault();
+  }, { passive: false });
 });
 
 /* ══ STATE ══ */
