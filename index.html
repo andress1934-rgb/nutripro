@@ -34,26 +34,33 @@
 
   <!-- ═══ 1. S-WELCOME ═══ -->
   <div class="screen active" id="s-welcome">
-    <div class="welcome-food-circle">🥗</div>
-    <div class="welcome-logo">
-      <div class="welcome-logo-mark">
-        <span></span><span></span><span></span>
+
+    <!-- Foto grande top-right, igual que Fitia -->
+    <div class="welcome-photo">🥗</div>
+
+    <!-- Barra superior: logo + toggle -->
+    <div class="welcome-topbar">
+      <div class="welcome-logo">
+        <div class="welcome-logo-mark"><span></span><span></span><span></span></div>
+        <span class="welcome-logo-text">NutriPro</span>
       </div>
-      <span class="welcome-logo-text">NutriPro</span>
+      <button class="theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()">
+        <span id="theme-icon">☀️</span>
+      </button>
     </div>
-    <button class="theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()" title="Cambiar tema">
-      <span id="theme-icon">☀️</span>
-    </button>
-    <div style="flex:1"></div>
-    <div class="welcome-content">
+
+    <!-- Espacio flexible que empuja el contenido hacia abajo -->
+    <div class="welcome-spacer"></div>
+
+    <!-- Contenido inferior -->
+    <div class="welcome-bottom">
       <div class="welcome-title">Come mejor,<br>obtén resultados</div>
+      <button class="btn-yellow welcome-cta" onclick="goScreen('s-goal')">Comenzar</button>
+      <div class="welcome-signin">
+        ¿Ya tienes una cuenta?&nbsp;<span onclick="toast('📧 Inicio de sesión próximamente')">Inicia Sesión</span>
+      </div>
     </div>
-    <div class="welcome-buttons">
-      <button class="btn-yellow" onclick="goScreen('s-goal')">Comenzar</button>
-    </div>
-    <div class="welcome-signin">
-      ¿Ya tienes una cuenta? <span onclick="toast('📧 Inicio de sesión próximamente')">Inicia Sesión</span>
-    </div>
+
   </div>
 
   <!-- ═══ 2. S-GOAL ═══ -->

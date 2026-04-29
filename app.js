@@ -10,19 +10,24 @@ let isDark = false;
 function applyTheme(dark) {
   isDark = dark;
   const bg = dark ? '#0F0F0F' : '#F7F5ED';
+  const phone = document.querySelector('.phone');
 
-  /* Pintar html + body para que no quede NINGÚN píxel sin cubrir */
+  /* 1. Desactivar TODAS las transiciones CSS un frame antes */
+  phone.classList.add('no-transition');
   document.documentElement.style.background = bg;
   document.body.style.background = bg;
 
-  /* Aplicar clase .dark al phone (activa variables CSS oscuras) */
-  document.querySelector('.phone').classList.toggle('dark', dark);
+  /* 2. Aplicar el tema (todo cambia en el mismo frame, sin delay) */
+  phone.classList.toggle('dark', dark);
 
-  /* Icono del botón */
+  /* 3. Reactivar transiciones en el siguiente frame de pintura */
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => phone.classList.remove('no-transition'));
+  });
+
+  /* Icono y meta-color */
   const icon = document.getElementById('theme-icon');
   if (icon) icon.textContent = dark ? '🌙' : '☀️';
-
-  /* theme-color para la barra de estado del navegador */
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute('content', bg);
 }
