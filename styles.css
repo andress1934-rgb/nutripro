@@ -71,35 +71,33 @@ html, body {
   touch-action: none;
 }
 
-/* ─── PHONE SHELL: fixed cubre TODO el viewport sin importar barras del browser ─── */
+/* ─── PHONE SHELL ─── */
 .phone {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
   background: var(--bg);
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
   font-family: 'Inter', system-ui, sans-serif;
   transition: background .35s ease;
   touch-action: none;
 }
 
-/* ─── SCREENS ─── */
+/* ─── SCREENS: todas position:absolute inset:0 → llenan el phone al 100% ─── */
 .screen {
-  position: absolute; inset: 0;
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
   display: flex; flex-direction: column;
-  background: var(--bg);          /* hereda el tema del .phone */
-  transition: background .35s ease, opacity .3s ease;
+  background: var(--bg);
+  transition: background .35s ease, opacity .28s ease;
   opacity: 0; pointer-events: none;
   overflow: hidden;
 }
 .screen.active {
   opacity: 1; pointer-events: all;
-  position: relative; flex: 1;
-  min-height: 0;                  /* evita que flex hijo se desborde */
+  z-index: 1;
 }
 #s-app.active {
-  display: flex; flex-direction: column; height: 100%;
+  display: flex; flex-direction: column;
 }
 
 /* ─────────────────────────────────────────
@@ -306,12 +304,10 @@ html, body {
    S-WELCOME
 ───────────────────────────────────────── */
 #s-welcome {
-  background: var(--welcome-bg, #1A1A1A);
+  /* color lo ponen los selectores .phone:not(.dark) y .phone.dark */
+  background: #1A1A1A;
   justify-content: flex-end;
   padding-bottom: 0;
-  overflow: hidden;
-  touch-action: none;
-  overscroll-behavior: none;
   transition: background .35s ease;
 }
 .welcome-food-circle {
@@ -336,7 +332,7 @@ html, body {
 }
 .welcome-logo-text {
   font-size: 16px; font-weight: 700; letter-spacing: -.02em;
-  color: var(--welcome-text, #FFFFFF);
+  color: #FFFFFF;
   transition: color .35s;
 }
 
@@ -345,33 +341,51 @@ html, body {
 }
 .welcome-title {
   font-size: 34px; font-weight: 900;
-  color: var(--welcome-text, #FFFFFF);
+  color: #FFFFFF;
   line-height: 1.15; letter-spacing: -.03em; margin-bottom: 40px;
   transition: color .35s;
 }
 .welcome-buttons { padding: 0 0 20px; }
 .welcome-signin {
   text-align: center; font-size: 13px;
-  color: var(--welcome-sub, rgba(255,255,255,.55));
-  padding: 16px 20px 32px; cursor: pointer;
+  color: rgba(255,255,255,.55);
+  padding: 16px 20px max(32px, env(safe-area-inset-bottom)); cursor: pointer;
   transition: color .35s;
 }
 .welcome-signin span { color: var(--accent); font-weight: 600; }
 
-/* ─── Tema claro en welcome ─── */
-.phone:not(.dark) {
-  --welcome-bg:   #1A1A1A;
-  --welcome-text: #FFFFFF;
-  --welcome-sub:  rgba(255,255,255,.55);
+/* ─── Welcome: modo CLARO → fondo crema, texto oscuro ─── */
+.phone:not(.dark) #s-welcome {
+  background: #F7F5ED;
 }
-/* ─── Tema oscuro en welcome (igual de oscuro) ─── */
-.phone.dark {
-  --welcome-bg:   #0F0F0F;
-  --welcome-text: #F2F2F7;
-  --welcome-sub:  rgba(242,242,247,.5);
+.phone:not(.dark) .welcome-title,
+.phone:not(.dark) .welcome-logo-text {
+  color: #1A1A1A;
+}
+.phone:not(.dark) .welcome-signin {
+  color: rgba(26,26,26,.5);
+}
+.phone:not(.dark) .theme-toggle {
+  background: rgba(26,26,26,.08);
+  border-color: rgba(26,26,26,.15);
+}
+.phone:not(.dark) .theme-toggle:hover {
+  background: rgba(26,26,26,.14);
 }
 
-/* ─── Botón de tema ─── */
+/* ─── Welcome: modo OSCURO → fondo negro, texto blanco ─── */
+.phone.dark #s-welcome {
+  background: #0F0F0F;
+}
+.phone.dark .welcome-title,
+.phone.dark .welcome-logo-text {
+  color: #F2F2F7;
+}
+.phone.dark .welcome-signin {
+  color: rgba(242,242,247,.5);
+}
+
+/* ─── Botón de tema (base) ─── */
 .theme-toggle {
   position: absolute; top: 52px; right: 24px;
   width: 40px; height: 40px; border-radius: 50%;
@@ -379,11 +393,9 @@ html, body {
   border: 1.5px solid rgba(255,255,255,.2);
   display: flex; align-items: center; justify-content: center;
   font-size: 18px; cursor: pointer; z-index: 10;
-  transition: background .2s, transform .2s;
-  backdrop-filter: blur(8px);
+  transition: background .25s, border-color .25s, transform .15s;
 }
-.theme-toggle:active { transform: scale(.92); }
-.theme-toggle:hover  { background: rgba(255,255,255,.22); }
+.theme-toggle:active { transform: scale(.9); }
 
 /* ─────────────────────────────────────────
    S-CALORIE-INTRO / S-MEALPLAN-INTRO
