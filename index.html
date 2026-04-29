@@ -8,6 +8,18 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+
+  <!-- Aplica tema ANTES del primer render para evitar flash de color incorrecto -->
+  <script>
+    (function(){
+      var dark = localStorage.getItem('nutripro-theme') === 'dark';
+      var bg   = dark ? '#0F0F0F' : '#F7F5ED';
+      document.documentElement.style.background = bg;
+      document.documentElement.style.backgroundColor = bg;
+      if (dark) document.documentElement.setAttribute('data-theme','dark');
+    })();
+  </script>
+
   <link rel="manifest" href="manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
