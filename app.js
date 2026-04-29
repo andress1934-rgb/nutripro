@@ -13,8 +13,20 @@ function toggleTheme() {
   phone.classList.toggle('dark', isDark);
   document.body.classList.toggle('dark-body', isDark);
   icon.textContent = isDark ? '🌙' : '☀️';
-  toast(isDark ? '🌙 Modo oscuro activado' : '☀️ Modo claro activado');
+  localStorage.setItem('nutripro-theme', isDark ? 'dark' : 'light');
+  toast(isDark ? '🌙 Modo oscuro' : '☀️ Modo claro');
 }
+
+/* Restore saved theme on load */
+document.addEventListener('DOMContentLoaded', () => {
+  if (localStorage.getItem('nutripro-theme') === 'dark') {
+    isDark = true;
+    document.querySelector('.phone').classList.add('dark');
+    document.body.classList.add('dark-body');
+    const icon = document.getElementById('theme-icon');
+    if (icon) icon.textContent = '🌙';
+  }
+});
 
 /* ══ STATE ══ */
 let S = {

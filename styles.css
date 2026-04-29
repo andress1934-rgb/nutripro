@@ -32,22 +32,35 @@
    DARK MODE — tokens override
 ───────────────────────────────────────── */
 .phone.dark {
-  --bg:         #121212;
-  --card:       #1E1E1E;
-  --card2:      #252525;
-  --white:      #1E1E1E;
-  --dark:       #F0F0F0;
-  --mid:        #BBBBBB;
-  --muted:      #888888;
-  --icon-bg:    #2C2200;
+  --bg:         #0F0F0F;
+  --card:       #1C1C1E;
+  --card2:      #2C2C2E;
+  --white:      #1C1C1E;
+  --dark:       #F2F2F7;
+  --mid:        #C7C7CC;
+  --muted:      #8E8E93;
+  --accent-l:   rgba(245,197,24,.18);
+  --icon-bg:    #2A1E00;
   --icon-fg:    #F5C518;
-  --border:     rgba(255,255,255,.08);
-  --shadow-s:   0 2px 12px rgba(0,0,0,.35);
-  --shadow-m:   0 6px 24px rgba(0,0,0,.45);
-  --shadow-l:   0 16px 48px rgba(0,0,0,.55);
+  --border:     rgba(255,255,255,.09);
+  --shadow-s:   0 2px 12px rgba(0,0,0,.4);
+  --shadow-m:   0 6px 24px rgba(0,0,0,.5);
+  --shadow-l:   0 16px 48px rgba(0,0,0,.6);
 }
 
-body.dark-body { background: #0A0A0A; }
+/* Tracks & fills adapt in dark */
+.phone.dark .macro-mini-track { background: rgba(255,255,255,.1); }
+.phone.dark .water-liter       { color: #64B8FF; }
+.phone.dark .wcup              { background: rgba(100,184,255,.1); }
+.phone.dark .wcup.full         { background: rgba(100,184,255,.2); }
+.phone.dark .mbcard-progress-track { background: rgba(255,255,255,.1); }
+.phone.dark .cal-day:hover     { background: var(--card2); }
+.phone.dark .cal-day.today     { background: var(--accent); color: var(--bg); }
+.phone.dark .chat-sheet        { background: var(--bg); }
+.phone.dark .chat-bub[class]   { border-color: var(--border); }
+.phone.dark .chat-inp          { background: var(--card2); color: var(--dark); border-color: var(--border); }
+.phone.dark .bottom-sheet      { background: var(--card); }
+.phone.dark .keyboard-card     { background: var(--card2); }
 
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 html,body { height:100%; }
@@ -60,7 +73,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background .3s;
 }
+body.dark-body { background: #000000; }
 
 /* ─── PHONE SHELL ─── */
 .phone {
@@ -74,6 +89,7 @@ body {
   display: flex;
   flex-direction: column;
   margin: 0 auto;
+  transition: background .35s ease;
 }
 
 @media (min-width: 430px) {
@@ -90,6 +106,7 @@ body {
 .screen {
   position: absolute; inset: 0;
   display: flex; flex-direction: column;
+  background: var(--bg);
   opacity: 0; pointer-events: none;
   transition: opacity .3s ease;
   overflow: hidden;
@@ -636,7 +653,7 @@ body {
 .macro-mini-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
 .macro-mini-name { font-size: 12px; font-weight: 500; color: var(--mid); flex: 1; }
 .macro-mini-val { font-size: 13px; font-weight: 700; color: var(--dark); }
-.macro-mini-track { flex: 1; height: 5px; background: rgba(26,26,26,.1); border-radius: 3px; overflow: hidden; }
+.macro-mini-track { flex: 1; height: 5px; background: rgba(128,128,128,.15); border-radius: 3px; overflow: hidden; transition: background .3s; }
 .macro-mini-fill { height: 100%; border-radius: 3px; background: var(--accent); transition: width 1s; }
 
 /* Sec head */
@@ -683,7 +700,7 @@ body {
 }
 .water-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .water-header h4 { font-size: 14px; font-weight: 700; color: var(--dark); flex: 1; }
-.water-liter { font-size: 18px; font-weight: 800; color: #2B7BBA; }
+.water-liter { font-size: 18px; font-weight: 800; color: #2B7BBA; transition: color .3s; }
 .water-cups { display: flex; gap: 6px; flex-wrap: wrap; }
 .wcup {
   width: 34px; height: 34px; border-radius: 10px;
@@ -692,7 +709,7 @@ body {
   font-size: 16px; cursor: pointer; transition: all .2s;
   filter: grayscale(1) opacity(.3);
 }
-.wcup.full { filter: none; background: rgba(43,123,186,.15); transform: scale(1.1); }
+.wcup.full { filter: none; background: rgba(43,123,186,.2); transform: scale(1.1); }
 
 /* ─────────────────────────────────────────
    MACROS TAB
