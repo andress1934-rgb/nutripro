@@ -68,10 +68,15 @@ let currentTab = 'dash';
 function goScreen(id) {
   document.querySelectorAll('.screen').forEach(s => {
     s.classList.remove('active');
+    /* Reiniciar animaciones para que vuelvan a disparar al activar */
+    s.style.animation = 'none';
   });
   const el = document.getElementById(id);
-  if (el) el.classList.add('active');
-  // Close any open sheets when navigating
+  if (!el) return;
+  /* Forzar reflow antes de añadir .active para que la animación se reinicie */
+  void el.offsetWidth;
+  el.style.animation = '';
+  el.classList.add('active');
   closeSheet();
 }
 

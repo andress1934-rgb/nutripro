@@ -90,23 +90,91 @@ html, body {
   touch-action: none;
 }
 
-/* ─── SCREENS: todas position:absolute inset:0 → llenan el phone al 100% ─── */
+/* ─── Keyframes de entrada ─── */
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeScaleIn {
+  from { opacity: 0; transform: scale(.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes popIn {
+  0%   { opacity: 0; transform: scale(.7); }
+  70%  { transform: scale(1.06); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes chipIn {
+  from { opacity: 0; transform: scale(.85) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ─── SCREENS: todas position:absolute inset:0 ─── */
 .screen {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
   display: flex; flex-direction: column;
   background: var(--bg);
-  transition: background .35s ease, opacity .28s ease;
+  transition: background .35s ease, opacity .22s ease;
   opacity: 0; pointer-events: none;
   overflow: hidden;
 }
 .screen.active {
   opacity: 1; pointer-events: all;
   z-index: 1;
+  animation: slideInRight .32s cubic-bezier(.25,.46,.45,.94) both;
+}
+/* Welcome y pantallas centradas usan fadeScale en vez de slide */
+#s-welcome.active,
+#s-calorie-intro.active,
+#s-mealplan-intro.active,
+#s-results.active,
+#s-progress-preview.active {
+  animation: fadeScaleIn .35s cubic-bezier(.25,.46,.45,.94) both;
 }
 #s-app.active {
   display: flex; flex-direction: column;
+  animation: none;
 }
+
+/* Elementos internos que animan al entrar en pantalla */
+.screen.active .ob-icon-circle  { animation: popIn .45s .1s cubic-bezier(.34,1.56,.64,1) both; }
+.screen.active .ob-title        { animation: slideInUp .38s .15s ease both; }
+.screen.active .ob-sub          { animation: slideInUp .38s .2s ease both; }
+.screen.active .opt-card        { animation: slideInUp .35s ease both; }
+.screen.active .opt-card:nth-child(1) { animation-delay: .18s; }
+.screen.active .opt-card:nth-child(2) { animation-delay: .24s; }
+.screen.active .opt-card:nth-child(3) { animation-delay: .30s; }
+.screen.active .opt-card:nth-child(4) { animation-delay: .36s; }
+.screen.active .opt-card:nth-child(5) { animation-delay: .42s; }
+.screen.active .row-sel         { animation: slideInUp .32s ease both; }
+.screen.active .row-sel:nth-child(1) { animation-delay: .16s; }
+.screen.active .row-sel:nth-child(2) { animation-delay: .22s; }
+.screen.active .row-sel:nth-child(3) { animation-delay: .28s; }
+.screen.active .row-sel:nth-child(4) { animation-delay: .34s; }
+.screen.active .results-check   { animation: popIn .5s .08s cubic-bezier(.34,1.56,.64,1) both; }
+.screen.active .results-card,
+.screen.active .weight-chart-wrap { animation: slideInUp .4s .2s ease both; }
+.screen.active .big-ring        { animation: fadeScaleIn .5s .05s ease both; }
+.screen.active .centered-title  { animation: slideInUp .38s .25s ease both; }
+.screen.active .btn-yellow      { animation: slideInUp .35s .3s ease both; }
+.screen.active .ob-footnote     { animation: fadeScaleIn .3s .35s ease both; }
+
+/* Chips de alimentos con stagger */
+.screen.active .food-chip {
+  animation: chipIn .28s ease both;
+}
+.screen.active .chips-grid .food-chip:nth-child(1)  { animation-delay: .1s; }
+.screen.active .chips-grid .food-chip:nth-child(2)  { animation-delay: .13s; }
+.screen.active .chips-grid .food-chip:nth-child(3)  { animation-delay: .16s; }
+.screen.active .chips-grid .food-chip:nth-child(4)  { animation-delay: .19s; }
+.screen.active .chips-grid .food-chip:nth-child(5)  { animation-delay: .22s; }
+.screen.active .chips-grid .food-chip:nth-child(6)  { animation-delay: .25s; }
+.screen.active .chips-grid .food-chip:nth-child(7)  { animation-delay: .28s; }
 
 /* ─────────────────────────────────────────
    PROGRESS BAR (onboarding)
