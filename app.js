@@ -65,19 +65,73 @@ let actVal = 1.55;
 let currentTab = 'dash';
 
 /* ══ NAVIGATION ══ */
+/* Orden de pantallas para saber si avanzamos o retrocedemos */
+const SCREEN_ORDER = [
+  's-welcome','s-goal','s-method','s-calorie-intro','s-profile',
+  's-activity','s-lifestyle','s-diet','s-personalize','s-results',
+  's-progress-preview','s-mealplan-intro','s-meals-count','s-meal-style',
+  's-foods','s-planning','s-variety','s-rating','s-notifications',
+  's-source','s-register','s-app'
+];
+
+/* Pantallas que disparan el flash verde al entrar */
+const SUCCESS_SCREENS = new Set(['s-results','s-progress-preview']);
+
+let _currentScreenId = 's-welcome';
+
 function goScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => {
-    s.classList.remove('active');
-    /* Reiniciar animaciones para que vuelvan a disparar al activar */
-    s.style.animation = 'none';
-  });
-  const el = document.getElementById(id);
-  if (!el) return;
-  /* Forzar reflow antes de añadir .active para que la animación se reinicie */
-  void el.offsetWidth;
-  el.style.animation = '';
-  el.classList.add('active');
+  if (id === _currentScreenId) return;
   closeSheet();
+
+  const prev = document.getElementById(_currentScreenId);
+  const next = document.getElementById(id);
+  if (!next) return;
+
+  const prevIdx = SCREEN_ORDER.indexOf(_currentScreenId);
+  const nextIdx = SCREEN_ORDER.indexOf(id);
+  const goingForward = nextIdx >= prevIdx;
+
+  /* Si la pantalla destino usa flash verde, mostrarlo primero */
+  if (goingForward && SUCCESS_SCREENS.has(id)) {
+    _showGreenFlash(() => _transitionTo(prev, next, true));
+  } else {
+    _transitionTo(prev, next, goingForward);
+  }
+
+  _currentScreenId = id;
+}
+
+function _showGreenFlash(callback) {
+  const flash = document.getElementById('green-flash');
+  flash.classList.remove('run');
+  void flash.offsetWidth; /* reflow */
+  flash.classList.add('run');
+  /* Ejecutar la transición de pantalla a mitad del flash */
+  setTimeout(callback, 200);
+  /* Limpiar después */
+  setTimeout(() => flash.classList.remove('run'), 700);
+}
+
+function _transitionTo(prev, next, forward) {
+  const enterClass = forward ? 'is-entering' : 'is-entering-back';
+  const exitClass  = forward ? 'is-exiting'  : 'is-exiting-back';
+
+  /* Salida de pantalla anterior */
+  if (prev) {
+    prev.classList.remove('active');
+    prev.classList.add(exitClass);
+    setTimeout(() => prev.classList.remove(exitClass), 420);
+  }
+
+  /* Entrada de pantalla nueva */
+  next.classList.add('active', enterClass);
+  void next.offsetWidth;
+
+  /* Quitar clase de animación después de que termine */
+  setTimeout(() => next.classList.remove(enterClass), 450);
+
+  /* Iniciar animaciones especiales según pantalla */
+  if (next.id === 's-results') setTimeout(animateCalorieCount, 350);
 }
 
 function goTab(tab) {
@@ -333,6 +387,23 @@ function animateMacroBars() {
   pb('pb-prot', 86);
   pb('pb-cho',  70);
   pb('pb-fat',  87);
+}
+
+/* Contador animado de calorías en la pantalla de resultados */
+function animateCalorieCount() {
+  const el = document.getElementById('result-kcal-num');
+  if (!el) return;
+  const target = S.tdee || 1800;
+  const duration = 900;
+  const start = performance.now();
+  function tick(now) {
+    const p = Math.min((now - start) / duration, 1);
+    /* easeOut cubic */
+    const ease = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(ease * target).toLocaleString();
+    if (p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
 }
 
 /* ══ WATER ══ */

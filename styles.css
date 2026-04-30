@@ -90,91 +90,197 @@ html, body {
   touch-action: none;
 }
 
-/* ─── Keyframes de entrada ─── */
-@keyframes slideInRight {
-  from { opacity: 0; transform: translateX(40px); }
-  to   { opacity: 1; transform: translateX(0); }
+/* ══════════════════════════════════════════
+   KEYFRAMES
+══════════════════════════════════════════ */
+/* Pantallas normales: nueva entra desde derecha, vieja sale por izquierda */
+@keyframes screenEnter {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
 }
-@keyframes slideInUp {
-  from { opacity: 0; transform: translateY(28px); }
+@keyframes screenExit {
+  from { transform: translateX(0); opacity: 1; }
+  to   { transform: translateX(-30%); opacity: 0; }
+}
+@keyframes screenEnterBack {
+  from { transform: translateX(-30%); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+@keyframes screenExitBack {
+  from { transform: translateX(0); opacity: 1; }
+  to   { transform: translateX(100%); opacity: 1; }
+}
+
+/* Elementos internos */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(22px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-@keyframes fadeScaleIn {
-  from { opacity: 0; transform: scale(.94); }
-  to   { opacity: 1; transform: scale(1); }
-}
 @keyframes popIn {
-  0%   { opacity: 0; transform: scale(.7); }
-  70%  { transform: scale(1.06); }
+  0%   { opacity: 0; transform: scale(.55); }
+  65%  { transform: scale(1.08); }
   100% { opacity: 1; transform: scale(1); }
 }
 @keyframes chipIn {
-  from { opacity: 0; transform: scale(.85) translateY(8px); }
+  from { opacity: 0; transform: scale(.8) translateY(6px); }
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-/* ─── SCREENS: todas position:absolute inset:0 ─── */
+/* Círculo verde que se expande y contrae (transición a pantallas de éxito) */
+@keyframes greenRingExpand {
+  0%   { transform: scale(0); opacity: 1; }
+  60%  { transform: scale(12); opacity: 1; }
+  100% { transform: scale(12); opacity: 0; }
+}
+
+/* Anillos que pulsan hacia afuera en los iconos grandes */
+@keyframes ringPulse {
+  0%   { transform: scale(1);   opacity: .55; }
+  100% { transform: scale(1.55); opacity: 0; }
+}
+
+/* Dibujo de línea SVG izquierda → derecha */
+@keyframes drawLine {
+  from { stroke-dashoffset: 1000; }
+  to   { stroke-dashoffset: 0; }
+}
+
+/* Fade área bajo la curva */
+@keyframes fillFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ══════════════════════════════════════════
+   SCREENS
+══════════════════════════════════════════ */
 .screen {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
   display: flex; flex-direction: column;
   background: var(--bg);
-  transition: background .35s ease, opacity .22s ease;
+  transition: background .35s ease;
   opacity: 0; pointer-events: none;
   overflow: hidden;
+  will-change: transform, opacity;
 }
 .screen.active {
   opacity: 1; pointer-events: all;
-  z-index: 1;
-  animation: slideInRight .32s cubic-bezier(.25,.46,.45,.94) both;
+  z-index: 2;
 }
-/* Welcome y pantallas centradas usan fadeScale en vez de slide */
-#s-welcome.active,
-#s-calorie-intro.active,
-#s-mealplan-intro.active,
-#s-results.active,
-#s-progress-preview.active {
-  animation: fadeScaleIn .35s cubic-bezier(.25,.46,.45,.94) both;
+.screen.is-entering {
+  animation: screenEnter .38s cubic-bezier(.4,0,.2,1) both;
 }
-#s-app.active {
-  display: flex; flex-direction: column;
-  animation: none;
+.screen.is-entering-back {
+  animation: screenEnterBack .38s cubic-bezier(.4,0,.2,1) both;
+}
+.screen.is-exiting {
+  animation: screenExit .38s cubic-bezier(.4,0,.2,1) both;
+  z-index: 1; pointer-events: none;
+}
+.screen.is-exiting-back {
+  animation: screenExitBack .38s cubic-bezier(.4,0,.2,1) both;
+  z-index: 1; pointer-events: none;
+}
+#s-app.active { display: flex; flex-direction: column; }
+
+/* ── Elementos internos: se animan al entrar ── */
+.screen.is-entering .ob-icon-circle,
+.screen.is-entering-back .ob-icon-circle {
+  animation: popIn .5s .12s cubic-bezier(.34,1.56,.64,1) both;
+}
+.screen.is-entering .ob-title,
+.screen.is-entering-back .ob-title       { animation: fadeUp .36s .16s ease both; }
+.screen.is-entering .ob-sub,
+.screen.is-entering-back .ob-sub         { animation: fadeUp .36s .22s ease both; }
+
+.screen.is-entering .opt-card:nth-child(1) { animation: fadeUp .32s .18s ease both; }
+.screen.is-entering .opt-card:nth-child(2) { animation: fadeUp .32s .24s ease both; }
+.screen.is-entering .opt-card:nth-child(3) { animation: fadeUp .32s .30s ease both; }
+.screen.is-entering .opt-card:nth-child(4) { animation: fadeUp .32s .36s ease both; }
+.screen.is-entering .opt-card:nth-child(5) { animation: fadeUp .32s .42s ease both; }
+
+.screen.is-entering .row-sel:nth-child(1) { animation: fadeUp .30s .16s ease both; }
+.screen.is-entering .row-sel:nth-child(2) { animation: fadeUp .30s .22s ease both; }
+.screen.is-entering .row-sel:nth-child(3) { animation: fadeUp .30s .28s ease both; }
+.screen.is-entering .row-sel:nth-child(4) { animation: fadeUp .30s .34s ease both; }
+
+.screen.is-entering .results-card,
+.screen.is-entering .weight-chart-wrap   { animation: fadeUp .4s .25s ease both; }
+.screen.is-entering .centered-title      { animation: fadeUp .36s .28s ease both; }
+.screen.is-entering .btn-yellow          { animation: fadeUp .32s .34s ease both; }
+.screen.is-entering .ob-footnote         { animation: fadeUp .28s .4s ease both; }
+
+/* Chips con stagger */
+.screen.is-entering .chips-grid .food-chip:nth-child(1)  { animation: chipIn .25s .12s ease both; }
+.screen.is-entering .chips-grid .food-chip:nth-child(2)  { animation: chipIn .25s .15s ease both; }
+.screen.is-entering .chips-grid .food-chip:nth-child(3)  { animation: chipIn .25s .18s ease both; }
+.screen.is-entering .chips-grid .food-chip:nth-child(4)  { animation: chipIn .25s .21s ease both; }
+.screen.is-entering .chips-grid .food-chip:nth-child(5)  { animation: chipIn .25s .24s ease both; }
+.screen.is-entering .chips-grid .food-chip:nth-child(6)  { animation: chipIn .25s .27s ease both; }
+.screen.is-entering .chips-grid .food-chip:nth-child(7)  { animation: chipIn .25s .30s ease both; }
+.screen.is-entering .chips-grid .food-chip:nth-child(n+8){ animation: chipIn .25s .33s ease both; }
+
+/* ══════════════════════════════════════════
+   OVERLAY CÍRCULO VERDE (transición de éxito)
+══════════════════════════════════════════ */
+#green-flash {
+  position: fixed; z-index: 100;
+  pointer-events: none;
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: var(--green);
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%) scale(0);
+  opacity: 0;
+}
+#green-flash.run {
+  animation: greenRingExpand .65s cubic-bezier(.4,0,.6,1) forwards;
 }
 
-/* Elementos internos que animan al entrar en pantalla */
-.screen.active .ob-icon-circle  { animation: popIn .45s .1s cubic-bezier(.34,1.56,.64,1) both; }
-.screen.active .ob-title        { animation: slideInUp .38s .15s ease both; }
-.screen.active .ob-sub          { animation: slideInUp .38s .2s ease both; }
-.screen.active .opt-card        { animation: slideInUp .35s ease both; }
-.screen.active .opt-card:nth-child(1) { animation-delay: .18s; }
-.screen.active .opt-card:nth-child(2) { animation-delay: .24s; }
-.screen.active .opt-card:nth-child(3) { animation-delay: .30s; }
-.screen.active .opt-card:nth-child(4) { animation-delay: .36s; }
-.screen.active .opt-card:nth-child(5) { animation-delay: .42s; }
-.screen.active .row-sel         { animation: slideInUp .32s ease both; }
-.screen.active .row-sel:nth-child(1) { animation-delay: .16s; }
-.screen.active .row-sel:nth-child(2) { animation-delay: .22s; }
-.screen.active .row-sel:nth-child(3) { animation-delay: .28s; }
-.screen.active .row-sel:nth-child(4) { animation-delay: .34s; }
-.screen.active .results-check   { animation: popIn .5s .08s cubic-bezier(.34,1.56,.64,1) both; }
-.screen.active .results-card,
-.screen.active .weight-chart-wrap { animation: slideInUp .4s .2s ease both; }
-.screen.active .big-ring        { animation: fadeScaleIn .5s .05s ease both; }
-.screen.active .centered-title  { animation: slideInUp .38s .25s ease both; }
-.screen.active .btn-yellow      { animation: slideInUp .35s .3s ease both; }
-.screen.active .ob-footnote     { animation: fadeScaleIn .3s .35s ease both; }
-
-/* Chips de alimentos con stagger */
-.screen.active .food-chip {
-  animation: chipIn .28s ease both;
+/* ══════════════════════════════════════════
+   ANILLOS PULSANTES (iconos grandes)
+══════════════════════════════════════════ */
+.pulse-ring-wrap {
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
 }
-.screen.active .chips-grid .food-chip:nth-child(1)  { animation-delay: .1s; }
-.screen.active .chips-grid .food-chip:nth-child(2)  { animation-delay: .13s; }
-.screen.active .chips-grid .food-chip:nth-child(3)  { animation-delay: .16s; }
-.screen.active .chips-grid .food-chip:nth-child(4)  { animation-delay: .19s; }
-.screen.active .chips-grid .food-chip:nth-child(5)  { animation-delay: .22s; }
-.screen.active .chips-grid .food-chip:nth-child(6)  { animation-delay: .25s; }
-.screen.active .chips-grid .food-chip:nth-child(7)  { animation-delay: .28s; }
+.pulse-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 2.5px solid var(--accent);
+  opacity: 0;
+  animation: ringPulse 2s ease-out infinite;
+}
+.pulse-ring:nth-child(1) { width: 120px; height: 120px; animation-delay: 0s; }
+.pulse-ring:nth-child(2) { width: 150px; height: 150px; animation-delay: .5s; }
+.pulse-ring:nth-child(3) { width: 180px; height: 180px; animation-delay: 1s; }
+
+/* Anillos oscuros para s-calorie-intro */
+.pulse-ring-dark .pulse-ring { border-color: rgba(245,197,24,.3); }
+
+/* ══════════════════════════════════════════
+   SVG CHART ANIMADO (s-results, s-progress-preview)
+══════════════════════════════════════════ */
+.anim-path {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+}
+.screen.is-entering .anim-path {
+  animation: drawLine 1s .35s cubic-bezier(.4,0,.2,1) forwards;
+}
+.screen.is-entering .anim-fill {
+  animation: fillFade .6s .7s ease forwards;
+  opacity: 0;
+}
+
+/* ══════════════════════════════════════════
+   RESULTS CHECK (popIn especial)
+══════════════════════════════════════════ */
+.screen.is-entering .results-check {
+  animation: popIn .55s .05s cubic-bezier(.34,1.56,.64,1) both;
+}
 
 /* ─────────────────────────────────────────
    PROGRESS BAR (onboarding)

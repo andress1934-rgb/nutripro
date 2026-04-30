@@ -29,6 +29,9 @@
 </head>
 <body>
 
+<!-- Círculo verde de transición -->
+<div id="green-flash"></div>
+
 <!-- ══ PHONE ══ -->
 <div class="phone">
 
@@ -143,7 +146,12 @@
       <button class="ob-back" onclick="goScreen('s-method')">←</button>
     </div>
     <div class="centered-screen">
-      <div class="big-ring-circle">🔥</div>
+      <div class="pulse-ring-wrap pulse-ring-dark" style="margin-bottom:36px">
+        <div class="pulse-ring"></div>
+        <div class="pulse-ring"></div>
+        <div class="pulse-ring"></div>
+        <div class="big-ring-circle" style="position:relative;z-index:1">🔥</div>
+      </div>
       <div class="centered-title">¡Perfecto! Primero descubramos cuántas calorías necesitas al día</div>
     </div>
     <button class="btn-yellow" onclick="goScreen('s-profile')">Continuar</button>
@@ -378,7 +386,7 @@
       <div class="results-check">✓</div>
       <div class="results-title">¡Genial! Estas son las calorías que necesitas al día</div>
       <div class="results-card">
-        <div class="results-kcal" id="res-kcal">1,800</div>
+        <div class="results-kcal" id="res-kcal"><span id="result-kcal-num">0</span></div>
         <div class="results-kcal-sub">kcal por día</div>
         <div class="results-range" id="res-range">1,500 — 2,100</div>
         <svg class="weight-chart-svg" viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -443,7 +451,12 @@
       <button class="ob-back" onclick="goScreen('s-progress-preview')">←</button>
     </div>
     <div class="centered-screen">
-      <div class="big-ring-peach">📋</div>
+      <div class="pulse-ring-wrap" style="margin-bottom:36px">
+        <div class="pulse-ring"></div>
+        <div class="pulse-ring"></div>
+        <div class="pulse-ring"></div>
+        <div class="big-ring-peach" style="position:relative;z-index:1">📋</div>
+      </div>
       <div class="centered-title">Ahora, personalicemos tu plan de comidas para alcanzar tus calorías diarias</div>
     </div>
     <button class="btn-yellow" onclick="goScreen('s-meals-count')">Continuar</button>
