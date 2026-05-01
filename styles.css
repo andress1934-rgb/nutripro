@@ -1149,3 +1149,411 @@ html, body {
 .toast-pill { background: var(--dark); color: white; border-radius: 24px; padding: 10px 18px; font-size: 13px; font-weight: 500; box-shadow: var(--shadow-l); white-space: nowrap; animation: toastAnim .3s cubic-bezier(.34,1.56,.64,1); text-align: center; }
 @keyframes toastAnim { from{opacity:0;transform:translateY(-10px) scale(.9)} to{opacity:1;transform:translateY(0) scale(1)} }
 @keyframes toastOut { to{opacity:0;transform:translateY(-10px) scale(.9)} }
+
+/* ═══════════════════════════════════════
+   DIARY REDESIGN
+═══════════════════════════════════════ */
+
+/* Weekly strip */
+.week-strip {
+  display: flex; gap: 4px; padding: 12px 0 8px;
+  justify-content: space-between;
+}
+.week-day-col {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; gap: 4px; cursor: pointer;
+}
+.week-day-lbl {
+  font-size: 10px; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .06em;
+}
+.week-day-num {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 600; color: var(--dark);
+  transition: all .18s;
+}
+.week-day-col.today .week-day-num {
+  background: var(--dark); color: var(--bg); font-weight: 800;
+}
+.week-day-col.sel .week-day-num {
+  background: var(--accent); color: var(--dark); font-weight: 800;
+}
+.week-day-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--accent-d); opacity: 0;
+  transition: opacity .2s;
+}
+.week-day-col.has-log .week-day-dot { opacity: 1; }
+
+/* Macro summary bar */
+.diary-macro-bar {
+  background: var(--card); border-radius: var(--r);
+  padding: 14px 12px; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+  box-shadow: var(--shadow-s);
+}
+.dmb-col { flex: 1; text-align: center; }
+.dmb-val { font-size: 16px; font-weight: 800; color: var(--dark); line-height: 1; }
+.dmb-lbl { font-size: 9px; font-weight: 600; color: var(--muted); margin-top: 3px; text-transform: uppercase; letter-spacing: .05em; }
+.dmb-sep { width: 1px; height: 30px; background: var(--border); flex-shrink: 0; }
+
+/* Meal sections */
+.diary-meal-section { margin-bottom: 16px; }
+.dms-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.dms-title { font-size: 15px; font-weight: 800; color: var(--dark); }
+.dms-kcal { font-size: 12px; font-weight: 600; color: var(--muted); }
+.dms-macros { font-size: 11px; color: var(--muted); margin-left: 6px; }
+.dms-add-btn {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--accent); border: none;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 700; color: var(--dark);
+  cursor: pointer; transition: transform .15s; flex-shrink: 0;
+  line-height: 1;
+}
+.dms-add-btn:active { transform: scale(.9); }
+.dms-items { display: flex; flex-direction: column; gap: 6px; }
+.dms-item {
+  background: var(--white); border-radius: var(--r-sm);
+  padding: 10px 14px; display: flex; align-items: center;
+  gap: 10px; box-shadow: var(--shadow-s);
+}
+.dms-item-name { flex: 1; font-size: 13px; font-weight: 600; color: var(--dark); }
+.dms-item-kcal { font-size: 12px; font-weight: 700; color: var(--muted); }
+.dms-item-del {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--card2); border: none;
+  font-size: 11px; cursor: pointer; color: var(--muted);
+  display: flex; align-items: center; justify-content: center;
+}
+.dms-empty {
+  font-size: 12px; color: var(--muted); padding: 8px 0 4px;
+  font-style: italic;
+}
+
+/* ═══════════════════════════════════════
+   FOOD LOG OVERLAY
+═══════════════════════════════════════ */
+.flog-overlay {
+  position: fixed; inset: 0; z-index: 1500;
+  background: rgba(0,0,0,.5);
+  display: flex; align-items: flex-end;
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s;
+}
+.flog-overlay.open { opacity: 1; pointer-events: all; }
+
+.flog-sheet {
+  width: 100%; max-width: 430px; margin: 0 auto;
+  background: var(--bg); border-radius: 24px 24px 0 0;
+  display: flex; flex-direction: column;
+  height: 88vh;
+  transform: translateY(100%);
+  transition: transform .35s cubic-bezier(.16,1,.3,1);
+  box-shadow: 0 -16px 48px rgba(0,0,0,.2);
+}
+.flog-overlay.open .flog-sheet { transform: translateY(0); }
+
+.flog-header {
+  padding: 14px 16px 10px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.flog-close {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--card); border: none;
+  font-size: 14px; cursor: pointer; color: var(--dark);
+  display: flex; align-items: center; justify-content: center;
+}
+.flog-title { font-size: 16px; font-weight: 800; color: var(--dark); }
+
+.flog-content {
+  flex: 1; overflow: hidden; position: relative;
+}
+
+.flog-tab-pane {
+  position: absolute; inset: 0;
+  overflow-y: auto; padding: 14px 16px;
+  opacity: 0; pointer-events: none;
+  transition: opacity .2s;
+}
+.flog-tab-pane::-webkit-scrollbar { display: none; }
+.flog-tab-pane.active { opacity: 1; pointer-events: all; }
+
+/* Bottom tab bar */
+.flog-tabs {
+  display: flex; background: var(--white);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0; padding: 6px 4px 10px;
+}
+.flog-tab {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; gap: 2px;
+  background: none; border: none; cursor: pointer;
+  padding: 6px 2px; border-radius: var(--r-sm);
+  font-family: 'Inter', sans-serif;
+  transition: background .18s;
+}
+.flog-tab span:first-child { font-size: 18px; line-height: 1; }
+.flog-tab span:last-child { font-size: 9px; font-weight: 600; color: var(--muted); }
+.flog-tab.active {
+  background: var(--accent);
+}
+.flog-tab.active span:last-child { color: var(--dark); font-weight: 700; }
+
+/* ── RECETAS TAB ── */
+.recipe-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; padding-bottom: 16px;
+}
+.recipe-card {
+  border-radius: var(--r); overflow: hidden;
+  cursor: pointer; box-shadow: var(--shadow-s);
+  transition: transform .18s;
+  background: var(--card);
+}
+.recipe-card:active { transform: scale(.97); }
+.recipe-card-img {
+  height: 80px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 40px;
+}
+.recipe-card-body { padding: 10px 10px 8px; }
+.recipe-card-cat {
+  font-size: 9px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: rgba(255,255,255,.7);
+  margin-bottom: 2px;
+}
+.recipe-card-name {
+  font-size: 12px; font-weight: 700; color: #fff;
+  line-height: 1.25; margin-bottom: 6px;
+}
+.recipe-pills {
+  display: flex; gap: 3px; flex-wrap: wrap;
+}
+.recipe-pill {
+  font-size: 9px; font-weight: 600;
+  padding: 2px 6px; border-radius: 10px;
+  background: rgba(255,255,255,.18); color: #fff;
+}
+
+/* ── BUSCAR TAB ── */
+.fsearch-bar {
+  background: var(--card); border-radius: 50px;
+  padding: 10px 16px; display: flex; align-items: center;
+  gap: 8px; margin-bottom: 12px;
+  border: 1.5px solid var(--border);
+}
+.fsearch-icon { font-size: 16px; }
+.fsearch-inp {
+  flex: 1; background: none; border: none;
+  font-family: 'Inter', sans-serif; font-size: 14px;
+  color: var(--dark); outline: none;
+}
+.fsearch-inp::placeholder { color: var(--muted); }
+.fsearch-results { display: flex; flex-direction: column; gap: 6px; }
+.fsearch-row {
+  background: var(--white); border-radius: var(--r-sm);
+  padding: 12px 14px; display: flex; align-items: center; gap: 10px;
+  cursor: pointer; box-shadow: var(--shadow-s); transition: background .15s;
+}
+.fsearch-row:active { background: var(--accent-l); }
+.fsearch-row-name { flex: 1; font-size: 13px; font-weight: 600; color: var(--dark); }
+.fsearch-row-kcal { font-size: 12px; font-weight: 700; color: var(--accent-d); }
+.fsearch-row-macros { font-size: 10px; color: var(--muted); }
+.fqty-panel {
+  background: var(--card); border-radius: var(--r);
+  padding: 16px; margin-top: 12px;
+}
+.fqty-name { font-size: 16px; font-weight: 800; color: var(--dark); margin-bottom: 4px; }
+.fqty-macros { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+.fqty-row { display: flex; align-items: center; gap: 16px; }
+.fqty-btn {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--dark); border: none;
+  font-size: 24px; font-weight: 700; color: var(--bg);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.fqty-display {
+  flex: 1; text-align: center;
+  font-size: 28px; font-weight: 900; color: var(--dark);
+}
+.fqty-unit { font-size: 16px; font-weight: 500; color: var(--muted); margin-left: 4px; }
+
+/* ── SCANNER TAB ── */
+.scanner-wrap {
+  background: #111; border-radius: var(--r);
+  height: 260px; position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 12px;
+}
+#scanner-video {
+  width: 100%; height: 100%; object-fit: cover;
+  position: absolute; inset: 0;
+}
+.scanner-placeholder {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 10px;
+}
+.scanner-frame-icon { font-size: 48px; opacity: .4; }
+.scanner-hint { font-size: 13px; color: rgba(255,255,255,.5); text-align: center; padding: 0 20px; }
+.scanner-key-btn {
+  background: rgba(255,255,255,.12); border: none; border-radius: 20px;
+  padding: 7px 14px; font-size: 12px; font-weight: 600;
+  color: rgba(255,255,255,.7); cursor: pointer;
+  font-family: 'Inter', sans-serif;
+}
+.scanner-frame {
+  position: absolute; width: 200px; height: 180px;
+  inset: 0; margin: auto;
+}
+.scanner-corner {
+  position: absolute; width: 22px; height: 22px;
+  border-color: #fff; border-style: solid;
+}
+.scanner-corner.tl { top: 0; left: 0; border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
+.scanner-corner.tr { top: 0; right: 0; border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
+.scanner-corner.bl { bottom: 0; left: 0; border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
+.scanner-corner.br { bottom: 0; right: 0; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
+@keyframes scanLine {
+  0% { top: 0; } 100% { top: 100%; }
+}
+.scanner-line {
+  position: absolute; left: 0; right: 0; height: 2px;
+  background: rgba(245,197,24,.7); animation: scanLine 2s linear infinite;
+}
+.scanner-result-card {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: rgba(0,0,0,.85); padding: 14px;
+  backdrop-filter: blur(8px);
+}
+.sres-name { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.sres-macros { font-size: 12px; color: rgba(255,255,255,.7); }
+.scanner-btn-row {
+  display: flex; gap: 8px;
+}
+.scanner-mode-btn {
+  flex: 1; background: var(--card); border: 2px solid transparent;
+  border-radius: 50px; padding: 12px 8px;
+  font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
+  color: var(--dark); cursor: pointer; transition: all .18s;
+  text-align: center;
+}
+.scanner-mode-btn.active {
+  background: var(--accent-l); border-color: var(--accent); color: var(--accent-d);
+}
+
+/* ── VOZ TAB ── */
+.voz-wrap {
+  display: flex; flex-direction: column;
+  align-items: center; padding: 20px 16px;
+  gap: 14px;
+}
+.voz-title { font-size: 22px; font-weight: 800; color: var(--dark); }
+.voz-sub { font-size: 13px; color: var(--muted); text-align: center; }
+.voz-mic-btn {
+  width: 100px; height: 100px; border-radius: 50%;
+  background: var(--card); border: none;
+  font-size: 44px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--shadow-m); transition: all .2s;
+  position: relative;
+}
+.voz-mic-btn.listening {
+  background: rgba(255,59,48,.12);
+  animation: micPulse 1.2s ease-in-out infinite;
+}
+@keyframes micPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,59,48,.3), var(--shadow-m); }
+  50% { box-shadow: 0 0 0 18px rgba(255,59,48,0), var(--shadow-m); }
+}
+.voz-timer { font-size: 18px; font-weight: 700; color: var(--red); font-variant-numeric: tabular-nums; }
+.voz-transcript {
+  min-height: 40px; font-size: 14px; color: var(--mid);
+  text-align: center; line-height: 1.5; padding: 0 8px;
+  font-style: italic;
+}
+.voz-result-card {
+  width: 100%; background: var(--card);
+  border-radius: var(--r); padding: 16px;
+}
+.voz-res-name { font-size: 16px; font-weight: 800; color: var(--dark); margin-bottom: 4px; }
+.voz-res-macros { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+.voz-actions { display: flex; gap: 10px; align-items: center; }
+.voz-cancel-btn {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--card2); border: none;
+  font-size: 20px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ── LISTA TAB ── */
+.lista-wrap { display: flex; flex-direction: column; gap: 10px; }
+.lista-label { font-size: 13px; font-weight: 600; color: var(--muted); }
+.lista-textarea {
+  width: 100%; background: var(--card);
+  border: 1.5px solid var(--border); border-radius: var(--r-sm);
+  padding: 12px 14px; font-family: 'Inter', sans-serif;
+  font-size: 14px; color: var(--dark); outline: none;
+  resize: none; min-height: 120px; line-height: 1.6;
+}
+.lista-textarea:focus { border-color: var(--accent); }
+.lista-textarea::placeholder { color: var(--muted); }
+.lista-results { display: flex; flex-direction: column; gap: 6px; }
+.lista-match-row {
+  background: var(--white); border-radius: var(--r-sm);
+  padding: 10px 14px; display: flex; align-items: center; gap: 8px;
+  box-shadow: var(--shadow-s);
+}
+.lista-match-name { flex: 1; font-size: 13px; font-weight: 600; color: var(--dark); }
+.lista-match-kcal { font-size: 12px; font-weight: 700; color: var(--accent-d); }
+.lista-no-match {
+  font-size: 12px; color: var(--muted); font-style: italic; padding: 4px 2px;
+}
+
+/* ── RECIPE DETAIL ── */
+.recipe-detail-overlay {
+  position: fixed; inset: 0; z-index: 2000;
+  background: rgba(0,0,0,.55);
+  display: flex; align-items: flex-end;
+}
+.recipe-detail-sheet {
+  width: 100%; max-width: 430px; margin: 0 auto;
+  background: var(--bg); border-radius: 24px 24px 0 0;
+  max-height: 80vh; overflow-y: auto;
+}
+.rds-header {
+  height: 120px; display: flex; align-items: flex-end;
+  padding: 12px 16px; position: relative;
+}
+.rds-emoji { font-size: 64px; line-height: 1; margin: 0 auto; display: block; text-align: center; }
+.rds-body { padding: 16px 20px 32px; }
+.rds-name { font-size: 22px; font-weight: 800; color: var(--dark); margin-bottom: 10px; }
+.rds-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+.rds-pill {
+  padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600;
+  background: var(--card); color: var(--mid);
+}
+.rds-section-title { font-size: 14px; font-weight: 700; color: var(--dark); margin-bottom: 8px; }
+.rds-ingr-list { padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+.rds-ingr-list li { font-size: 13px; color: var(--mid); line-height: 1.6; }
+
+/* ── Dark mode adaptations ── */
+.phone.dark .flog-sheet { background: var(--bg); }
+.phone.dark .flog-tabs { background: var(--card); }
+.phone.dark .fsearch-bar { background: var(--card2); }
+.phone.dark .fsearch-inp { color: var(--dark); }
+.phone.dark .fsearch-row { background: var(--card); }
+.phone.dark .recipe-detail-sheet { background: var(--bg); }
+.phone.dark .lista-textarea { background: var(--card2); color: var(--dark); }
+.phone.dark .scanner-mode-btn { background: var(--card2); color: var(--dark); }
+.phone.dark .voz-mic-btn { background: var(--card2); }
+.phone.dark .dms-item { background: var(--card); }
+.phone.dark .diary-macro-bar { background: var(--card2); }

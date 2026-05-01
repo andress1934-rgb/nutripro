@@ -1050,52 +1050,38 @@
 
       <!-- ── DIARY ── -->
       <div id="s-diary" style="position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;opacity:0;pointer-events:none">
-        <div class="top-bar"><div class="top-bar-title">Diario Alimentario</div><button class="top-icon-btn">📅</button></div>
-        <div style="flex:1;overflow-y:auto;padding:0 20px 20px">
-          <div class="calendar-card">
-            <div class="cal-nav">
-              <button class="cal-arrow">‹</button>
-              <div class="cal-month" id="cal-month-label">Abril 2025</div>
-              <button class="cal-arrow">›</button>
+        <div class="top-bar"><div class="top-bar-title">Diario Alimentario</div><button class="top-icon-btn" onclick="buildDiary()">📅</button></div>
+        <div style="flex:1;overflow-y:auto;padding:0 16px 20px" id="diary-scroll">
+
+          <!-- Weekly strip -->
+          <div class="week-strip" id="week-strip"></div>
+
+          <!-- Macro summary bar -->
+          <div class="diary-macro-bar" id="diary-macro-bar">
+            <div class="dmb-col">
+              <div class="dmb-val" id="dmb-kcal">0</div>
+              <div class="dmb-lbl">kcal</div>
             </div>
-            <div class="cal-days-header">
-              <div class="cal-day-h">D</div><div class="cal-day-h">L</div><div class="cal-day-h">M</div>
-              <div class="cal-day-h">X</div><div class="cal-day-h">J</div><div class="cal-day-h">V</div><div class="cal-day-h">S</div>
+            <div class="dmb-sep"></div>
+            <div class="dmb-col">
+              <div class="dmb-val" id="dmb-prot">0g</div>
+              <div class="dmb-lbl">Proteínas</div>
             </div>
-            <div class="cal-grid" id="cal-grid"></div>
-          </div>
-          <div class="sec-head"><h2>Hoy</h2></div>
-          <div class="diary-log">
-            <div class="diary-entry" onclick="openFood('🥑','Tostada de Aguacate','Desayuno',380)">
-              <div class="diary-dot" style="background:#F5C518"></div>
-              <div class="diary-entry-name">🌅 Desayuno · Tostada de Aguacate</div>
-              <div class="diary-entry-kcal">380 kcal</div>
+            <div class="dmb-sep"></div>
+            <div class="dmb-col">
+              <div class="dmb-val" id="dmb-carb">0g</div>
+              <div class="dmb-lbl">Carbs</div>
             </div>
-            <div class="diary-entry" onclick="openFood('🐟','Salmón a la Parrilla','Almuerzo',520)">
-              <div class="diary-dot" style="background:#34C759"></div>
-              <div class="diary-entry-name">☀️ Almuerzo · Salmón a la Parrilla</div>
-              <div class="diary-entry-kcal">520 kcal</div>
-            </div>
-            <div class="diary-entry" onclick="openFood('🍌','Snack de Plátano','Snack',180)">
-              <div class="diary-dot" style="background:#FF9500"></div>
-              <div class="diary-entry-name">⚡ Snack · Plátano + Nueces</div>
-              <div class="diary-entry-kcal">180 kcal</div>
-            </div>
-            <div class="diary-add-row" onclick="toast('📝 Escribe el nombre del alimento')">
-              <span style="font-size:18px;color:var(--muted)">+</span>
-              <span class="diary-add-label">Añadir alimento</span>
+            <div class="dmb-sep"></div>
+            <div class="dmb-col">
+              <div class="dmb-val" id="dmb-fat">0g</div>
+              <div class="dmb-lbl">Grasas</div>
             </div>
           </div>
-          <div class="keyboard-card" style="margin-top:16px">
-            <div class="keyboard-input" id="kb-display">Buscar alimento...</div>
-            <div class="keyboard-grid" id="kb-row1"></div>
-            <div class="key-row2" id="kb-row2"></div>
-            <div class="key-row3">
-              <button class="key-btn key-special" onclick="kbType('','del')">⌫</button>
-              <button class="key-space" onclick="kbType(' ')"></button>
-              <button class="key-add" onclick="kbSearch()">Buscar</button>
-            </div>
-          </div>
+
+          <!-- Meal sections -->
+          <div id="diary-meals"></div>
+
         </div>
       </div>
 
@@ -1263,6 +1249,141 @@
   </div>
 
 </div><!-- /phone -->
+
+<!-- ══ FOOD LOG OVERLAY ══ -->
+<div class="flog-overlay" id="flog-overlay">
+  <div class="flog-sheet">
+    <!-- Header -->
+    <div class="flog-header">
+      <button class="flog-close" onclick="closeFoodLog()">✕</button>
+      <div class="flog-title" id="flog-title">Agregar Alimento</div>
+      <div style="width:32px"></div>
+    </div>
+
+    <!-- Content area -->
+    <div class="flog-content" id="flog-content">
+
+      <!-- TAB: RECETAS -->
+      <div class="flog-tab-pane active" id="ftab-recetas">
+        <div class="recipe-grid" id="recipe-grid"></div>
+      </div>
+
+      <!-- TAB: BUSCAR -->
+      <div class="flog-tab-pane" id="ftab-buscar">
+        <div class="fsearch-bar">
+          <span class="fsearch-icon">🔍</span>
+          <input class="fsearch-inp" id="fsearch-inp" type="text" placeholder="Buscar alimento..." oninput="searchFoodDB(this.value)">
+        </div>
+        <div id="fsearch-results" class="fsearch-results"></div>
+        <!-- Quantity selector (hidden until food selected) -->
+        <div class="fqty-panel" id="fqty-panel" style="display:none">
+          <div class="fqty-name" id="fqty-name">Pollo</div>
+          <div class="fqty-macros" id="fqty-macros"></div>
+          <div class="fqty-row">
+            <button class="fqty-btn" onclick="adjustQty(-25)">−</button>
+            <div class="fqty-display"><span id="fqty-val">100</span><span class="fqty-unit" id="fqty-unit">g</span></div>
+            <button class="fqty-btn" onclick="adjustQty(25)">+</button>
+          </div>
+          <button class="btn-yellow" style="margin:12px 0 0;width:100%" onclick="addFoodFromSearch()">Agregar al Diario</button>
+        </div>
+      </div>
+
+      <!-- TAB: ESCÁNER -->
+      <div class="flog-tab-pane" id="ftab-escaner">
+        <div class="scanner-wrap">
+          <video id="scanner-video" autoplay playsinline muted style="display:none"></video>
+          <div class="scanner-placeholder" id="scanner-placeholder">
+            <div class="scanner-frame-icon">📷</div>
+            <div class="scanner-hint">Toca un botón para activar la cámara</div>
+            <button class="scanner-key-btn" onclick="promptClaudeKey()">⚙️ API Key</button>
+          </div>
+          <div class="scanner-frame" id="scanner-frame" style="display:none">
+            <div class="scanner-corner tl"></div>
+            <div class="scanner-corner tr"></div>
+            <div class="scanner-corner bl"></div>
+            <div class="scanner-corner br"></div>
+          </div>
+          <div class="scanner-result-card" id="scanner-result" style="display:none">
+            <div class="sres-name" id="sres-name"></div>
+            <div class="sres-macros" id="sres-macros"></div>
+            <button class="btn-yellow" style="margin:10px 0 0;width:100%" onclick="addFoodFromScanner()">Agregar al Diario</button>
+          </div>
+        </div>
+        <div class="scanner-btn-row">
+          <button class="scanner-mode-btn active" id="sbtn-food" onclick="setScannerMode('food')">📷 Comidas</button>
+          <button class="scanner-mode-btn" id="sbtn-barcode" onclick="setScannerMode('barcode')">⬛ Código de barras</button>
+        </div>
+      </div>
+
+      <!-- TAB: VOZ -->
+      <div class="flog-tab-pane" id="ftab-voz">
+        <div class="voz-wrap">
+          <div class="voz-title">¿Qué comiste?</div>
+          <div class="voz-sub" id="voz-sub">Toca el micrófono y dilo en voz alta</div>
+          <button class="voz-mic-btn" id="voz-mic-btn" onclick="toggleVoice()">🎤</button>
+          <div class="voz-timer" id="voz-timer" style="display:none">0:00</div>
+          <div class="voz-transcript" id="voz-transcript"></div>
+          <div class="voz-result-card" id="voz-result" style="display:none">
+            <div class="voz-res-name" id="voz-res-name"></div>
+            <div class="voz-res-macros" id="voz-res-macros"></div>
+            <div class="voz-actions">
+              <button class="voz-cancel-btn" onclick="cancelVoice()">🗑</button>
+              <button class="btn-yellow" style="flex:1;margin:0" onclick="addFoodFromVoice()">✓ Confirmar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: LISTA -->
+      <div class="flog-tab-pane" id="ftab-lista">
+        <div class="lista-wrap">
+          <div class="lista-label">Escribe un alimento por línea</div>
+          <textarea class="lista-textarea" id="lista-textarea" placeholder="Ej:&#10;100g pollo&#10;1 banano&#10;avena 80g" oninput="parseListInput(this.value)"></textarea>
+          <div class="lista-results" id="lista-results"></div>
+          <button class="btn-yellow" style="margin:12px 0 0;width:100%" onclick="addFoodFromList()">✓ Agregar Todo al Diario</button>
+        </div>
+      </div>
+
+    </div><!-- /flog-content -->
+
+    <!-- Bottom tab bar -->
+    <div class="flog-tabs">
+      <button class="flog-tab active" id="flt-recetas" onclick="switchFlogTab('recetas')">
+        <span>📖</span><span>Recetas</span>
+      </button>
+      <button class="flog-tab" id="flt-buscar" onclick="switchFlogTab('buscar')">
+        <span>🔍</span><span>Buscar</span>
+      </button>
+      <button class="flog-tab" id="flt-escaner" onclick="switchFlogTab('escaner')">
+        <span>📷</span><span>Escáner</span>
+      </button>
+      <button class="flog-tab" id="flt-voz" onclick="switchFlogTab('voz')">
+        <span>🎤</span><span>Voz</span>
+      </button>
+      <button class="flog-tab" id="flt-lista" onclick="switchFlogTab('lista')">
+        <span>📝</span><span>Lista</span>
+      </button>
+    </div>
+
+  </div><!-- /flog-sheet -->
+</div><!-- /flog-overlay -->
+
+<!-- RECIPE DETAIL MODAL -->
+<div class="recipe-detail-overlay" id="recipe-detail-overlay" style="display:none">
+  <div class="recipe-detail-sheet">
+    <div class="rds-header" id="rds-header">
+      <button class="flog-close" onclick="closeRecipeDetail()">✕</button>
+      <div class="rds-emoji" id="rds-emoji">🍗</div>
+    </div>
+    <div class="rds-body">
+      <div class="rds-name" id="rds-name"></div>
+      <div class="rds-pills" id="rds-pills"></div>
+      <div class="rds-section-title">Ingredientes</div>
+      <ul class="rds-ingr-list" id="rds-ingr-list"></ul>
+      <button class="btn-yellow" style="margin:16px 0 0;width:100%" onclick="addRecipeToDiary()">Agregar al Diario</button>
+    </div>
+  </div>
+</div>
 
 <!-- AI CHAT OVERLAY -->
 <div class="chat-overlay" id="chat-overlay">

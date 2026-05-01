@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
   /* Bloquear bounce/scroll global excepto en áreas scrollables */
   document.addEventListener('touchmove', (e) => {
     const ok = e.target.closest(
-      '.ob-body, .dash-scroll, .macros-scroll, .chat-msgs-area, .bottom-sheet, .meals-scroll'
+      '.ob-body, .dash-scroll, .macros-scroll, .chat-msgs-area, .bottom-sheet, .meals-scroll, .flog-tab-pane, #diary-scroll, .recipe-detail-sheet'
     );
     if (!ok) e.preventDefault();
   }, { passive: false });
@@ -331,6 +331,7 @@ function finishSetup() {
   buildCalendar();
   buildKeyboard();
   setTimeout(animateMacroBars, 600);
+  setTimeout(buildDiary, 300);
 }
 
 /* Legacy alias */
@@ -616,3 +617,732 @@ function toast(msg) {
   host.appendChild(pill);
   setTimeout(() => { pill.style.animation = 'toastOut .25s ease forwards'; setTimeout(() => pill.remove(), 250); }, 2800);
 }
+
+/* ══════════════════════════════════════════════
+   FOOD LOGGING SYSTEM
+══════════════════════════════════════════════ */
+
+/* ── DATA ── */
+const RECIPES = [
+  { name:'Bowl de Pollo y Arroz', cat:'Almuerzo', kcal:520, p:42, c:55, g:12, emoji:'🍗', color:'#8B3A3A',
+    ingredients:['200g pechuga de pollo','1 taza arroz integral','½ aguacate','1 taza espinacas','2 cdas aceite oliva'] },
+  { name:'Avena con Frutas', cat:'Desayuno', kcal:380, p:14, c:62, g:8, emoji:'🥣', color:'#5B8A3A',
+    ingredients:['80g avena','200ml leche','1 banano','1 puñado fresas','1 cda miel','1 cdta canela'] },
+  { name:'Ensalada de Atún', cat:'Almuerzo', kcal:310, p:36, c:12, g:11, emoji:'🥗', color:'#3A6B8A',
+    ingredients:['1 lata atún en agua','2 tazas lechuga','1 tomate','½ pepino','2 cdas aceite oliva','Limón'] },
+  { name:'Huevos Revueltos', cat:'Desayuno', kcal:280, p:20, c:4, g:19, emoji:'🍳', color:'#8A7A3A',
+    ingredients:['3 huevos','50ml leche','30g queso','1 cda mantequilla','Sal y pimienta'] },
+  { name:'Salmón al Horno', cat:'Cena', kcal:420, p:45, c:8, g:22, emoji:'🐟', color:'#6B3A8A',
+    ingredients:['200g filete salmón','1 cda aceite oliva','Limón','Ajo','Romero','Sal'] },
+  { name:'Batido Proteico', cat:'Snack', kcal:320, p:35, c:28, g:6, emoji:'🥤', color:'#3A8A6B',
+    ingredients:['1 scoop proteína whey','200ml leche de almendras','1 banano','1 cda mantequilla maní','Hielo'] },
+  { name:'Pasta con Pollo', cat:'Almuerzo', kcal:580, p:40, c:68, g:14, emoji:'🍝', color:'#8A5B3A',
+    ingredients:['150g pasta integral','180g pollo','2 tazas espinacas','3 dientes ajo','2 cdas aceite oliva','Parmesano'] },
+  { name:'Yogur con Granola', cat:'Desayuno', kcal:290, p:18, c:38, g:7, emoji:'🫙', color:'#3A5B8A',
+    ingredients:['200g yogur griego','40g granola','½ taza arándanos','1 cda miel'] },
+  { name:'Tacos de Res', cat:'Cena', kcal:490, p:35, c:42, g:18, emoji:'🌮', color:'#8A3A5B',
+    ingredients:['150g carne molida','4 tortillas maíz','Queso','Tomate','Cebolla','Cilantro','Limón'] },
+  { name:'Mix de Nueces', cat:'Snack', kcal:190, p:5, c:8, g:16, emoji:'🥜', color:'#6B8A3A',
+    ingredients:['30g almendras','15g nueces','15g maní','10g arándanos secos'] },
+  { name:'Arroz con Legumbres', cat:'Almuerzo', kcal:440, p:22, c:72, g:8, emoji:'🍚', color:'#3A8A8A',
+    ingredients:['1 taza arroz','½ taza lentejas','½ taza garbanzos','Cúrcuma','Comino','Aceite oliva'] },
+  { name:'Pechuga a la Plancha', cat:'Cena', kcal:360, p:48, c:6, g:14, emoji:'🥩', color:'#8A6B3A',
+    ingredients:['250g pechuga pollo','1 limón','Ajo en polvo','Paprika','Aceite oliva','Brócoli al vapor'] },
+];
+
+const FOOD_DB = [
+  {name:'Pollo (pechuga)',kcal:165,p:31,c:0,g:3.6,unit:'100g'},
+  {name:'Arroz blanco cocido',kcal:130,p:2.7,c:28,g:0.3,unit:'100g'},
+  {name:'Huevo entero',kcal:155,p:13,c:1.1,g:11,unit:'100g'},
+  {name:'Avena',kcal:389,p:17,c:66,g:7,unit:'100g'},
+  {name:'Banano',kcal:89,p:1.1,c:23,g:0.3,unit:'100g'},
+  {name:'Aguacate',kcal:160,p:2,c:9,g:15,unit:'100g'},
+  {name:'Atún en agua',kcal:116,p:26,c:0,g:1,unit:'100g'},
+  {name:'Salmón',kcal:208,p:20,c:0,g:13,unit:'100g'},
+  {name:'Leche entera',kcal:61,p:3.2,c:4.8,g:3.3,unit:'100ml'},
+  {name:'Yogur griego',kcal:100,p:10,c:3.6,g:5,unit:'100g'},
+  {name:'Queso blanco',kcal:264,p:17,c:3.4,g:21,unit:'100g'},
+  {name:'Pan integral',kcal:247,p:13,c:41,g:4.2,unit:'100g'},
+  {name:'Papa cocida',kcal:87,p:1.9,c:20,g:0.1,unit:'100g'},
+  {name:'Manzana',kcal:52,p:0.3,c:14,g:0.2,unit:'100g'},
+  {name:'Almendras',kcal:579,p:21,c:22,g:50,unit:'100g'},
+  {name:'Proteína Whey',kcal:400,p:80,c:8,g:5,unit:'100g'},
+  {name:'Brócoli',kcal:34,p:2.8,c:7,g:0.4,unit:'100g'},
+  {name:'Espinacas',kcal:23,p:2.9,c:3.6,g:0.4,unit:'100g'},
+  {name:'Tomate',kcal:18,p:0.9,c:3.9,g:0.2,unit:'100g'},
+  {name:'Carne de res magra',kcal:250,p:26,c:0,g:15,unit:'100g'},
+  {name:'Pasta cocida',kcal:158,p:5.8,c:31,g:0.9,unit:'100g'},
+  {name:'Lenteja cocida',kcal:116,p:9,c:20,g:0.4,unit:'100g'},
+  {name:'Garbanzo cocido',kcal:164,p:8.9,c:27,g:2.6,unit:'100g'},
+  {name:'Aceite de oliva',kcal:884,p:0,c:0,g:100,unit:'100ml'},
+  {name:'Mantequilla maní',kcal:588,p:25,c:20,g:50,unit:'100g'},
+  {name:'Naranja',kcal:47,p:0.9,c:12,g:0.1,unit:'100g'},
+  {name:'Fresa',kcal:32,p:0.7,c:7.7,g:0.3,unit:'100g'},
+  {name:'Mango',kcal:60,p:0.8,c:15,g:0.4,unit:'100g'},
+  {name:'Arroz integral cocido',kcal:123,p:2.6,c:26,g:1,unit:'100g'},
+  {name:'Camote cocido',kcal:86,p:1.6,c:20,g:0.1,unit:'100g'},
+  {name:'Quinua cocida',kcal:120,p:4.4,c:21,g:1.9,unit:'100g'},
+  {name:'Lentejas cocidas',kcal:116,p:9,c:20,g:0.4,unit:'100g'},
+  {name:'Pavo (pechuga)',kcal:135,p:30,c:0,g:1,unit:'100g'},
+  {name:'Atún natural',kcal:132,p:29,c:0,g:1.3,unit:'100g'},
+  {name:'Cerdo magro',kcal:242,p:27,c:0,g:14,unit:'100g'},
+];
+
+/* ── STATE ── */
+S.diary = {};
+S.selectedMeal = 'desayuno';
+
+function todayKey() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function getDayEntry(key) {
+  if (!key) key = todayKey();
+  if (!S.diary[key]) S.diary[key] = { desayuno:[], almuerzo:[], cena:[], snacks:[] };
+  return S.diary[key];
+}
+
+/* ── DIARY BUILD ── */
+function buildDiary() {
+  buildWeekStrip();
+  renderDiaryMeals();
+}
+
+function buildWeekStrip() {
+  const strip = document.getElementById('week-strip');
+  if (!strip) return;
+  const days = ['L','M','M','J','V','S','D'];
+  const today = new Date();
+  const todayDow = today.getDay(); // 0=Sun
+  // Start from Monday of this week
+  const startOffset = todayDow === 0 ? -6 : 1 - todayDow;
+  strip.innerHTML = '';
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() + startOffset + i);
+    const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    const isToday = d.toDateString() === today.toDateString();
+    const hasLog = S.diary[key] && Object.values(S.diary[key]).some(arr => arr.length > 0);
+    const col = document.createElement('div');
+    col.className = 'week-day-col' + (isToday ? ' today' : '') + (hasLog ? ' has-log' : '');
+    col.innerHTML = `<div class="week-day-lbl">${days[i]}</div><div class="week-day-num">${d.getDate()}</div><div class="week-day-dot"></div>`;
+    col.dataset.key = key;
+    col.onclick = () => {
+      document.querySelectorAll('.week-day-col').forEach(c => c.classList.remove('sel'));
+      col.classList.add('sel');
+      renderDiaryMeals(key);
+    };
+    strip.appendChild(col);
+    if (isToday) col.classList.add('sel');
+  }
+}
+
+function renderDiaryMeals(dateKey) {
+  if (!dateKey) dateKey = todayKey();
+  const entry = getDayEntry(dateKey);
+  const container = document.getElementById('diary-meals');
+  if (!container) return;
+
+  const mealDefs = [
+    { key:'desayuno', label:'Desayuno', icon:'🌅' },
+    { key:'almuerzo', label:'Almuerzo', icon:'☀️' },
+    { key:'cena',     label:'Cena',     icon:'🌙' },
+    { key:'snacks',   label:'Snacks',   icon:'⚡' },
+  ];
+
+  container.innerHTML = '';
+  let totalKcal=0, totalP=0, totalC=0, totalG=0;
+
+  mealDefs.forEach(def => {
+    const items = entry[def.key] || [];
+    let mKcal=0, mP=0, mC=0, mG=0;
+    items.forEach(it => { mKcal+=it.kcal; mP+=it.p; mC+=it.c; mG+=it.g; });
+    totalKcal+=mKcal; totalP+=mP; totalC+=mC; totalG+=mG;
+
+    const sec = document.createElement('div');
+    sec.className = 'diary-meal-section';
+    const macroStr = mKcal ? `${Math.round(mKcal)}kcal · P${Math.round(mP)}g · C${Math.round(mC)}g · G${Math.round(mG)}g` : '';
+    sec.innerHTML = `
+      <div class="dms-header">
+        <span class="dms-title">${def.icon} ${def.label}</span>
+        <span class="dms-macros">${macroStr}</span>
+        <button class="dms-add-btn" onclick="openFoodLog('${def.key}')">+</button>
+      </div>
+      <div class="dms-items" id="dms-items-${def.key}">
+        ${items.length === 0 ? '<div class="dms-empty">Sin alimentos registrados</div>' : ''}
+        ${items.map((it, idx) => `
+          <div class="dms-item">
+            <span class="dms-item-name">${it.name}</span>
+            <span class="dms-item-kcal">${it.kcal}kcal</span>
+            <button class="dms-item-del" onclick="removeDiaryItem('${dateKey}','${def.key}',${idx})">&#x2715;</button>
+          </div>
+        `).join('')}
+      </div>`;
+    container.appendChild(sec);
+  });
+
+  // Update macro bar
+  const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+  set('dmb-kcal', Math.round(totalKcal));
+  set('dmb-prot', Math.round(totalP)+'g');
+  set('dmb-carb', Math.round(totalC)+'g');
+  set('dmb-fat',  Math.round(totalG)+'g');
+}
+
+function removeDiaryItem(dateKey, meal, idx) {
+  if (S.diary[dateKey] && S.diary[dateKey][meal]) {
+    S.diary[dateKey][meal].splice(idx, 1);
+    renderDiaryMeals(dateKey);
+    buildWeekStrip();
+  }
+}
+
+function addToDiary(item, meal) {
+  if (!meal) meal = S.selectedMeal || 'desayuno';
+  const key = todayKey();
+  const entry = getDayEntry(key);
+  entry[meal].push({
+    name: item.name,
+    kcal: Math.round(item.kcal),
+    p: Math.round(item.p * 10) / 10,
+    c: Math.round(item.c * 10) / 10,
+    g: Math.round(item.g * 10) / 10,
+  });
+  buildWeekStrip();
+  renderDiaryMeals(key);
+  toast('✅ ' + item.name + ' añadido a ' + meal);
+}
+
+/* ── FOOD LOG OVERLAY ── */
+function openFoodLog(meal) {
+  S.selectedMeal = meal || 'desayuno';
+  const labels = { desayuno:'Desayuno', almuerzo:'Almuerzo', cena:'Cena', snacks:'Snacks' };
+  const titleEl = document.getElementById('flog-title');
+  if (titleEl) titleEl.textContent = 'Agregar a ' + (labels[S.selectedMeal] || 'Diario');
+  document.getElementById('flog-overlay').classList.add('open');
+  buildRecipeGrid();
+}
+
+function closeFoodLog() {
+  document.getElementById('flog-overlay').classList.remove('open');
+  stopCamera();
+  stopVoice();
+}
+
+function switchFlogTab(tab) {
+  document.querySelectorAll('.flog-tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.flog-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('ftab-' + tab)?.classList.add('active');
+  document.getElementById('flt-' + tab)?.classList.add('active');
+  if (tab !== 'escaner') stopCamera();
+  if (tab !== 'voz') stopVoice();
+}
+
+/* ── TAB 1: RECETAS ── */
+function buildRecipeGrid() {
+  const grid = document.getElementById('recipe-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  RECIPES.forEach((r, i) => {
+    const card = document.createElement('div');
+    card.className = 'recipe-card';
+    card.innerHTML = `
+      <div class="recipe-card-img" style="background:${r.color}">${r.emoji}</div>
+      <div class="recipe-card-body" style="background:${r.color}">
+        <div class="recipe-card-cat">${r.cat}</div>
+        <div class="recipe-card-name">${r.name}</div>
+        <div class="recipe-pills">
+          <span class="recipe-pill">${r.kcal}kcal</span>
+          <span class="recipe-pill">P${r.p}g</span>
+          <span class="recipe-pill">C${r.c}g</span>
+          <span class="recipe-pill">G${r.g}g</span>
+        </div>
+      </div>`;
+    card.onclick = () => openRecipeDetail(i);
+    grid.appendChild(card);
+  });
+}
+
+let _selectedRecipeIdx = -1;
+function openRecipeDetail(idx) {
+  _selectedRecipeIdx = idx;
+  const r = RECIPES[idx];
+  const overlay = document.getElementById('recipe-detail-overlay');
+  document.getElementById('rds-header').style.background = r.color;
+  document.getElementById('rds-emoji').textContent = r.emoji;
+  document.getElementById('rds-name').textContent = r.name;
+  document.getElementById('rds-pills').innerHTML = [
+    r.kcal+'kcal', 'P '+r.p+'g', 'C '+r.c+'g', 'G '+r.g+'g', r.cat
+  ].map(t => `<span class="rds-pill">${t}</span>`).join('');
+  const ul = document.getElementById('rds-ingr-list');
+  ul.innerHTML = r.ingredients.map(ing => `<li>${ing}</li>`).join('');
+  overlay.style.display = 'flex';
+}
+
+function closeRecipeDetail() {
+  document.getElementById('recipe-detail-overlay').style.display = 'none';
+}
+
+function addRecipeToDiary() {
+  if (_selectedRecipeIdx < 0) return;
+  const r = RECIPES[_selectedRecipeIdx];
+  addToDiary({ name: r.name, kcal: r.kcal, p: r.p, c: r.c, g: r.g }, S.selectedMeal);
+  closeRecipeDetail();
+  closeFoodLog();
+}
+
+/* ── TAB 2: BUSCAR ── */
+let _selectedFoodItem = null;
+let _fqtyGrams = 100;
+
+function searchFoodDB(query) {
+  const q = query.trim().toLowerCase();
+  const panel = document.getElementById('fqty-panel');
+  panel.style.display = 'none';
+  _selectedFoodItem = null;
+  const results = document.getElementById('fsearch-results');
+  if (!q) { results.innerHTML = ''; return; }
+  const matches = FOOD_DB.filter(f => f.name.toLowerCase().includes(q)).slice(0, 15);
+  results.innerHTML = matches.map((f, i) => `
+    <div class="fsearch-row" onclick="selectFoodFromDB(${FOOD_DB.indexOf(f)})">
+      <div>
+        <div class="fsearch-row-name">${f.name}</div>
+        <div class="fsearch-row-macros">P${f.p}g · C${f.c}g · G${f.g}g · ${f.unit}</div>
+      </div>
+      <div class="fsearch-row-kcal">${f.kcal}kcal</div>
+    </div>`).join('');
+  if (matches.length === 0) results.innerHTML = '<div class="dms-empty" style="padding:16px 4px">No se encontraron resultados</div>';
+}
+
+function selectFoodFromDB(idx) {
+  _selectedFoodItem = FOOD_DB[idx];
+  _fqtyGrams = 100;
+  const panel = document.getElementById('fqty-panel');
+  panel.style.display = 'block';
+  document.getElementById('fqty-name').textContent = _selectedFoodItem.name;
+  document.getElementById('fqty-unit').textContent = _selectedFoodItem.unit.replace(/\d+/,'').trim();
+  updateQtyDisplay();
+}
+
+function adjustQty(delta) {
+  _fqtyGrams = Math.max(25, _fqtyGrams + delta);
+  updateQtyDisplay();
+}
+
+function updateQtyDisplay() {
+  if (!_selectedFoodItem) return;
+  const f = _selectedFoodItem;
+  const ratio = _fqtyGrams / 100;
+  document.getElementById('fqty-val').textContent = _fqtyGrams;
+  document.getElementById('fqty-macros').textContent =
+    `${Math.round(f.kcal * ratio)}kcal · P${Math.round(f.p * ratio)}g · C${Math.round(f.c * ratio)}g · G${Math.round(f.g * ratio)}g`;
+}
+
+function addFoodFromSearch() {
+  if (!_selectedFoodItem) return;
+  const f = _selectedFoodItem;
+  const ratio = _fqtyGrams / 100;
+  addToDiary({
+    name: f.name + ' (' + _fqtyGrams + f.unit.replace(/\d+/,'').trim() + ')',
+    kcal: Math.round(f.kcal * ratio),
+    p: Math.round(f.p * ratio * 10) / 10,
+    c: Math.round(f.c * ratio * 10) / 10,
+    g: Math.round(f.g * ratio * 10) / 10,
+  }, S.selectedMeal);
+  document.getElementById('fqty-panel').style.display = 'none';
+  document.getElementById('fsearch-inp').value = '';
+  document.getElementById('fsearch-results').innerHTML = '';
+  _selectedFoodItem = null;
+  closeFoodLog();
+}
+
+/* ── TAB 3: ESCÁNER ── */
+let _cameraStream = null;
+let _scannerMode = 'food';
+let _barcodeLoop = null;
+let _scannerResult = null;
+
+function setScannerMode(mode) {
+  _scannerMode = mode;
+  document.getElementById('sbtn-food').classList.toggle('active', mode === 'food');
+  document.getElementById('sbtn-barcode').classList.toggle('active', mode === 'barcode');
+  stopCamera();
+  startCamera(mode);
+}
+
+async function startCamera(mode) {
+  const video = document.getElementById('scanner-video');
+  const placeholder = document.getElementById('scanner-placeholder');
+  const frame = document.getElementById('scanner-frame');
+  const resultEl = document.getElementById('scanner-result');
+  resultEl.style.display = 'none';
+  try {
+    _cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode:'environment' } });
+    video.srcObject = _cameraStream;
+    video.style.display = 'block';
+    placeholder.style.display = 'none';
+    frame.style.display = 'block';
+    if (mode === 'barcode') {
+      startBarcodeDetection();
+    } else {
+      // Food photo mode: add capture button
+      addCaptureButton();
+    }
+  } catch(err) {
+    toast('📷 Cámara no disponible: ' + err.message);
+  }
+}
+
+function stopCamera() {
+  if (_cameraStream) {
+    _cameraStream.getTracks().forEach(t => t.stop());
+    _cameraStream = null;
+  }
+  if (_barcodeLoop) { clearInterval(_barcodeLoop); _barcodeLoop = null; }
+  const video = document.getElementById('scanner-video');
+  if (video) { video.style.display = 'none'; video.srcObject = null; }
+  const placeholder = document.getElementById('scanner-placeholder');
+  if (placeholder) placeholder.style.display = 'flex';
+  const frame = document.getElementById('scanner-frame');
+  if (frame) frame.style.display = 'none';
+  const capBtn = document.getElementById('capture-btn');
+  if (capBtn) capBtn.remove();
+}
+
+function addCaptureButton() {
+  const wrap = document.querySelector('.scanner-wrap');
+  if (!wrap || document.getElementById('capture-btn')) return;
+  const btn = document.createElement('button');
+  btn.id = 'capture-btn';
+  btn.textContent = '📸 Capturar';
+  btn.style.cssText = 'position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:var(--accent);border:none;border-radius:50px;padding:10px 24px;font-family:Inter,sans-serif;font-size:14px;font-weight:700;color:var(--dark);cursor:pointer;z-index:10';
+  btn.onclick = captureAndAnalyze;
+  wrap.appendChild(btn);
+}
+
+async function captureAndAnalyze() {
+  const video = document.getElementById('scanner-video');
+  if (!video || !_cameraStream) { toast('📷 Activa la cámara primero'); return; }
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth || 640;
+  canvas.height = video.videoHeight || 480;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  const base64 = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
+  toast('🔍 Analizando imagen...');
+  await analyzeFood(base64);
+}
+
+async function analyzeFood(imageBase64) {
+  const key = localStorage.getItem('np-claude-key');
+  if (!key) { promptClaudeKey(); return; }
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 256,
+        messages: [{
+          role: 'user',
+          content: [
+            { type:'image', source:{ type:'base64', media_type:'image/jpeg', data: imageBase64 } },
+            { type:'text', text: 'Analiza esta comida y devuelve SOLO un JSON válido sin texto adicional: {"food":"nombre del alimento","kcal":numero,"p":proteinas_gramos,"c":carbohidratos_gramos,"g":grasas_gramos}' }
+          ]
+        }]
+      })
+    });
+    const data = await res.json();
+    const txt = data.content?.[0]?.text || '';
+    const jsonMatch = txt.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('No JSON found');
+    const parsed = JSON.parse(jsonMatch[0]);
+    _scannerResult = { name: parsed.food, kcal: parsed.kcal, p: parsed.p, c: parsed.c, g: parsed.g };
+    showScannerResult(_scannerResult);
+  } catch(err) {
+    toast('⚠️ Error al analizar: ' + err.message);
+  }
+}
+
+function startBarcodeDetection() {
+  if (!('BarcodeDetector' in window)) {
+    // Fallback: manual barcode input
+    showManualBarcodeInput();
+    return;
+  }
+  const detector = new BarcodeDetector({ formats: ['ean_13','ean_8','upc_a','upc_e','code_128'] });
+  const video = document.getElementById('scanner-video');
+  let lastCode = '';
+  // Add scan line animation
+  const frame = document.getElementById('scanner-frame');
+  if (frame && !frame.querySelector('.scanner-line')) {
+    const line = document.createElement('div'); line.className = 'scanner-line'; frame.appendChild(line);
+  }
+  _barcodeLoop = setInterval(async () => {
+    if (!video || !video.videoWidth) return;
+    try {
+      const barcodes = await detector.detect(video);
+      if (barcodes.length > 0 && barcodes[0].rawValue !== lastCode) {
+        lastCode = barcodes[0].rawValue;
+        clearInterval(_barcodeLoop);
+        toast('📦 Código detectado: ' + lastCode);
+        await lookupBarcode(lastCode);
+      }
+    } catch(_) {}
+  }, 400);
+}
+
+function showManualBarcodeInput() {
+  const wrap = document.querySelector('.scanner-wrap');
+  if (!wrap || document.getElementById('barcode-manual')) return;
+  const div = document.createElement('div');
+  div.id = 'barcode-manual';
+  div.style.cssText = 'position:absolute;inset:0;background:rgba(0,0,0,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px;z-index:10';
+  div.innerHTML = `
+    <div style="color:#fff;font-size:13px;text-align:center">BarcodeDetector no disponible.<br>Ingresa el código manualmente:</div>
+    <input id="barcode-manual-inp" type="number" placeholder="Ej: 7501234567890" style="width:100%;padding:10px;border-radius:8px;border:none;font-size:16px;text-align:center">
+    <button onclick="lookupBarcodeManual()" style="background:var(--accent);border:none;border-radius:50px;padding:10px 24px;font-family:Inter,sans-serif;font-weight:700;font-size:14px;cursor:pointer">Buscar</button>`;
+  wrap.appendChild(div);
+}
+
+function lookupBarcodeManual() {
+  const inp = document.getElementById('barcode-manual-inp');
+  if (!inp || !inp.value.trim()) return;
+  lookupBarcode(inp.value.trim());
+}
+
+async function lookupBarcode(code) {
+  toast('🔍 Consultando base de datos...');
+  try {
+    const res = await fetch(`https://world.openfoodfacts.org/api/v2/product/${code}?fields=product_name,nutriments`);
+    const data = await res.json();
+    if (data.status !== 1 || !data.product) { toast('❌ Producto no encontrado'); return; }
+    const p = data.product;
+    const n = p.nutriments;
+    _scannerResult = {
+      name: p.product_name || 'Producto desconocido',
+      kcal: Math.round(n['energy-kcal_100g'] || n['energy-kcal'] || 0),
+      p:    Math.round((n.proteins_100g || 0) * 10) / 10,
+      c:    Math.round((n.carbohydrates_100g || 0) * 10) / 10,
+      g:    Math.round((n.fat_100g || 0) * 10) / 10,
+    };
+    showScannerResult(_scannerResult);
+  } catch(err) {
+    toast('⚠️ Error de red: ' + err.message);
+  }
+}
+
+function showScannerResult(item) {
+  const el = document.getElementById('scanner-result');
+  document.getElementById('sres-name').textContent = item.name;
+  document.getElementById('sres-macros').textContent =
+    `${item.kcal}kcal · P${item.p}g · C${item.c}g · G${item.g}g`;
+  el.style.display = 'block';
+}
+
+function addFoodFromScanner() {
+  if (!_scannerResult) return;
+  addToDiary(_scannerResult, S.selectedMeal);
+  closeFoodLog();
+}
+
+function promptClaudeKey() {
+  const existing = localStorage.getItem('np-claude-key') || '';
+  const key = window.prompt('Ingresa tu clave de API de Claude (anthropic.com):', existing);
+  if (key && key.trim()) {
+    localStorage.setItem('np-claude-key', key.trim());
+    toast('🔑 API Key guardada');
+  }
+}
+
+/* ── TAB 4: VOZ ── */
+let _recognition = null;
+let _voiceTimerInterval = null;
+let _voiceSeconds = 0;
+let _voiceResult = null;
+
+function toggleVoice() {
+  const btn = document.getElementById('voz-mic-btn');
+  if (_recognition && btn.classList.contains('listening')) {
+    stopVoice();
+  } else {
+    startVoice();
+  }
+}
+
+function startVoice() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) { toast('🎤 Reconocimiento de voz no disponible en este navegador'); return; }
+  _recognition = new SpeechRecognition();
+  _recognition.lang = 'es-ES';
+  _recognition.continuous = false;
+  _recognition.interimResults = true;
+
+  const btn = document.getElementById('voz-mic-btn');
+  const timerEl = document.getElementById('voz-timer');
+  const transcript = document.getElementById('voz-transcript');
+  const sub = document.getElementById('voz-sub');
+  const resultCard = document.getElementById('voz-result');
+
+  btn.classList.add('listening');
+  timerEl.style.display = 'block';
+  resultCard.style.display = 'none';
+  sub.textContent = 'Escuchando...';
+  transcript.textContent = '';
+  _voiceSeconds = 0;
+  timerEl.textContent = '0:00';
+
+  _voiceTimerInterval = setInterval(() => {
+    _voiceSeconds++;
+    const m = Math.floor(_voiceSeconds/60);
+    const s = _voiceSeconds % 60;
+    timerEl.textContent = m + ':' + String(s).padStart(2,'0');
+  }, 1000);
+
+  _recognition.onresult = (event) => {
+    const t = Array.from(event.results).map(r => r[0].transcript).join('');
+    transcript.textContent = t;
+  };
+
+  _recognition.onend = () => {
+    const finalText = transcript.textContent.trim();
+    stopVoice(false);
+    if (finalText) matchVoiceToFood(finalText);
+  };
+
+  _recognition.onerror = (e) => {
+    stopVoice(false);
+    toast('🎤 Error: ' + e.error);
+  };
+
+  _recognition.start();
+}
+
+function stopVoice(clearUI) {
+  if (_recognition) {
+    try { _recognition.stop(); } catch(_) {}
+    _recognition = null;
+  }
+  if (_voiceTimerInterval) { clearInterval(_voiceTimerInterval); _voiceTimerInterval = null; }
+  const btn = document.getElementById('voz-mic-btn');
+  if (btn) btn.classList.remove('listening');
+  const timerEl = document.getElementById('voz-timer');
+  if (timerEl && clearUI !== false) timerEl.style.display = 'none';
+  const sub = document.getElementById('voz-sub');
+  if (sub && clearUI !== false) sub.textContent = 'Toca el micrófono y dilo en voz alta';
+}
+
+function matchVoiceToFood(text) {
+  const words = text.toLowerCase().split(/\s+/);
+  let best = null, bestScore = 0;
+  FOOD_DB.forEach(f => {
+    const fname = f.name.toLowerCase();
+    let score = 0;
+    words.forEach(w => { if (w.length > 3 && fname.includes(w)) score++; });
+    if (score > bestScore) { bestScore = score; best = f; }
+  });
+
+  const transcript = document.getElementById('voz-transcript');
+  transcript.textContent = '"' + text + '"';
+
+  if (best && bestScore > 0) {
+    _voiceResult = best;
+    document.getElementById('voz-res-name').textContent = best.name;
+    document.getElementById('voz-res-macros').textContent =
+      `${best.kcal}kcal por ${best.unit} · P${best.p}g · C${best.c}g · G${best.g}g`;
+    document.getElementById('voz-result').style.display = 'block';
+    document.getElementById('voz-sub').textContent = 'Encontrado:';
+  } else {
+    toast('🔍 No encontré "' + text + '" en la base de datos');
+    document.getElementById('voz-sub').textContent = 'Intenta de nuevo';
+  }
+}
+
+function cancelVoice() {
+  _voiceResult = null;
+  document.getElementById('voz-result').style.display = 'none';
+  document.getElementById('voz-transcript').textContent = '';
+  document.getElementById('voz-sub').textContent = 'Toca el micrófono y dilo en voz alta';
+  document.getElementById('voz-timer').style.display = 'none';
+}
+
+function addFoodFromVoice() {
+  if (!_voiceResult) return;
+  addToDiary({
+    name: _voiceResult.name,
+    kcal: _voiceResult.kcal,
+    p: _voiceResult.p,
+    c: _voiceResult.c,
+    g: _voiceResult.g,
+  }, S.selectedMeal);
+  cancelVoice();
+  closeFoodLog();
+}
+
+/* ── TAB 5: LISTA ── */
+let _listMatches = [];
+
+function parseListInput(text) {
+  const lines = text.split('\n').filter(l => l.trim());
+  const results = document.getElementById('lista-results');
+  _listMatches = [];
+
+  const html = lines.map(line => {
+    const lower = line.toLowerCase();
+    // Try to extract quantity (number before or after text)
+    const qtyMatch = line.match(/(\d+)\s*g?\b/i);
+    const qty = qtyMatch ? parseInt(qtyMatch[1]) : 100;
+
+    let best = null, bestScore = 0;
+    const words = lower.split(/\s+/).filter(w => w.length > 3 && !/^\d+$/.test(w));
+    FOOD_DB.forEach(f => {
+      const fname = f.name.toLowerCase();
+      let score = 0;
+      words.forEach(w => { if (fname.includes(w)) score++; });
+      if (score > bestScore) { bestScore = score; best = f; }
+    });
+
+    if (best && bestScore > 0) {
+      const ratio = qty / 100;
+      const item = {
+        name: best.name + (qty !== 100 ? ' ('+qty+'g)' : ''),
+        kcal: Math.round(best.kcal * ratio),
+        p: Math.round(best.p * ratio * 10)/10,
+        c: Math.round(best.c * ratio * 10)/10,
+        g: Math.round(best.g * ratio * 10)/10,
+      };
+      _listMatches.push(item);
+      return `<div class="lista-match-row">
+        <span class="lista-match-name">${item.name}</span>
+        <span class="lista-match-kcal">${item.kcal}kcal</span>
+      </div>`;
+    } else {
+      return `<div class="lista-match-row"><span class="lista-no-match">"${line}" — no encontrado</span></div>`;
+    }
+  }).join('');
+
+  results.innerHTML = html;
+}
+
+function addFoodFromList() {
+  if (_listMatches.length === 0) { toast('✍️ No hay alimentos reconocidos'); return; }
+  _listMatches.forEach(item => addToDiary(item, S.selectedMeal));
+  document.getElementById('lista-textarea').value = '';
+  document.getElementById('lista-results').innerHTML = '';
+  _listMatches = [];
+  closeFoodLog();
+}
+
+/* ── Init diary on app start ── */
+const _origFinishSetup = finishSetup;
+// Patch buildDiary into diary tab activation
+const _origGoTab = goTab;
+goTab = function(tab) {
+  _origGoTab(tab);
+  if (tab === 'diary') setTimeout(buildDiary, 100);
+};
