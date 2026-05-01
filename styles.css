@@ -64,6 +64,15 @@
 
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 
+/* Bloquea zoom de doble-tap en todos los elementos interactivos */
+a, button, input, select, textarea,
+[onclick], [role="button"],
+.opt-card, .food-chip, .check-row, .row-sel,
+.nav-item, .flog-tab, .recipe-card, .fsearch-row,
+.dms-add-btn, .dms-item-del, .week-day-col {
+  touch-action: manipulation;
+}
+
 /* Bloquea transiciones mientras se aplica el tema (evita el flash) */
 .no-transition,
 .no-transition *,

@@ -59,7 +59,8 @@ let S = {
   peso: 70, talla: 170, edad: 25, sexo: 'm', act: 1.55,
   obj: 0, objLabel: 'Perder Grasa', dietType: 'balanced',
   pesoObj: null,
-  waterCount: 6, waterMeta: 12
+  waterCount: 6, waterMeta: 12,
+  diary: {}
 };
 let actVal = 1.55;
 let currentTab = 'dash';
@@ -155,6 +156,7 @@ function goTab(tab) {
   if (navEl) navEl.classList.add('active');
   currentTab = tab;
   if (tab === 'macros') setTimeout(animateMacroBars, 200);
+  if (tab === 'diary')  setTimeout(buildDiary, 100);
 }
 
 function openFood(emoji, name, type, kcal) {
@@ -705,8 +707,13 @@ function getDayEntry(key) {
 
 /* ── DIARY BUILD ── */
 function buildDiary() {
-  buildWeekStrip();
-  renderDiaryMeals();
+  try {
+    if (!S.diary) S.diary = {};
+    buildWeekStrip();
+    renderDiaryMeals();
+  } catch(e) {
+    console.error('buildDiary error:', e);
+  }
 }
 
 function buildWeekStrip() {
@@ -816,18 +823,27 @@ function addToDiary(item, meal) {
 
 /* ── FOOD LOG OVERLAY ── */
 function openFoodLog(meal) {
-  S.selectedMeal = meal || 'desayuno';
-  const labels = { desayuno:'Desayuno', almuerzo:'Almuerzo', cena:'Cena', snacks:'Snacks' };
-  const titleEl = document.getElementById('flog-title');
-  if (titleEl) titleEl.textContent = 'Agregar a ' + (labels[S.selectedMeal] || 'Diario');
-  document.getElementById('flog-overlay').classList.add('open');
-  buildRecipeGrid();
+  try {
+    if (!S.diary) S.diary = {};
+    S.selectedMeal = meal || 'desayuno';
+    const labels = { desayuno:'Desayuno', almuerzo:'Almuerzo', cena:'Cena', snacks:'Snacks' };
+    const titleEl = document.getElementById('flog-title');
+    if (titleEl) titleEl.textContent = 'Agregar a ' + (labels[S.selectedMeal] || 'Diario');
+    const overlay = document.getElementById('flog-overlay');
+    if (overlay) overlay.classList.add('open');
+    buildRecipeGrid();
+  } catch(e) {
+    console.error('openFoodLog error:', e);
+  }
 }
 
 function closeFoodLog() {
-  document.getElementById('flog-overlay').classList.remove('open');
-  stopCamera();
-  stopVoice();
+  try {
+    const overlay = document.getElementById('flog-overlay');
+    if (overlay) overlay.classList.remove('open');
+    stopCamera();
+    stopVoice();
+  } catch(e) { /* ignore */ }
 }
 
 function switchFlogTab(tab) {
@@ -1338,11 +1354,4 @@ function addFoodFromList() {
   closeFoodLog();
 }
 
-/* ── Init diary on app start ── */
-const _origFinishSetup = finishSetup;
-// Patch buildDiary into diary tab activation
-const _origGoTab = goTab;
-goTab = function(tab) {
-  _origGoTab(tab);
-  if (tab === 'diary') setTimeout(buildDiary, 100);
-};
+/* ── Init diary on app start (buildDiary ya integrado en goTab) ── */
