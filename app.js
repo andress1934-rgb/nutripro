@@ -51,6 +51,24 @@ document.addEventListener('DOMContentLoaded', () => {
     );
     if (!ok) e.preventDefault();
   }, { passive: false });
+
+  /* ── Bloquear zoom en iOS (ignora user-scalable=no desde iOS 10) ── */
+  document.addEventListener('gesturestart',  e => e.preventDefault(), { passive: false });
+  document.addEventListener('gesturechange', e => e.preventDefault(), { passive: false });
+  document.addEventListener('gestureend',    e => e.preventDefault(), { passive: false });
+
+  /* Bloquear pellizco (2 dedos) */
+  document.addEventListener('touchstart', e => {
+    if (e.touches.length > 1) e.preventDefault();
+  }, { passive: false });
+
+  /* Bloquear doble-tap zoom */
+  let _lastTap = 0;
+  document.addEventListener('touchend', e => {
+    const now = Date.now();
+    if (now - _lastTap < 320) e.preventDefault();
+    _lastTap = now;
+  }, { passive: false });
 });
 
 /* ══ STATE ══ */
@@ -136,6 +154,10 @@ function _transitionTo(prev, next, forward) {
 }
 
 function goTab(tab) {
+  /* Si hay escáner abierto, cerrarlo */
+  const scanScreen = document.getElementById('s-scanner');
+  if (scanScreen && scanScreen.style.opacity === '1') stopMainScan();
+
   const screens = { dash: 's-dash', macros: 's-macros', diary: 's-diary', settings: 's-settings' };
   const navIds  = { dash: 'nav-dash', macros: 'nav-macros', diary: 'nav-diary', settings: 'nav-settings' };
 
@@ -851,8 +873,8 @@ function switchFlogTab(tab) {
   document.querySelectorAll('.flog-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('ftab-' + tab)?.classList.add('active');
   document.getElementById('flt-' + tab)?.classList.add('active');
-  if (tab !== 'escaner') stopCamera();
-  if (tab !== 'voz') stopVoice();
+  try { if (tab !== 'escaner') stopCamera(); } catch(_) {}
+  try { if (tab !== 'voz') stopVoice(); } catch(_) {}
 }
 
 /* ── TAB 1: RECETAS ── */
@@ -1352,6 +1374,271 @@ function addFoodFromList() {
   document.getElementById('lista-results').innerHTML = '';
   _listMatches = [];
   closeFoodLog();
+}
+
+/* ══════════════════════════════════════════
+   MAIN SCANNER (pantalla completa, acceso directo desde nav)
+══════════════════════════════════════════ */
+let _mainScanStream = null;
+let _mainScanMode  = 'food';
+let _mainBarcodeLoop = null;
+let _mainScanResult = null;
+let _flashTrack = null;
+
+function openScanner() {
+  const screen = document.getElementById('s-scanner');
+  if (!screen) return;
+  screen.style.opacity = '1';
+  screen.style.pointerEvents = 'all';
+  /* Marcar nav activo */
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('nav-scanner')?.classList.add('active');
+  setMainScanMode('food');
+}
+
+function closeScanner() {
+  stopMainScan();
+  const screen = document.getElementById('s-scanner');
+  if (screen) { screen.style.opacity = '0'; screen.style.pointerEvents = 'none'; }
+  /* Restaurar tab anterior */
+  const navEl = document.getElementById('nav-' + currentTab);
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (navEl) navEl.classList.add('active');
+}
+
+function setMainScanMode(mode) {
+  _mainScanMode = mode;
+  const screen = document.getElementById('s-scanner');
+  const btnFood = document.getElementById('msc-btn-food');
+  const btnBar  = document.getElementById('msc-btn-barcode');
+  const hint    = document.getElementById('msc-hint');
+  const title   = document.getElementById('msc-title');
+  const shutter = document.getElementById('msc-shutter');
+  const shutLbl = document.getElementById('msc-shutter-label');
+
+  if (btnFood)  btnFood.classList.toggle('active', mode === 'food');
+  if (btnBar)   btnBar.classList.toggle('active', mode === 'barcode');
+
+  if (mode === 'food') {
+    screen?.classList.remove('barcode-mode');
+    if (hint)    hint.textContent = 'Apunta la cámara al plato de comida';
+    if (title)   title.textContent = 'Escanea tu comida';
+    if (shutter) shutter.style.display = 'block';
+    if (shutLbl) shutLbl.textContent = 'Toca para capturar';
+  } else {
+    screen?.classList.add('barcode-mode');
+    if (hint)    hint.textContent = 'Apunta al código de barras del producto';
+    if (title)   title.textContent = 'Código de barras';
+    if (shutter) shutter.style.display = 'none';
+    if (shutLbl) shutLbl.textContent = 'Detección automática';
+  }
+
+  stopMainScan();
+  mscHideResult();
+  startMainCamera(mode);
+}
+
+async function startMainCamera(mode) {
+  const video = document.getElementById('main-scanner-video');
+  if (!video) return;
+  try {
+    _mainScanStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
+    video.srcObject = _mainScanStream;
+    _flashTrack = _mainScanStream.getVideoTracks()[0] || null;
+    if (mode === 'barcode') startMainBarcodeDetection();
+  } catch(err) {
+    toast('📷 ' + (err.name === 'NotAllowedError'
+      ? 'Permite el acceso a la cámara en Ajustes'
+      : 'Cámara no disponible: ' + err.message));
+  }
+}
+
+function stopMainScan() {
+  if (_mainScanStream) {
+    _mainScanStream.getTracks().forEach(t => t.stop());
+    _mainScanStream = null;
+  }
+  if (_mainBarcodeLoop) { clearInterval(_mainBarcodeLoop); _mainBarcodeLoop = null; }
+  _flashTrack = null;
+}
+
+async function mscCapture() {
+  const video = document.getElementById('main-scanner-video');
+  if (!video || !_mainScanStream) { toast('📷 Activa la cámara primero'); return; }
+  const canvas = document.createElement('canvas');
+  canvas.width  = video.videoWidth  || 640;
+  canvas.height = video.videoHeight || 480;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  const base64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+  toast('🔍 Analizando...');
+  await mscAnalyzeFood(base64);
+}
+
+async function mscAnalyzeFood(base64) {
+  const key = localStorage.getItem('np-claude-key');
+  if (!key) {
+    /* Demo sin API key */
+    const demos = [
+      { food:'Bowl de Pollo y Arroz', kcal:520, p:42, c:55, g:12 },
+      { food:'Ensalada de Atún',       kcal:310, p:36, c:12, g:11 },
+      { food:'Pasta con Salsa',        kcal:480, p:18, c:72, g:14 },
+      { food:'Salmón a la Plancha',    kcal:420, p:45, c:4,  g:22 },
+      { food:'Avena con Fruta',        kcal:380, p:14, c:62, g:8  },
+    ];
+    const d = demos[Math.floor(Math.random() * demos.length)];
+    mscShowResult(d.food, d.kcal, d.p, d.c, d.g);
+    toast('⚠️ Modo demo — agrega tu API key para análisis real');
+    return;
+  }
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 200,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: base64 } },
+            { type: 'text',  text: 'Identifica la comida en la imagen. Responde SOLO con JSON válido sin markdown: {"food":"nombre del plato","kcal":número,"p":gramos_proteína,"c":gramos_carbs,"g":gramos_grasa}' }
+          ]
+        }]
+      })
+    });
+    const data = await res.json();
+    const text = data?.content?.[0]?.text || '{}';
+    const clean = text.replace(/```json|```/g, '').trim();
+    const j = JSON.parse(clean);
+    mscShowResult(j.food || 'Comida detectada', j.kcal||0, j.p||0, j.c||0, j.g||0);
+  } catch(e) {
+    toast('❌ Error al analizar. Verifica tu API key.');
+  }
+}
+
+function startMainBarcodeDetection() {
+  const video = document.getElementById('main-scanner-video');
+  if (!video) return;
+  if (!('BarcodeDetector' in window)) {
+    /* Fallback manual */
+    mscShowManualBarcode();
+    return;
+  }
+  const detector = new BarcodeDetector({ formats: ['ean_13','ean_8','upc_a','upc_e','code_128','code_39'] });
+  let lastCode = '';
+  _mainBarcodeLoop = setInterval(async () => {
+    if (!video.videoWidth) return;
+    try {
+      const codes = await detector.detect(video);
+      if (codes.length && codes[0].rawValue !== lastCode) {
+        lastCode = codes[0].rawValue;
+        clearInterval(_mainBarcodeLoop); _mainBarcodeLoop = null;
+        await mscLookupBarcode(lastCode);
+      }
+    } catch(_) {}
+  }, 350);
+}
+
+function mscShowManualBarcode() {
+  mscShowResult('Ingresa el código manualmente', 0, 0, 0, 0);
+  const r = document.getElementById('msc-result');
+  if (r) {
+    r.innerHTML = `
+      <div class="msc-result-name">Ingresa el código de barras</div>
+      <input id="msc-manual-code" type="text" inputmode="numeric"
+             style="width:100%;border:1.5px solid #ddd;border-radius:12px;padding:10px 14px;font-size:16px;font-family:Inter,sans-serif;margin:10px 0;box-sizing:border-box"
+             placeholder="Ej: 7701234567890">
+      <button class="btn-yellow" style="width:100%;margin:0;padding:14px"
+              onclick="mscLookupBarcode(document.getElementById('msc-manual-code').value.trim())">
+        Buscar producto
+      </button>`;
+    r.style.display = 'block';
+  }
+}
+
+async function mscLookupBarcode(code) {
+  if (!code) return;
+  toast('🔍 Buscando producto...');
+  try {
+    const res = await fetch(`https://world.openfoodfacts.org/api/v2/product/${code}?fields=product_name,nutriments,serving_size`);
+    const data = await res.json();
+    if (data.status !== 1) { toast('❌ Producto no encontrado'); startMainBarcodeDetection(); return; }
+    const p = data.product;
+    const n = p.nutriments;
+    const name = p.product_name || 'Producto escaneado';
+    const per  = 100;
+    mscShowResult(
+      name,
+      Math.round(n['energy-kcal_100g'] || n['energy_100g'] / 4.184 || 0),
+      Math.round(n.proteins_100g || 0),
+      Math.round(n.carbohydrates_100g || 0),
+      Math.round(n.fat_100g || 0)
+    );
+  } catch(e) {
+    toast('❌ Error al buscar el producto');
+  }
+}
+
+function mscShowResult(name, kcal, p, c, g) {
+  _mainScanResult = { name, kcal, p, c, g };
+  const r = document.getElementById('msc-result');
+  if (!r) return;
+  r.innerHTML = `
+    <div class="msc-result-name">${name}</div>
+    <div class="msc-result-macros">🔥 ${kcal} kcal &nbsp;·&nbsp; P ${p}g &nbsp;·&nbsp; C ${c}g &nbsp;·&nbsp; G ${g}g</div>
+    <div style="display:flex;gap:10px;margin-top:12px">
+      <button class="msc-rescan-btn" onclick="mscRescan()">🔄 Nuevo</button>
+      <button class="btn-yellow" style="flex:1;margin:0;padding:14px" onclick="mscAddToDiary()">+ Agregar al Diario</button>
+    </div>`;
+  r.style.display = 'block';
+  document.getElementById('msc-hint').style.display = 'none';
+}
+
+function mscHideResult() {
+  const r = document.getElementById('msc-result');
+  if (r) r.style.display = 'none';
+  const h = document.getElementById('msc-hint');
+  if (h) h.style.display = 'block';
+  _mainScanResult = null;
+}
+
+function mscRescan() {
+  mscHideResult();
+  setMainScanMode(_mainScanMode);
+}
+
+function mscAddToDiary() {
+  if (!_mainScanResult) return;
+  addToDiary(_mainScanResult, S.selectedMeal || 'desayuno');
+  mscHideResult();
+  toast('✅ ' + _mainScanResult.name + ' agregado');
+  closeScanner();
+  goTab('diary');
+}
+
+function toggleFlash() {
+  if (!_flashTrack) return;
+  const capabilities = _flashTrack.getCapabilities();
+  if (!capabilities.torch) { toast('⚡ Flash no disponible'); return; }
+  const current = _flashTrack.getSettings().torch || false;
+  _flashTrack.applyConstraints({ advanced: [{ torch: !current }] });
+  document.getElementById('msc-flash').textContent = current ? '⚡' : '💡';
+}
+
+function promptClaudeKey() {
+  const current = localStorage.getItem('np-claude-key') || '';
+  const key = prompt('Ingresa tu API Key de Anthropic (Claude):\n\nSe guarda solo en tu dispositivo.', current);
+  if (key !== null) {
+    localStorage.setItem('np-claude-key', key.trim());
+    toast(key.trim() ? '✅ API Key guardada' : '🗑 API Key eliminada');
+  }
 }
 
 /* ── Init diary on app start (buildDiary ya integrado en goTab) ── */

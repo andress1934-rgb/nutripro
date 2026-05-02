@@ -234,7 +234,7 @@ html, body {
    OVERLAY CÍRCULO VERDE (transición de éxito)
 ══════════════════════════════════════════ */
 #green-flash {
-  position: fixed; z-index: 100;
+  position: absolute; z-index: 100;
   pointer-events: none;
   width: 80px; height: 80px;
   border-radius: 50%;
@@ -1101,7 +1101,7 @@ html, body {
    CHAT OVERLAY
 ───────────────────────────────────────── */
 .chat-overlay {
-  position: fixed; inset: 0; z-index: 2000;
+  position: absolute; inset: 0; z-index: 2000;
   display: flex; align-items: flex-end;
   background: rgba(0,0,0,.45);
   opacity: 0; pointer-events: none; transition: opacity .3s;
@@ -1154,7 +1154,7 @@ html, body {
 @keyframes td{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-5px);opacity:1}}
 
 /* ─── TOAST ─── */
-.toast-host { position: fixed; top: 70px; left: 50%; transform: translateX(-50%); z-index: 3000; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.toast-host { position: absolute; top: 70px; left: 50%; transform: translateX(-50%); z-index: 3000; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .toast-pill { background: var(--dark); color: white; border-radius: 24px; padding: 10px 18px; font-size: 13px; font-weight: 500; box-shadow: var(--shadow-l); white-space: nowrap; animation: toastAnim .3s cubic-bezier(.34,1.56,.64,1); text-align: center; }
 @keyframes toastAnim { from{opacity:0;transform:translateY(-10px) scale(.9)} to{opacity:1;transform:translateY(0) scale(1)} }
 @keyframes toastOut { to{opacity:0;transform:translateY(-10px) scale(.9)} }
@@ -1248,7 +1248,7 @@ html, body {
    FOOD LOG OVERLAY
 ═══════════════════════════════════════ */
 .flog-overlay {
-  position: fixed; inset: 0; z-index: 1500;
+  position: absolute; inset: 0; z-index: 1500;
   background: rgba(0,0,0,.5);
   display: flex; align-items: flex-end;
   opacity: 0; pointer-events: none;
@@ -1529,7 +1529,7 @@ html, body {
 
 /* ── RECIPE DETAIL ── */
 .recipe-detail-overlay {
-  position: fixed; inset: 0; z-index: 2000;
+  position: absolute; inset: 0; z-index: 2000;
   background: rgba(0,0,0,.55);
   display: flex; align-items: flex-end;
 }
@@ -1566,3 +1566,144 @@ html, body {
 .phone.dark .voz-mic-btn { background: var(--card2); }
 .phone.dark .dms-item { background: var(--card); }
 .phone.dark .diary-macro-bar { background: var(--card2); }
+
+/* ══════════════════════════════════════════
+   BOTTOM NAV — Scanner button (central, prominente)
+══════════════════════════════════════════ */
+.nav-scanner-btn {
+  position: relative;
+  flex: 1.4;
+}
+.nav-scanner-ring {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  margin: -18px auto 2px;
+  box-shadow: 0 4px 20px rgba(245,197,24,.5);
+  transition: transform .15s;
+}
+.nav-scanner-btn:active .nav-scanner-ring { transform: scale(.92); }
+
+/* ══════════════════════════════════════════
+   MAIN SCANNER SCREEN
+══════════════════════════════════════════ */
+@keyframes scanLine {
+  0%   { top: 8px; opacity: 1; }
+  48%  { opacity: 1; }
+  50%  { top: calc(100% - 8px); opacity: 0; }
+  50.1%{ top: 8px; opacity: 0; }
+  52%  { opacity: 1; }
+  100% { top: 8px; }
+}
+
+/* Top bar */
+.msc-topbar {
+  position: relative; z-index: 10;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: max(52px, env(safe-area-inset-top, 52px)) 20px 14px;
+  background: linear-gradient(to bottom, rgba(0,0,0,.7), transparent);
+}
+.msc-close {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255,255,255,.18); border: none;
+  color: white; font-size: 16px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.msc-title { color: white; font-size: 15px; font-weight: 700; }
+.msc-flash {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255,255,255,.18); border: none;
+  color: white; font-size: 16px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* Frame de escaneo */
+.msc-frame {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -58%);
+  width: min(80vw, 300px); height: min(80vw, 300px);
+  z-index: 5; pointer-events: none;
+}
+.msc-corner {
+  position: absolute; width: 28px; height: 28px;
+  border-color: white; border-style: solid;
+}
+.msc-tl { top:0; left:0;  border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
+.msc-tr { top:0; right:0; border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
+.msc-bl { bottom:0; left:0;  border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
+.msc-br { bottom:0; right:0; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
+.msc-scan-line {
+  position: absolute; left: 6px; right: 6px; height: 2px;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  animation: scanLine 2.4s ease-in-out infinite;
+}
+
+/* Hint */
+.msc-hint {
+  position: absolute; bottom: 195px; left: 0; right: 0;
+  text-align: center; color: rgba(255,255,255,.8);
+  font-size: 13px; font-weight: 500; z-index: 10;
+  text-shadow: 0 1px 4px rgba(0,0,0,.6);
+}
+
+/* Result card */
+.msc-result {
+  position: absolute; bottom: 185px; left: 16px; right: 16px;
+  background: white; border-radius: 20px; padding: 16px 18px;
+  z-index: 20; box-shadow: 0 8px 32px rgba(0,0,0,.35);
+}
+.msc-result-name { font-size: 17px; font-weight: 800; color: #1A1A1A; margin-bottom: 4px; }
+.msc-result-macros { font-size: 13px; color: #666; }
+.msc-rescan-btn {
+  padding: 14px 16px; background: #f0f0f0; border: none; border-radius: 50px;
+  font-size: 14px; font-weight: 600; cursor: pointer; color: #333;
+}
+
+/* Bottom controls */
+.msc-bottom {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(to top, rgba(0,0,0,.85) 0%, transparent 100%);
+  padding: 16px 20px max(28px, env(safe-area-inset-bottom, 28px));
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  z-index: 10;
+}
+.msc-mode-row {
+  display: flex; gap: 8px;
+  background: rgba(255,255,255,.15); border-radius: 50px; padding: 4px;
+}
+.msc-mode-btn {
+  padding: 8px 18px; border: none; border-radius: 50px;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  background: transparent; color: rgba(255,255,255,.7);
+  transition: all .2s;
+}
+.msc-mode-btn.active {
+  background: var(--accent); color: #1A1A1A;
+  box-shadow: 0 2px 10px rgba(245,197,24,.4);
+}
+
+/* Shutter button */
+.msc-shutter {
+  width: 68px; height: 68px; border-radius: 50%;
+  border: 4px solid white;
+  background: rgba(255,255,255,.25);
+  cursor: pointer; transition: transform .15s;
+  position: relative;
+}
+.msc-shutter::after {
+  content: ''; position: absolute; inset: 5px;
+  border-radius: 50%; background: white;
+}
+.msc-shutter:active { transform: scale(.9); }
+.msc-shutter-label {
+  color: rgba(255,255,255,.6); font-size: 11px; font-weight: 500;
+  margin-top: -8px;
+}
+
+/* Barcode mode: frame más ancho y plano */
+#s-scanner.barcode-mode .msc-frame {
+  width: min(85vw, 320px); height: min(40vw, 160px);
+  transform: translate(-50%, -65%);
+}
