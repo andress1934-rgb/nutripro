@@ -1390,10 +1390,13 @@ function openScanner() {
   if (!screen) return;
   screen.style.opacity = '1';
   screen.style.pointerEvents = 'all';
-  /* Marcar nav activo */
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('nav-scanner')?.classList.add('active');
   setMainScanMode('food');
+  /* Si no hay API key, mostrar setup en cuanto cargue la cámara */
+  if (!localStorage.getItem('np-claude-key')) {
+    setTimeout(mscShowApiKeySetup, 800);
+  }
 }
 
 function closeScanner() {
@@ -1476,22 +1479,58 @@ async function mscCapture() {
   await mscAnalyzeFood(base64);
 }
 
+/* Prompt de alta precisión nutricional para Claude Vision */
+const NUTRITION_PROMPT = `Eres un nutricionista clínico experto y dietista certificado con acceso a bases de datos nutricionales (USDA, INCAP, FAO). Tu tarea es analizar con MÁXIMA PRECISIÓN la imagen de comida.
+
+PROCESO DE ANÁLISIS (sigue estos pasos exactamente):
+1. IDENTIFICACIÓN: Examina con detalle cada alimento visible — color, textura, forma, método de cocción, recipiente/plato para estimar tamaño.
+2. PORCIÓN: Estima el peso en gramos de cada componente usando el tamaño del recipiente como referencia (plato estándar ≈ 26cm, caja de icopor ≈ 20×15cm).
+3. MACROS POR COMPONENTE: Usa datos nutricionales por 100g de la base USDA:
+   - Arroz cocido: 130kcal, P2.7g, C28g, G0.3g
+   - Pollo pechuga cocido: 165kcal, P31g, C0g, G3.6g
+   - Pollo muslo/pierna cocido: 209kcal, P26g, C0g, G11g
+   - Carne res magra: 250kcal, P26g, C0g, G15g
+   - Papa cocida: 87kcal, P1.9g, C20g, G0.1g
+   - Plátano maduro frito: 181kcal, P0.9g, C35g, G5g
+   - Frijoles/lentejas cocidos: 116kcal, P9g, C20g, G0.4g
+   - Ensalada (lechuga+tomate): 20kcal, P1g, C4g, G0.2g
+   - Aceite/fritura extra: 45kcal, P0g, C0g, G5g (por cucharada estimada)
+   - Huevo cocido: 155kcal, P13g, C1g, G11g (por unidad ≈ 50g)
+   - Pan: 265kcal, P9g, C49g, G3.2g (por 100g)
+4. TOTAL: Suma todos los componentes.
+5. CONFIANZA: Evalúa del 0 al 1 qué tan seguro estás de la identificación.
+
+REGLAS CRÍTICAS:
+- SOLO describe lo que REALMENTE ves en la imagen. NUNCA inventes alimentos.
+- Si la imagen es borrosa o no puedes identificar algo, dilo en "notes".
+- Sé específico: "pechuga de pollo apanada frita" es mejor que "pollo".
+- Ajusta macros si ves aceite, salsas o aderezos visibles.
+
+Responde ÚNICAMENTE con JSON válido (sin markdown, sin texto extra):
+{
+  "food": "nombre completo y específico del plato",
+  "ingredients": [
+    {"name": "nombre ingrediente", "grams": número, "kcal": número, "p": número, "c": número, "g": número}
+  ],
+  "kcal": total_número,
+  "p": total_proteínas_g,
+  "c": total_carbohidratos_g,
+  "g": total_grasas_g,
+  "confidence": número_0_a_1,
+  "notes": "observaciones o advertencias si aplica"
+}`;
+
 async function mscAnalyzeFood(base64) {
   const key = localStorage.getItem('np-claude-key');
+
   if (!key) {
-    /* Demo sin API key */
-    const demos = [
-      { food:'Bowl de Pollo y Arroz', kcal:520, p:42, c:55, g:12 },
-      { food:'Ensalada de Atún',       kcal:310, p:36, c:12, g:11 },
-      { food:'Pasta con Salsa',        kcal:480, p:18, c:72, g:14 },
-      { food:'Salmón a la Plancha',    kcal:420, p:45, c:4,  g:22 },
-      { food:'Avena con Fruta',        kcal:380, p:14, c:62, g:8  },
-    ];
-    const d = demos[Math.floor(Math.random() * demos.length)];
-    mscShowResult(d.food, d.kcal, d.p, d.c, d.g);
-    toast('⚠️ Modo demo — agrega tu API key para análisis real');
+    mscShowApiKeySetup();
     return;
   }
+
+  /* Indicador de carga */
+  mscShowLoading();
+
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -1502,25 +1541,159 @@ async function mscAnalyzeFood(base64) {
         'anthropic-dangerous-direct-browser-access': 'true'
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 200,
+        model: 'claude-sonnet-4-6',   /* Sonnet tiene mejor visión que Haiku */
+        max_tokens: 800,
         messages: [{
           role: 'user',
           content: [
-            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: base64 } },
-            { type: 'text',  text: 'Identifica la comida en la imagen. Responde SOLO con JSON válido sin markdown: {"food":"nombre del plato","kcal":número,"p":gramos_proteína,"c":gramos_carbs,"g":gramos_grasa}' }
+            {
+              type: 'image',
+              source: { type: 'base64', media_type: 'image/jpeg', data: base64 }
+            },
+            { type: 'text', text: NUTRITION_PROMPT }
           ]
         }]
       })
     });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      const msg = err?.error?.message || res.statusText;
+      if (res.status === 401) {
+        mscShowApiKeySetup('API Key inválida. Ingrésala de nuevo.');
+      } else {
+        mscShowError('Error ' + res.status + ': ' + msg);
+      }
+      return;
+    }
+
     const data = await res.json();
-    const text = data?.content?.[0]?.text || '{}';
-    const clean = text.replace(/```json|```/g, '').trim();
-    const j = JSON.parse(clean);
-    mscShowResult(j.food || 'Comida detectada', j.kcal||0, j.p||0, j.c||0, j.g||0);
+    const text = (data?.content?.[0]?.text || '').replace(/```json|```/g, '').trim();
+
+    let j;
+    try {
+      j = JSON.parse(text);
+    } catch(_) {
+      /* Intento rescatar JSON parcial */
+      const m = text.match(/\{[\s\S]*\}/);
+      if (m) j = JSON.parse(m[0]);
+      else throw new Error('No se pudo parsear la respuesta');
+    }
+
+    mscShowDetailedResult(j);
+
   } catch(e) {
-    toast('❌ Error al analizar. Verifica tu API key.');
+    mscShowError('No se pudo analizar la imagen. Intenta de nuevo.');
+    console.error('mscAnalyzeFood:', e);
   }
+}
+
+function mscShowLoading() {
+  const r = document.getElementById('msc-result');
+  if (!r) return;
+  r.style.display = 'block';
+  r.innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;padding:4px 0">
+      <div class="msc-spinner"></div>
+      <div>
+        <div style="font-size:15px;font-weight:700;color:#1A1A1A">Analizando imagen...</div>
+        <div style="font-size:12px;color:#888;margin-top:2px">IA nutricional procesando</div>
+      </div>
+    </div>`;
+  document.getElementById('msc-hint').style.display = 'none';
+}
+
+function mscShowDetailedResult(j) {
+  _mainScanResult = {
+    name: j.food || 'Comida detectada',
+    kcal: Math.round(j.kcal || 0),
+    p:    Math.round((j.p || 0) * 10) / 10,
+    c:    Math.round((j.c || 0) * 10) / 10,
+    g:    Math.round((j.g || 0) * 10) / 10
+  };
+
+  const confidence = j.confidence || 0;
+  const confPct    = Math.round(confidence * 100);
+  const confColor  = confidence >= 0.8 ? '#34C759' : confidence >= 0.6 ? '#F5C518' : '#FF3B30';
+  const confLabel  = confidence >= 0.8 ? 'Alta precisión' : confidence >= 0.6 ? 'Precisión media' : 'Precisión baja';
+
+  /* Ingredientes detectados */
+  const ingrHTML = (j.ingredients || []).map(ing =>
+    `<div class="msc-ingr-row">
+      <span class="msc-ingr-name">${ing.name} (${ing.grams}g)</span>
+      <span class="msc-ingr-kcal">${Math.round(ing.kcal)} kcal</span>
+    </div>`
+  ).join('');
+
+  const r = document.getElementById('msc-result');
+  if (!r) return;
+  r.innerHTML = `
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
+      <div class="msc-result-name" style="flex:1">${_mainScanResult.name}</div>
+      <div style="font-size:11px;font-weight:700;color:${confColor};background:${confColor}20;padding:3px 8px;border-radius:20px;white-space:nowrap;margin-left:8px">${confPct}% ${confLabel}</div>
+    </div>
+    <div class="msc-macro-row">
+      <div class="msc-macro-pill">🔥 <b>${_mainScanResult.kcal}</b> kcal</div>
+      <div class="msc-macro-pill">P <b>${_mainScanResult.p}g</b></div>
+      <div class="msc-macro-pill">C <b>${_mainScanResult.c}g</b></div>
+      <div class="msc-macro-pill">G <b>${_mainScanResult.g}g</b></div>
+    </div>
+    ${ingrHTML ? `<div class="msc-ingr-list">${ingrHTML}</div>` : ''}
+    ${j.notes ? `<div class="msc-notes">⚠️ ${j.notes}</div>` : ''}
+    <div style="display:flex;gap:10px;margin-top:12px">
+      <button class="msc-rescan-btn" onclick="mscRescan()">🔄 Nuevo</button>
+      <button class="btn-yellow" style="flex:1;margin:0;padding:14px" onclick="mscAddToDiary()">+ Agregar al Diario</button>
+    </div>`;
+  r.style.display = 'block';
+  document.getElementById('msc-hint').style.display = 'none';
+}
+
+function mscShowError(msg) {
+  const r = document.getElementById('msc-result');
+  if (!r) return;
+  r.innerHTML = `
+    <div style="color:#FF3B30;font-weight:700;margin-bottom:8px">❌ ${msg}</div>
+    <button class="msc-rescan-btn" style="width:100%" onclick="mscRescan()">🔄 Intentar de nuevo</button>`;
+  r.style.display = 'block';
+}
+
+function mscShowApiKeySetup(errorMsg) {
+  const r = document.getElementById('msc-result');
+  if (!r) return;
+  r.style.display = 'block';
+  r.innerHTML = `
+    <div style="font-size:15px;font-weight:800;color:#1A1A1A;margin-bottom:6px">🔑 Configura tu API Key</div>
+    <div style="font-size:12px;color:#666;margin-bottom:12px;line-height:1.5">
+      ${errorMsg || 'Para análisis real de comida con IA, necesitas una API key de Anthropic (Claude).'}
+      <br><br>
+      <b>Cómo obtenerla:</b><br>
+      1. Ve a <b>console.anthropic.com</b><br>
+      2. Crea una cuenta gratis<br>
+      3. Genera una API key<br>
+      4. Pégala aquí abajo
+    </div>
+    <input id="msc-key-input" type="password"
+      style="width:100%;border:1.5px solid #ddd;border-radius:12px;padding:11px 14px;font-size:14px;font-family:Inter,sans-serif;margin-bottom:10px;box-sizing:border-box;outline:none"
+      placeholder="sk-ant-api03-...">
+    <button class="btn-yellow" style="width:100%;margin:0;padding:14px" onclick="mscSaveKeyAndRetry()">
+      ✓ Guardar y analizar
+    </button>`;
+  document.getElementById('msc-hint').style.display = 'none';
+}
+
+async function mscSaveKeyAndRetry() {
+  const inp = document.getElementById('msc-key-input');
+  const key = inp?.value?.trim();
+  if (!key || !key.startsWith('sk-')) {
+    inp.style.borderColor = '#FF3B30';
+    toast('❌ La key debe comenzar con sk-ant...');
+    return;
+  }
+  localStorage.setItem('np-claude-key', key);
+  toast('✅ API Key guardada');
+  /* Re-capturar */
+  mscHideResult();
+  mscCapture();
 }
 
 function startMainBarcodeDetection() {
@@ -1587,18 +1760,8 @@ async function mscLookupBarcode(code) {
 }
 
 function mscShowResult(name, kcal, p, c, g) {
-  _mainScanResult = { name, kcal, p, c, g };
-  const r = document.getElementById('msc-result');
-  if (!r) return;
-  r.innerHTML = `
-    <div class="msc-result-name">${name}</div>
-    <div class="msc-result-macros">🔥 ${kcal} kcal &nbsp;·&nbsp; P ${p}g &nbsp;·&nbsp; C ${c}g &nbsp;·&nbsp; G ${g}g</div>
-    <div style="display:flex;gap:10px;margin-top:12px">
-      <button class="msc-rescan-btn" onclick="mscRescan()">🔄 Nuevo</button>
-      <button class="btn-yellow" style="flex:1;margin:0;padding:14px" onclick="mscAddToDiary()">+ Agregar al Diario</button>
-    </div>`;
-  r.style.display = 'block';
-  document.getElementById('msc-hint').style.display = 'none';
+  /* Usa el renderer enriquecido reutilizando la misma función */
+  mscShowDetailedResult({ food: name, kcal, p, c, g, confidence: 0.9, ingredients: [] });
 }
 
 function mscHideResult() {
