@@ -1,0 +1,10 @@
+# Config local de Claude Code (no publicar)
+.claude/
+
+# Material fuente pesado / no usado por la app
+Body/
+a/
+
+# Sistema
+Thumbs.db
+.DS_Store

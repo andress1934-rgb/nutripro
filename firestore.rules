@@ -1,0 +1,50 @@
+rules_version = '2';
+
+/* Reglas de seguridad de NutriPro.
+   Aplicar en: consola Firebase → Firestore Database → pestaña "Reglas" → pegar → Publicar.
+   Modelo:
+   - Cada cliente solo ve y edita SU propio perfil y diario (users/{su-uid}).
+   - El entrenador/admin (doc en /admins/{uid}) puede leer y escribir el de cualquier cliente.
+   - La biblioteca de ejercicios (config/library) la lee cualquier usuario logueado; solo el admin la escribe.
+   - La lista de admins NO se puede modificar desde la app (se crea a mano en la consola). */
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // ¿El usuario actual está en la colección /admins? (acceso de servicio: no pasa por reglas de lectura)
+    function isAdmin() {
+      return signedIn() &&
+             exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // Perfil del cliente y todas sus subcolecciones (diary/entries, etc.)
+    match /users/{uid} {
+      allow read, write: if signedIn() && (request.auth.uid == uid || isAdmin());
+
+      match /{sub=**} {
+        allow read, write: if signedIn() && (request.auth.uid == uid || isAdmin());
+      }
+    }
+
+    // Biblioteca de ejercicios compartida: lectura para clientes, escritura solo admin.
+    match /config/{doc} {
+      allow read:  if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // Lista de admins: cada quien puede comprobar su propio estatus; nadie escribe desde la app.
+    match /admins/{uid} {
+      allow read:  if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // Todo lo demás: denegado.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NutriPro · Panel de Administración</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Firebase SDK (compat v10) -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script>
+    firebase.initializeApp({
+      apiKey: "AIzaSyBnUDO8I6RjQTONJE01DOw6vWA_JrNmOK0",
+      authDomain: "nutripro-4759a.firebaseapp.com",
+      projectId: "nutripro-4759a",
+      storageBucket: "nutripro-4759a.firebasestorage.app",
+      messagingSenderId: "474800837737",
+      appId: "1:474800837737:web:f3778dda269389f5fd3ef8"
+    });
+  </script>
+
+  <style>
+    :root {
+      --bg:#0A0B0D; --card:#15161A; --card2:#1E2025;
+      --accent:#F4C75A; --accent-d:#F0CE7A; --accent-l:rgba(244,199,90,.12);
+      --dark:#F4F1E9; --mid:#B9B6AE; --muted:#7E7C77;
+      --green:#34D77F; --red:#FF5247; --orange:#FFA82B;
+      --border:rgba(255,255,255,.08); --r:16px; --r-sm:11px;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var(--dark);
+      min-height:100vh; -webkit-font-smoothing:antialiased;
+    }
+    body::before {
+      content:''; position:fixed; top:0; left:0; right:0; height:280px; pointer-events:none; z-index:0;
+      background:radial-gradient(120% 100% at 50% -20%, rgba(244,199,90,.07), transparent 70%);
+    }
+    .wrap { position:relative; z-index:1; max-width:1100px; margin:0 auto; padding:28px 22px 64px; }
+
+    /* ── Header ── */
+    .topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; }
+    .brand { display:flex; align-items:center; gap:11px; }
+    .brand-mark {
+      width:40px; height:40px; border-radius:11px; flex-shrink:0;
+      background:linear-gradient(145deg,#F8D77A,#C99A3A); display:flex; flex-direction:column;
+      align-items:center; justify-content:center; gap:4px; padding:10px;
+      box-shadow:0 8px 22px rgba(244,199,90,.28);
+    }
+    .brand-mark span { display:block; width:100%; height:2.5px; background:#17130A; border-radius:2px; }
+    .brand-mark span:last-child { width:60%; align-self:flex-start; }
+    .brand-name { font-size:18px; font-weight:800; letter-spacing:-.02em; }
+    .brand-name small { display:block; font-size:11px; font-weight:600; color:var(--accent-d); letter-spacing:.04em; text-transform:uppercase; }
+    .btn-ghost {
+      background:var(--card); border:1px solid var(--border); color:var(--mid);
+      padding:9px 16px; border-radius:50px; font-family:inherit; font-size:13px; font-weight:600;
+      cursor:pointer; transition:all .15s;
+    }
+    .btn-ghost:hover { color:var(--dark); border-color:rgba(244,199,90,.3); }
+
+    /* ── Botones ── */
+    .btn-gold {
+      background:linear-gradient(135deg,#F8D77A 0%,#F4C75A 52%,#D6A23E 100%);
+      color:#17130A; border:none; padding:13px 22px; border-radius:50px;
+      font-family:inherit; font-size:14px; font-weight:700; cursor:pointer;
+      box-shadow:0 8px 24px rgba(244,199,90,.26), inset 0 1px 0 rgba(255,255,255,.4);
+      transition:transform .12s;
+    }
+    .btn-gold:hover { transform:translateY(-1px); }
+    .btn-gold:active { transform:translateY(1px); }
+    .btn-gold:disabled { opacity:.5; cursor:default; transform:none; }
+
+    /* ── Login ── */
+    .login-box {
+      max-width:380px; margin:8vh auto 0; background:var(--card); border:1px solid var(--border);
+      border-radius:22px; padding:34px 30px; box-shadow:0 22px 60px rgba(0,0,0,.6);
+    }
+    .login-box h1 { font-size:22px; font-weight:800; margin-bottom:4px; }
+    .login-box p { font-size:13px; color:var(--muted); margin-bottom:24px; }
+    .field { margin-bottom:13px; }
+    .field input {
+      width:100%; background:var(--card2); border:1.5px solid var(--border); border-radius:var(--r-sm);
+      padding:13px 15px; font-family:inherit; font-size:14px; color:var(--dark); outline:none; transition:border-color .2s;
+    }
+    .field input:focus { border-color:var(--accent); }
+    .login-box .btn-gold { width:100%; margin-top:8px; }
+    .msg { font-size:13px; min-height:18px; text-align:center; margin-top:10px; font-weight:500; }
+    .msg.err { color:var(--red); }
+    .msg.ok { color:var(--green); }
+
+    /* ── Layout dashboard ── */
+    .hidden { display:none !important; }
+    .grid { display:grid; grid-template-columns:300px 1fr; gap:20px; align-items:start; }
+    @media (max-width:760px){ .grid { grid-template-columns:1fr; } }
+
+    .panel {
+      background:var(--card); border:1px solid var(--border); border-radius:var(--r);
+      box-shadow:0 2px 10px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.04); padding:18px;
+    }
+    .panel-title { font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:14px; }
+
+    /* ── Lista de clientes ── */
+    .client-item {
+      display:flex; align-items:center; gap:12px; padding:11px 12px; border-radius:var(--r-sm);
+      cursor:pointer; transition:background .15s; border:1px solid transparent;
+    }
+    .client-item:hover { background:var(--card2); }
+    .client-item.active { background:var(--accent-l); border-color:rgba(244,199,90,.3); }
+    .client-avatar {
+      width:38px; height:38px; border-radius:50%; flex-shrink:0; background:var(--card2);
+      display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:700; color:var(--accent-d);
+    }
+    .client-info { flex:1; min-width:0; }
+    .client-name { font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .client-mail { font-size:11px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+    /* ── Detalle ── */
+    .detail-head { display:flex; align-items:center; gap:14px; margin-bottom:20px; }
+    .detail-head .client-avatar { width:54px; height:54px; font-size:22px; }
+    .detail-head h2 { font-size:21px; font-weight:800; }
+    .detail-head .sub { font-size:13px; color:var(--mid); margin-top:2px; }
+
+    .stat-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:10px; margin-bottom:18px; }
+    .stat {
+      background:var(--card2); border:1px solid var(--border); border-radius:var(--r-sm);
+      padding:13px 14px; text-align:center;
+    }
+    .stat-val { font-size:19px; font-weight:800; }
+    .stat-val.gold {
+      background:linear-gradient(135deg,#FBE7A6,#F4C75A 45%,#C99A3A); -webkit-background-clip:text;
+      background-clip:text; -webkit-text-fill-color:transparent; color:transparent;
+    }
+    .stat-lbl { font-size:10px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-top:3px; }
+
+    .section-head { font-size:14px; font-weight:700; margin:22px 0 12px; display:flex; align-items:center; gap:8px; }
+    .section-head::after { content:''; flex:1; height:1px; background:linear-gradient(90deg,var(--border),transparent); }
+
+    /* ── Editor de plan ── */
+    .plan-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:12px; }
+    .plan-field label { display:block; font-size:11px; font-weight:600; color:var(--mid); margin-bottom:5px; }
+    .plan-field input, .plan-field textarea {
+      width:100%; background:var(--card2); border:1.5px solid var(--border); border-radius:var(--r-sm);
+      padding:11px 13px; font-family:inherit; font-size:14px; color:var(--dark); outline:none; transition:border-color .2s;
+    }
+    .plan-field input:focus, .plan-field textarea:focus { border-color:var(--accent); }
+    .plan-field.full { grid-column:1/-1; }
+    textarea { resize:vertical; min-height:78px; line-height:1.5; }
+
+    /* ── Comidas prescritas ── */
+    .meal-row { display:flex; gap:8px; margin-bottom:8px; }
+    .meal-row input { background:var(--card2); border:1.5px solid var(--border); border-radius:var(--r-sm); padding:10px 12px; font-family:inherit; font-size:13px; color:var(--dark); outline:none; }
+    .meal-row .m-tipo { width:120px; flex-shrink:0; }
+    .meal-row .m-nombre { flex:1; }
+    .meal-row .m-kcal { width:80px; flex-shrink:0; }
+    .meal-row .m-del { width:38px; flex-shrink:0; background:var(--card2); border:1px solid var(--border); border-radius:var(--r-sm); color:var(--red); cursor:pointer; font-size:16px; }
+    .add-meal { background:none; border:1.5px dashed var(--border); color:var(--mid); width:100%; padding:11px; border-radius:var(--r-sm); cursor:pointer; font-family:inherit; font-size:13px; font-weight:600; transition:all .15s; }
+    .add-meal:hover { border-color:rgba(244,199,90,.4); color:var(--accent-d); }
+
+    .save-bar { display:flex; align-items:center; gap:14px; margin-top:20px; }
+
+    /* ── Diario ── */
+    .diary-day { margin-bottom:16px; }
+    .diary-date { font-size:13px; font-weight:700; color:var(--accent-d); margin-bottom:8px; }
+    .diary-meal { font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; margin:8px 0 4px; }
+    .diary-food { display:flex; justify-content:space-between; font-size:13px; padding:5px 0; border-bottom:1px solid var(--border); color:var(--mid); }
+    .diary-food b { color:var(--dark); font-weight:600; }
+    .empty { font-size:13px; color:var(--muted); padding:18px 0; text-align:center; }
+
+    .denied { max-width:420px; margin:12vh auto 0; text-align:center; }
+    .denied .big { font-size:46px; margin-bottom:12px; }
+    .denied h2 { font-size:20px; font-weight:800; margin-bottom:8px; }
+    .denied p { font-size:14px; color:var(--mid); line-height:1.6; }
+    code { background:var(--card2); padding:2px 7px; border-radius:5px; font-size:12px; color:var(--accent-d); }
+    .spinner { width:34px; height:34px; border:3px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin .8s linear infinite; margin:40px auto; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* ── Constructor de entrenamiento ── */
+    .t-day { background:var(--card2); border:1px solid var(--border); border-radius:var(--r-sm); padding:12px; margin-bottom:10px; }
+    .t-day-head { display:flex; gap:8px; margin-bottom:10px; }
+    .t-day-title { flex:1; background:var(--bg); border:1.5px solid var(--border); border-radius:8px; padding:9px 11px; font-family:inherit; font-size:14px; font-weight:600; color:var(--dark); outline:none; }
+    .t-day-title:focus { border-color:var(--accent); }
+    .t-day-del { background:none; border:1px solid var(--border); color:var(--muted); border-radius:8px; padding:0 12px; font-family:inherit; font-size:12px; cursor:pointer; }
+    .t-day-del:hover { color:var(--red); border-color:var(--red); }
+    .t-ex-row { display:flex; gap:6px; margin-bottom:6px; flex-wrap:wrap; align-items:center; }
+    .t-ex-row input { background:var(--bg); border:1.5px solid var(--border); border-radius:8px; padding:9px 10px; font-family:inherit; font-size:13px; color:var(--dark); outline:none; }
+    .t-ex-row input:focus { border-color:var(--accent); }
+    .t-nombre { flex:2; min-width:150px; }
+    .t-sets, .t-reps, .t-tempo { width:64px; }
+    .t-nota { flex:1; min-width:130px; }
+    .t-ex-row .m-del { width:36px; height:36px; flex-shrink:0; }
+    .t-pick { width:38px; height:38px; flex-shrink:0; background:var(--accent-l); border:1px solid var(--accent); color:var(--accent-d); border-radius:8px; cursor:pointer; font-size:15px; }
+    .t-pick:hover { background:rgba(244,199,90,.2); }
+
+    /* ── Selector visual de ejercicios ── */
+    .pk-overlay { position:fixed; inset:0; z-index:200; background:rgba(0,0,0,.65); display:none; align-items:center; justify-content:center; padding:20px; -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px); }
+    .pk-overlay.open { display:flex; }
+    .pk-modal { background:var(--card); border:1px solid var(--border); border-radius:var(--r); width:100%; max-width:780px; max-height:85vh; display:flex; flex-direction:column; padding:18px; box-shadow:0 22px 60px rgba(0,0,0,.6); }
+    .pk-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+    .pk-close { width:30px; height:30px; border-radius:50%; background:var(--card2); border:none; color:var(--mid); font-size:14px; cursor:pointer; }
+    .pk-grid { overflow-y:auto; display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:12px; padding-top:2px; grid-auto-rows:max-content; align-content:start; }
+    .pk-grid .cur-card { cursor:pointer; }
+    .pk-grid .cur-card-gif { height:128px; aspect-ratio:auto; }
+
+    /* ── Navegación admin (Clientes / Biblioteca) ── */
+    .admin-nav { display:flex; gap:8px; margin-bottom:22px; }
+    .admin-nav button { background:var(--card); border:1px solid var(--border); color:var(--mid); padding:9px 18px; border-radius:50px; font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; transition:all .15s; }
+    .admin-nav button:hover { color:var(--dark); }
+    .admin-nav button.active { background:var(--accent); color:#17130A; border-color:var(--accent); }
+
+    /* ── Curador de ejercicios ── */
+    .cur-head { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:10px; flex-wrap:wrap; }
+    .cur-sub { font-size:13px; color:var(--mid); margin-top:3px; }
+    .cur-sub b { color:var(--accent-d); font-weight:800; }
+    .cur-msg { font-size:13px; min-height:18px; margin-bottom:10px; font-weight:500; }
+    .cur-msg.ok { color:var(--green); } .cur-msg.err { color:var(--red); }
+    .cur-toolbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
+    .cur-input { background:var(--card2); border:1.5px solid var(--border); border-radius:var(--r-sm); padding:10px 13px; font-family:inherit; font-size:13px; color:var(--dark); outline:none; transition:border-color .2s; }
+    .cur-input:focus { border-color:var(--accent); }
+    #cur-search { flex:1; min-width:180px; }
+    .cur-toggle { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--mid); cursor:pointer; user-select:none; }
+    .cur-chips { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; }
+    .cur-chip { background:var(--card2); border:1px solid var(--border); color:var(--mid); font-size:12px; font-weight:600; padding:6px 14px; border-radius:20px; cursor:pointer; transition:.15s; }
+    .cur-chip.active { background:var(--accent); color:#17130A; border-color:var(--accent); }
+    .cur-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; }
+    .cur-card { position:relative; background:var(--card); border:2px solid var(--border); border-radius:var(--r-sm); overflow:hidden; cursor:pointer; transition:border-color .15s, transform .1s; }
+    .cur-card:active { transform:scale(.97); }
+    .cur-card.sel { border-color:var(--accent); }
+    .cur-card-gif { width:100%; aspect-ratio:1; object-fit:cover; background:#0f1014; display:block; }
+    .cur-card-info { padding:8px 10px 10px; }
+    .cur-card-name { font-size:12px; font-weight:600; color:var(--dark); line-height:1.3; text-transform:capitalize; }
+    .cur-card-tg { font-size:11px; color:var(--accent-d); margin-top:2px; text-transform:capitalize; }
+    .cur-check { position:absolute; top:8px; right:8px; width:26px; height:26px; border-radius:50%; background:rgba(10,11,13,.65); border:1.5px solid rgba(255,255,255,.45); display:flex; align-items:center; justify-content:center; color:#fff; font-size:14px; font-weight:700; }
+    .cur-card.sel .cur-check { background:var(--accent); border-color:var(--accent); color:#17130A; }
+    .cur-more { grid-column:1/-1; text-align:center; padding:14px; color:var(--accent-d); font-size:13px; font-weight:600; cursor:pointer; background:var(--card); border:1px dashed var(--accent); border-radius:var(--r-sm); }
+    .cur-savebar { position:sticky; bottom:0; background:linear-gradient(0deg, var(--bg) 60%, transparent); padding:16px 0 8px; margin-top:16px; display:flex; align-items:center; gap:14px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <!-- ═══ LOGIN ═══ -->
+    <div id="view-login">
+      <div class="login-box">
+        <div class="brand" style="margin-bottom:22px">
+          <div class="brand-mark"><span></span><span></span><span></span></div>
+          <div class="brand-name">NutriPro<small>Panel Admin</small></div>
+        </div>
+        <h1>Acceso de administrador</h1>
+        <p>Inicia sesión con tu cuenta de dueño.</p>
+        <div class="field"><input id="a-email" type="email" placeholder="Correo electrónico" autocomplete="email"></div>
+        <div class="field"><input id="a-pass" type="password" placeholder="Contraseña" autocomplete="current-password"></div>
+        <button class="btn-gold" id="a-login-btn" onclick="adminLogin()">Ingresar</button>
+        <div class="msg" id="a-msg"></div>
+      </div>
+    </div>
+
+    <!-- ═══ NO AUTORIZADO ═══ -->
+    <div id="view-denied" class="hidden">
+      <div class="denied">
+        <div class="big">🔒</div>
+        <h2>Cuenta sin permiso de administrador</h2>
+        <p>Tu cuenta inició sesión pero no está marcada como administrador.<br><br>
+        Para habilitarla, en Firebase Console crea la colección <code>admins</code> y dentro un documento con tu UID:<br><br>
+        <span id="your-uid" style="word-break:break-all"></span></p>
+        <button class="btn-ghost" style="margin-top:22px" onclick="adminLogout()">Cerrar sesión</button>
+      </div>
+    </div>
+
+    <!-- ═══ CARGANDO ═══ -->
+    <div id="view-loading" class="hidden"><div class="spinner"></div></div>
+
+    <!-- ═══ DASHBOARD ═══ -->
+    <div id="view-dash" class="hidden">
+      <div class="topbar">
+        <div class="brand">
+          <div class="brand-mark"><span></span><span></span><span></span></div>
+          <div class="brand-name">NutriPro<small>Panel Admin</small></div>
+        </div>
+        <button class="btn-ghost" onclick="adminLogout()">Cerrar sesión</button>
+      </div>
+
+      <div class="admin-nav">
+        <button id="nav-clients" class="active" onclick="switchAdminView('clients')">Clientes</button>
+        <button id="nav-curator" onclick="switchAdminView('curator')">🏋️ Biblioteca de ejercicios</button>
+      </div>
+
+      <div class="grid" id="view-clients">
+        <!-- Lista clientes -->
+        <div class="panel">
+          <div class="panel-title">Clientes (<span id="client-count">0</span>)</div>
+          <div id="client-list"></div>
+        </div>
+
+        <!-- Detalle -->
+        <div>
+          <div id="detail-empty" class="panel"><div class="empty">Selecciona un cliente de la lista para ver y editar su seguimiento.</div></div>
+          <div id="detail" class="hidden"></div>
+        </div>
+      </div>
+
+      <!-- ═══ CURADOR DE EJERCICIOS ═══ -->
+      <div id="view-curator" class="hidden">
+        <div class="cur-head">
+          <div>
+            <div class="panel-title" style="margin-bottom:0">Tu biblioteca de ejercicios</div>
+            <div class="cur-sub">Elige los que quieras usar. El cliente solo verá estos. <b id="cur-count">0</b> seleccionados de <b id="cur-total">0</b></div>
+          </div>
+          <button class="btn-gold" id="cur-save" onclick="saveCuratedLibrary()">Guardar selección</button>
+        </div>
+        <div class="cur-msg" id="cur-msg"></div>
+
+        <div class="cur-toolbar">
+          <input id="cur-search" class="cur-input" type="text" placeholder="Buscar ejercicio o músculo…" oninput="curSearch(this.value)" autocomplete="off">
+          <select id="cur-equip" class="cur-input" onchange="curSetEquip(this.value)"><option value="all">Todo el equipo</option></select>
+          <label class="cur-toggle"><input type="checkbox" id="cur-hidevar" checked onchange="curResetRender()"> Ocultar variantes male/female</label>
+          <label class="cur-toggle"><input type="checkbox" id="cur-onlysel" onchange="curResetRender()"> Solo seleccionados</label>
+        </div>
+        <div class="cur-chips" id="cur-chips"></div>
+
+        <div class="cur-grid" id="cur-grid"><div class="spinner"></div></div>
+
+        <div class="cur-savebar">
+          <button class="btn-gold" onclick="saveCuratedLibrary()">Guardar selección</button>
+          <span class="cur-msg" id="cur-msg2" style="margin:0"></span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const auth = firebase.auth();
+    const db   = firebase.firestore();
+    let _user = null, _clients = [], _selectedUid = null, _selectedData = null;
+
+    function show(view) {
+      ['login','denied','loading','dash'].forEach(v =>
+        document.getElementById('view-'+v).classList.toggle('hidden', v !== view));
+    }
+    function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+    /* ── Auth ── */
+    async function adminLogin() {
+      const email = document.getElementById('a-email').value.trim();
+      const pass  = document.getElementById('a-pass').value.trim();
+      const msg   = document.getElementById('a-msg');
+      const btn   = document.getElementById('a-login-btn');
+      if (!email || !pass) { msg.className='msg err'; msg.textContent='Ingresa correo y contraseña'; return; }
+      btn.disabled = true; btn.textContent = 'Ingresando...'; msg.textContent='';
+      try {
+        await auth.signInWithEmailAndPassword(email, pass);
+        /* onAuthStateChanged hace el resto */
+      } catch(e) {
+        const codes = { 'auth/invalid-credential':'Correo o contraseña incorrectos', 'auth/user-not-found':'Correo no registrado', 'auth/wrong-password':'Contraseña incorrecta', 'auth/too-many-requests':'Demasiados intentos, espera un momento' };
+        msg.className='msg err'; msg.textContent = codes[e.code] || 'Error al iniciar sesión';
+        btn.disabled = false; btn.textContent = 'Ingresar';
+      }
+    }
+    function adminLogout(){ auth.signOut(); }
+
+    auth.onAuthStateChanged(async (user) => {
+      _user = user;
+      if (!user) { show('login'); return; }
+      show('loading');
+      /* Verificar permiso de admin */
+      let isAdmin = false;
+      try {
+        const doc = await db.collection('admins').doc(user.uid).get();
+        isAdmin = doc.exists;
+      } catch(e) { isAdmin = false; }
+      if (!isAdmin) {
+        document.getElementById('your-uid').innerHTML = 'UID: <code>'+esc(user.uid)+'</code>';
+        show('denied');
+        return;
+      }
+      show('dash');
+      loadClients();
+    });
+
+    /* ── Cargar clientes ── */
+    async function loadClients() {
+      const list = document.getElementById('client-list');
+      list.innerHTML = '<div class="spinner" style="margin:24px auto"></div>';
+      try {
+        const snap = await db.collection('users').get();
+        _clients = snap.docs.map(d => ({ uid:d.id, ...d.data() }));
+      } catch(e) {
+        list.innerHTML = '<div class="empty">No se pudieron cargar los clientes.<br>'+esc(e.message||e)+'</div>';
+        return;
+      }
+      document.getElementById('client-count').textContent = _clients.length;
+      if (!_clients.length) { list.innerHTML = '<div class="empty">Aún no hay clientes registrados.</div>'; return; }
+      list.innerHTML = _clients.map(c => {
+        const name = c.nombre || c.email || 'Cliente';
+        const initial = (name[0]||'?').toUpperCase();
+        return `<div class="client-item" data-uid="${esc(c.uid)}" onclick="selectClient('${esc(c.uid)}')">
+          <div class="client-avatar">${esc(initial)}</div>
+          <div class="client-info">
+            <div class="client-name">${esc(name)}</div>
+            <div class="client-mail">${esc(c.email || c.uid)}</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    /* ── Seleccionar cliente ── */
+    async function selectClient(uid) {
+      _selectedUid = uid;
+      document.querySelectorAll('.client-item').forEach(el => el.classList.toggle('active', el.dataset.uid === uid));
+      document.getElementById('detail-empty').classList.add('hidden');
+      const detail = document.getElementById('detail');
+      detail.classList.remove('hidden');
+      detail.innerHTML = '<div class="panel"><div class="spinner"></div></div>';
+
+      const c = _clients.find(x => x.uid === uid) || {};
+      _selectedData = c;
+      /* Cargar diario */
+      let diary = {};
+      try {
+        const dDoc = await db.collection('users').doc(uid).collection('diary').doc('entries').get();
+        if (dDoc.exists) diary = dDoc.data() || {};
+      } catch(e) {}
+
+      renderDetail(c, diary);
+    }
+
+    function num(v, d){ const n = Number(v); return isNaN(n) ? (d!=null?d:'—') : n; }
+    function sexLabel(s){ return s==='f' ? 'Mujer' : s==='m' ? 'Hombre' : '—'; }
+    function goalLabel(o){ return o==='perder'?'Perder grasa':o==='musculo'?'Ganar músculo':o==='mantener'?'Mantener peso':o==='recomp'?'Recomposición':(o||'—'); }
+
+    function renderDetail(c, diary) {
+      const name = c.nombre || c.email || 'Cliente';
+      const initial = (name[0]||'?').toUpperCase();
+      const plan = c.plan || {};
+      const train = c.training || {};
+      const detail = document.getElementById('detail');
+      const initDays = (train.dias && train.dias.length) ? train.dias : [{ t:'', ex:[{}] }];
+      const daysHtml = initDays.map(trainDayHtml).join('');
+
+      const meals = Array.isArray(plan.meals) ? plan.meals : [];
+      const mealsHtml = meals.map((m,i) => mealRowHtml(m,i)).join('');
+
+      detail.innerHTML = `
+        <div class="panel">
+          <div class="detail-head">
+            <div class="client-avatar">${esc(initial)}</div>
+            <div>
+              <h2>${esc(name)}</h2>
+              <div class="sub">${esc(c.email||'')} · ${sexLabel(c.sexo)} · ${num(c.edad)} años</div>
+            </div>
+          </div>
+
+          <div class="stat-row">
+            <div class="stat"><div class="stat-val gold">${num(plan.kcal ?? c.tdee)}</div><div class="stat-lbl">Calorías</div></div>
+            <div class="stat"><div class="stat-val">${num(c.peso)}<span style="font-size:12px">kg</span></div><div class="stat-lbl">Peso</div></div>
+            <div class="stat"><div class="stat-val">${num(c.talla)}<span style="font-size:12px">cm</span></div><div class="stat-lbl">Altura</div></div>
+            <div class="stat"><div class="stat-val">${num(plan.prot ?? c.prot)}<span style="font-size:12px">g</span></div><div class="stat-lbl">Proteína</div></div>
+            <div class="stat"><div class="stat-val">${num(plan.cho ?? c.cho)}<span style="font-size:12px">g</span></div><div class="stat-lbl">Carbos</div></div>
+            <div class="stat"><div class="stat-val">${num(plan.fat ?? c.fat)}<span style="font-size:12px">g</span></div><div class="stat-lbl">Grasas</div></div>
+          </div>
+          <div class="sub" style="font-size:12px;color:var(--muted)">Objetivo: <b style="color:var(--mid)">${goalLabel(c.objetivo ?? c.obj)}</b> · Agua meta: <b style="color:var(--mid)">${num(plan.aguaL ?? c.agua)} L</b></div>
+        </div>
+
+        <!-- Editor de plan -->
+        <div class="panel" style="margin-top:18px">
+          <div class="section-head" style="margin-top:0">📋 Plan nutricional asignado</div>
+          <div class="plan-grid">
+            <div class="plan-field"><label>Calorías objetivo</label><input id="p-kcal" type="number" value="${esc(plan.kcal??c.tdee??'')}" placeholder="ej. 2000"></div>
+            <div class="plan-field"><label>Proteína (g)</label><input id="p-prot" type="number" value="${esc(plan.prot??c.prot??'')}" placeholder="ej. 170"></div>
+            <div class="plan-field"><label>Carbos (g)</label><input id="p-cho" type="number" value="${esc(plan.cho??c.cho??'')}" placeholder="ej. 220"></div>
+            <div class="plan-field"><label>Grasas (g)</label><input id="p-fat" type="number" value="${esc(plan.fat??c.fat??'')}" placeholder="ej. 65"></div>
+            <div class="plan-field"><label>Agua (L)</label><input id="p-agua" type="number" step="0.1" value="${esc(plan.aguaL??c.agua??'')}" placeholder="ej. 2.5"></div>
+          </div>
+
+          <div class="section-head">🍽️ Comidas prescritas</div>
+          <div id="meals-box">${mealsHtml}</div>
+          <button class="add-meal" onclick="addMealRow()">+ Agregar comida</button>
+
+          <div class="section-head">📝 Instrucciones / notas</div>
+          <div class="plan-field full"><textarea id="p-notas" placeholder="Ej. Bebe agua antes de cada comida. Evita azúcar refinada. Entrena en ayunas 3 veces por semana...">${esc(plan.notas||'')}</textarea></div>
+
+          <div class="save-bar">
+            <button class="btn-gold" id="save-btn" onclick="savePlan()">Guardar plan</button>
+            <span class="msg" id="save-msg" style="margin:0;text-align:left"></span>
+          </div>
+        </div>
+
+        <!-- Entrenamiento del cliente (constructor) -->
+        <div class="panel" style="margin-top:18px">
+          <div class="section-head" style="margin-top:0">🏋️ Entrenamiento del cliente</div>
+          <div class="plan-grid">
+            <div class="plan-field full"><label>Nombre de la rutina</label><input id="t-nombre" value="${esc(train.nombre||'')}" placeholder="Ej. Hipertrofia 4 días"></div>
+          </div>
+          <div class="plan-field full" style="margin-top:12px"><label>Nota general (opcional)</label><textarea id="t-nota" placeholder="Ej. Progresa peso cada semana. Calienta 10 min antes...">${esc(train.nota||'')}</textarea></div>
+
+          <div class="section-head">📅 Días y ejercicios</div>
+          <div id="t-days">${daysHtml}</div>
+          <button class="add-meal" onclick="addTrainDay()">+ Agregar día</button>
+
+          <div class="save-bar">
+            <button class="btn-gold" id="save-train-btn" onclick="saveTraining()">Guardar entrenamiento</button>
+            <span class="msg" id="save-train-msg" style="margin:0;text-align:left"></span>
+          </div>
+          <datalist id="ex-datalist"></datalist>
+        </div>
+
+        <!-- Selector visual de ejercicios (GIFs por grupo muscular) -->
+        <div id="ex-picker" class="pk-overlay" onclick="if(event.target===this)closePicker()">
+          <div class="pk-modal">
+            <div class="pk-head">
+              <div class="panel-title" style="margin:0">Elegir ejercicio</div>
+              <button class="pk-close" onclick="closePicker()">✕</button>
+            </div>
+            <input id="pk-search" class="cur-input" type="text" placeholder="Buscar ejercicio o músculo…" oninput="pkSearch(this.value)" autocomplete="off" style="margin-bottom:10px">
+            <div class="cur-chips" id="pk-chips" style="margin-bottom:12px"></div>
+            <div class="pk-grid" id="pk-grid"></div>
+          </div>
+        </div>
+
+        <!-- Diario -->
+        <div class="panel" style="margin-top:18px">
+          <div class="section-head" style="margin-top:0">📔 Diario de comidas</div>
+          <div id="diary-box">${renderDiary(diary, plan.kcal)}</div>
+        </div>
+      `;
+      ensureExLib();
+    }
+
+    function mealRowHtml(m, i){
+      m = m || {};
+      return `<div class="meal-row" data-i="${i}">
+        <input class="m-tipo" placeholder="Desayuno" value="${esc(m.tipo||'')}">
+        <input class="m-nombre" placeholder="Avena con frutas y huevos" value="${esc(m.nombre||'')}">
+        <input class="m-kcal" type="number" placeholder="kcal" value="${esc(m.kcal||'')}">
+        <button class="m-del" onclick="this.parentElement.remove()" title="Quitar">×</button>
+      </div>`;
+    }
+    function addMealRow(){
+      const box = document.getElementById('meals-box');
+      box.insertAdjacentHTML('beforeend', mealRowHtml({}, box.children.length));
+    }
+
+    function renderDiary(diary, planKcal){
+      const dates = Object.keys(diary||{}).sort().reverse();
+      if (!dates.length) return '<div class="empty">Este cliente aún no ha registrado comidas.</div>';
+      const mealNames = { desayuno:'Desayuno', almuerzo:'Almuerzo', cena:'Cena', snacks:'Snacks' };
+      const goal = Number(planKcal) || 0;
+      return dates.slice(0,14).map(date => {
+        const day = diary[date] || {};
+        let inner = '', dayKcal = 0;
+        Object.keys(mealNames).forEach(mk => {
+          const items = Array.isArray(day[mk]) ? day[mk] : [];
+          if (!items.length) return;
+          inner += `<div class="diary-meal">${mealNames[mk]}</div>`;
+          inner += items.map(it => { dayKcal += Number(it.kcal)||0; return `<div class="diary-food"><span><b>${esc(it.name||it.nombre||'Alimento')}</b></span><span>${num(it.kcal,0)} kcal</span></div>`; }).join('');
+        });
+        if (!inner) return '';
+        const pct = goal ? Math.round(dayKcal / goal * 100) : 0;
+        const okColor = (goal && pct >= 85 && pct <= 110) ? 'var(--green)' : 'var(--mid)';
+        const totalTxt = goal ? `${Math.round(dayKcal)} / ${goal} kcal · ${pct}%` : `${Math.round(dayKcal)} kcal`;
+        return `<div class="diary-day"><div class="diary-date">${esc(date)}<span style="float:right;font-weight:800;color:${okColor}">${totalTxt}</span></div>${inner}</div>`;
+      }).join('') || '<div class="empty">Sin comidas registradas.</div>';
+    }
+
+    /* ── Guardar plan ── */
+    async function savePlan(){
+      if (!_selectedUid) return;
+      const btn = document.getElementById('save-btn');
+      const msg = document.getElementById('save-msg');
+      const meals = [...document.querySelectorAll('#meals-box .meal-row')].map(r => ({
+        tipo:   r.querySelector('.m-tipo').value.trim(),
+        nombre: r.querySelector('.m-nombre').value.trim(),
+        kcal:   Number(r.querySelector('.m-kcal').value) || 0
+      })).filter(m => m.tipo || m.nombre);
+      const g = id => { const v = document.getElementById(id).value; return v==='' ? null : Number(v); };
+      const plan = {
+        kcal: g('p-kcal'), prot: g('p-prot'), cho: g('p-cho'), fat: g('p-fat'), aguaL: g('p-agua'),
+        notas: document.getElementById('p-notas').value.trim(),
+        meals,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      btn.disabled = true; btn.textContent = 'Guardando...'; msg.className='msg'; msg.textContent='';
+      try {
+        await db.collection('users').doc(_selectedUid).set({ plan }, { merge:true });
+        if (_selectedData) _selectedData.plan = plan;
+        const c = _clients.find(x=>x.uid===_selectedUid); if (c) c.plan = plan;
+        msg.className='msg ok'; msg.textContent='✓ Plan guardado';
+      } catch(e) {
+        msg.className='msg err'; msg.textContent='Error: '+(e.message||e);
+      }
+      btn.disabled = false; btn.textContent = 'Guardar plan';
+    }
+
+    /* ── Constructor de entrenamiento (días + ejercicios) ── */
+    function trainExHtml(ex){
+      ex = ex || {};
+      return `<div class="t-ex-row">
+        <input class="t-nombre" data-exid="${esc(ex.exId||'')}" placeholder="Ejercicio" value="${esc(ex.nombre||'')}">
+        <button class="t-pick" onclick="openPicker(this)" title="Elegir de la biblioteca">🔍</button>
+        <input class="t-sets" placeholder="Sets" value="${esc(ex.sets||'')}">
+        <input class="t-reps" placeholder="Reps" value="${esc(ex.reps||'')}">
+        <input class="t-tempo" placeholder="TUT" value="${esc(ex.tempo||'')}">
+        <input class="t-nota" placeholder="Notas (agarre A/C/S, etc.)" value="${esc(ex.nota||'')}">
+        <button class="m-del" onclick="this.closest('.t-ex-row').remove()" title="Quitar">×</button>
+      </div>`;
+    }
+    function trainDayHtml(d){
+      d = d || {};
+      const exs = (d.ex && d.ex.length ? d.ex : [{}]).map(trainExHtml).join('');
+      return `<div class="t-day">
+        <div class="t-day-head">
+          <input class="t-day-title" placeholder="Día A · Empuje" value="${esc(d.t||'')}">
+          <button class="t-day-del" onclick="this.closest('.t-day').remove()">Borrar día</button>
+        </div>
+        <div class="t-day-ex">${exs}</div>
+        <button class="add-meal" style="margin-top:6px" onclick="addTrainEx(this.previousElementSibling)">+ Agregar ejercicio</button>
+      </div>`;
+    }
+    function addTrainDay(){ document.getElementById('t-days').insertAdjacentHTML('beforeend', trainDayHtml({t:'',ex:[{}]})); ensureExLib(); }
+    function addTrainEx(box){ box.insertAdjacentHTML('beforeend', trainExHtml({})); ensureExLib(); }
+
+    /* Carga la librería de ejercicios una vez (datalist + nombre→exId) — reusa el curador */
+    let _exLibMap = null;
+    async function ensureExLib(){
+      if (_exLibMap) return;
+      try {
+        if (!_curData) { const t = await fetch(CUR_CSV_URL).then(r=>r.text()); _curData = curParseCsv(t); }
+        _exLibMap = {};
+        _curData.forEach(e => { _exLibMap[e.name.toLowerCase()] = e.id; });
+        const dl = document.getElementById('ex-datalist');
+        if (dl) dl.innerHTML = _curData.map(e => `<option value="${esc(e.name)}">`).join('');
+      } catch(e) { _exLibMap = {}; }
+    }
+
+    async function saveTraining(){
+      if (!_selectedUid) return;
+      const btn = document.getElementById('save-train-btn');
+      const msg = document.getElementById('save-train-msg');
+      await ensureExLib();
+      const dias = [...document.querySelectorAll('#t-days .t-day')].map(d => ({
+        t: d.querySelector('.t-day-title').value.trim() || 'Día',
+        ex: [...d.querySelectorAll('.t-ex-row')].map(r => {
+          const inp = r.querySelector('.t-nombre');
+          const nombre = inp.value.trim();
+          if (!nombre) return null;
+          return {
+            nombre,
+            exId: inp.dataset.exid || (_exLibMap && _exLibMap[nombre.toLowerCase()]) || '',
+            sets:  r.querySelector('.t-sets').value.trim(),
+            reps:  r.querySelector('.t-reps').value.trim(),
+            tempo: r.querySelector('.t-tempo').value.trim(),
+            nota:  r.querySelector('.t-nota').value.trim()
+          };
+        }).filter(Boolean)
+      })).filter(d => d.ex.length);
+      const nombre = document.getElementById('t-nombre').value.trim();
+      const nota = document.getElementById('t-nota').value.trim();
+      /* ponytail: training=null para quitar; la app filtra con S.training?.dias */
+      const training = dias.length ? { nombre: nombre || 'Rutina', nota, dias, updatedAt: firebase.firestore.FieldValue.serverTimestamp() } : null;
+      btn.disabled = true; btn.textContent = 'Guardando...'; msg.className='msg'; msg.textContent='';
+      try {
+        await db.collection('users').doc(_selectedUid).set({ training }, { merge:true });
+        if (_selectedData) _selectedData.training = training;
+        const c = _clients.find(x=>x.uid===_selectedUid); if (c) c.training = training;
+        msg.className='msg ok'; msg.textContent = dias.length ? ('✓ Entrenamiento guardado · ' + dias.length + ' día(s)') : '✓ Rutina quitada';
+      } catch(e) {
+        msg.className='msg err'; msg.textContent='Error: '+(e.message||e);
+      }
+      btn.disabled = false; btn.textContent = 'Guardar entrenamiento';
+    }
+
+    /* ── Selector visual de ejercicios (reusa la biblioteca _curData) ── */
+    let _pkTarget = null, _pkFilter = 'all', _pkSearch = '', _pkPage = 0;
+    const PK_PAGE = 60;
+    async function openPicker(btn){
+      _pkTarget = btn.closest('.t-ex-row');
+      document.getElementById('ex-picker').classList.add('open');
+      const grid = document.getElementById('pk-grid');
+      grid.innerHTML = '<div class="spinner"></div>';
+      await ensureExLib();                       // carga _curData si falta
+      const chips = document.getElementById('pk-chips');
+      if (!chips.dataset.built) {
+        chips.dataset.built = '1';
+        chips.innerHTML = CUR_BODYPARTS.map(([k, l]) =>
+          `<button class="cur-chip${k === _pkFilter ? ' active' : ''}" data-k="${k}" onclick="pkSetFilter('${k}')">${l}</button>`).join('');
+      }
+      _pkPage = 0; pkRender();
+    }
+    function closePicker(){ document.getElementById('ex-picker').classList.remove('open'); }
+    function pkFiltered(){
+      let rows = _curData || [];
+      if (_pkFilter !== 'all') rows = rows.filter(e => e.bodyPart === _pkFilter);
+      if (_pkSearch.trim()) { const q = _pkSearch.trim().toLowerCase(); rows = rows.filter(e => e.name.toLowerCase().includes(q) || (e.target||'').toLowerCase().includes(q)); }
+      return rows;
+    }
+    function pkRender(){
+      const grid = document.getElementById('pk-grid');
+      if (!_curData) return;
+      const all = pkFiltered();
+      if (!all.length) { grid.innerHTML = '<div class="empty">Sin resultados.</div>'; return; }
+      const show = all.slice(0, (_pkPage + 1) * PK_PAGE);
+      grid.innerHTML = show.map(e =>
+        `<div class="cur-card" onclick="pickExercise('${e.id}', this)" data-name="${esc(e.name)}">
+           <img class="cur-card-gif" src="${CUR_GIF_BASE}${e.id}.gif" alt="" loading="lazy">
+           <div class="cur-card-info"><div class="cur-card-name">${esc(e.name)}</div><div class="cur-card-tg">${esc(e.target)}</div></div>
+         </div>`).join('');
+      if (show.length < all.length) grid.insertAdjacentHTML('beforeend', `<div class="cur-more" onclick="pkMore()">Ver más (${all.length - show.length})</div>`);
+    }
+    function pkMore(){ _pkPage++; pkRender(); }
+    function pkSetFilter(k){ _pkFilter = k; _pkPage = 0; document.querySelectorAll('#pk-chips .cur-chip').forEach(c => c.classList.toggle('active', c.dataset.k === k)); pkRender(); }
+    function pkSearch(v){ _pkSearch = v; _pkPage = 0; pkRender(); }
+    function pickExercise(id, el){
+      if (!_pkTarget) return;
+      const inp = _pkTarget.querySelector('.t-nombre');
+      inp.value = el.getAttribute('data-name');
+      inp.dataset.exid = id;
+      closePicker();
+    }
+
+    /* Enter envía login */
+    document.getElementById('a-pass').addEventListener('keydown', e => { if (e.key==='Enter') adminLogin(); });
+
+    /* ════════════════════════════════════════════
+       CURADOR DE EJERCICIOS (config/library)
+    ════════════════════════════════════════════ */
+    const CUR_GIF_BASE = 'https://raw.githubusercontent.com/omercotkd/exercises-gifs/main/assets/';
+    const CUR_CSV_URL  = 'https://raw.githubusercontent.com/omercotkd/exercises-gifs/main/exercises.csv';
+    const CUR_BODYPARTS = [
+      ['all','Todos'],['waist','Abdomen'],['back','Espalda'],['chest','Pecho'],
+      ['upper legs','Piernas'],['shoulders','Hombros'],['upper arms','Brazos'],
+      ['cardio','Cardio'],['lower legs','Gemelos'],['lower arms','Antebrazos']
+    ];
+    const CUR_PAGE = 60;
+    let _curData = null, _curSel = new Set(), _curFilter = 'all', _curEquip = 'all',
+        _curSearch = '', _curPage = 0, _curLoaded = false;
+
+    function curParseLine(line) {
+      const r = []; let c = '', q = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') q = !q;
+        else if (ch === ',' && !q) { r.push(c); c = ''; }
+        else c += ch;
+      }
+      r.push(c); return r;
+    }
+    function curParseCsv(text) {
+      const lines = text.trim().split('\n');
+      const h = curParseLine(lines[0]); const out = [];
+      for (let i = 1; i < lines.length; i++) {
+        const v = curParseLine(lines[i]); const o = {};
+        h.forEach((k, j) => o[k] = (v[j] || '').trim());
+        if (o.id && o.name) out.push({ id:o.id, name:o.name, bodyPart:o.bodyPart, target:o.target, equipment:o.equipment });
+      }
+      return out;
+    }
+
+    function switchAdminView(view) {
+      document.getElementById('view-clients').classList.toggle('hidden', view !== 'clients');
+      document.getElementById('view-curator').classList.toggle('hidden', view !== 'curator');
+      document.getElementById('nav-clients').classList.toggle('active', view === 'clients');
+      document.getElementById('nav-curator').classList.toggle('active', view === 'curator');
+      if (view === 'curator' && !_curLoaded) loadCurator();
+    }
+
+    async function loadCurator() {
+      _curLoaded = true;
+      const grid = document.getElementById('cur-grid');
+      try {
+        const [csvText, libDoc] = await Promise.all([
+          fetch(CUR_CSV_URL).then(r => { if (!r.ok) throw new Error('No se pudo cargar el listado'); return r.text(); }),
+          db.collection('config').doc('library').get().catch(() => null)
+        ]);
+        _curData = curParseCsv(csvText);
+        if (libDoc && libDoc.exists) _curSel = new Set(libDoc.data().exerciseIds || []);
+
+        const equips = [...new Set(_curData.map(e => e.equipment).filter(Boolean))].sort();
+        document.getElementById('cur-equip').innerHTML =
+          '<option value="all">Todo el equipo</option>' +
+          equips.map(eq => `<option value="${esc(eq)}">${esc(eq)}</option>`).join('');
+
+        document.getElementById('cur-chips').innerHTML = CUR_BODYPARTS.map(([k, l]) =>
+          `<button class="cur-chip${k === _curFilter ? ' active' : ''}" data-k="${k}" onclick="curSetFilter('${k}')">${l}</button>`
+        ).join('');
+
+        document.getElementById('cur-total').textContent = _curData.length;
+        curRender();
+      } catch(e) {
+        grid.innerHTML = '<div class="empty">No se pudieron cargar los ejercicios.<br>' + esc(e.message || e) + '</div>';
+      }
+    }
+
+    function curFiltered() {
+      if (!_curData) return [];
+      let rows = _curData;
+      if (document.getElementById('cur-hidevar').checked) rows = rows.filter(e => !/\((male|female)\)/i.test(e.name));
+      if (_curFilter !== 'all') rows = rows.filter(e => e.bodyPart === _curFilter);
+      if (_curEquip !== 'all') rows = rows.filter(e => e.equipment === _curEquip);
+      if (document.getElementById('cur-onlysel').checked) rows = rows.filter(e => _curSel.has(e.id));
+      if (_curSearch.trim()) {
+        const q = _curSearch.trim().toLowerCase();
+        rows = rows.filter(e => e.name.toLowerCase().includes(q) || (e.target || '').toLowerCase().includes(q));
+      }
+      return rows;
+    }
+
+    function curRender() {
+      const grid = document.getElementById('cur-grid');
+      if (!_curData) return;
+      document.getElementById('cur-count').textContent = _curSel.size;
+      const all = curFiltered();
+      if (!all.length) { grid.innerHTML = '<div class="empty">Sin resultados con estos filtros.</div>'; return; }
+      const show = all.slice(0, (_curPage + 1) * CUR_PAGE);
+      grid.innerHTML = show.map(e => `
+        <div class="cur-card${_curSel.has(e.id) ? ' sel' : ''}" onclick="curToggle('${e.id}')">
+          <div class="cur-check">${_curSel.has(e.id) ? '✓' : ''}</div>
+          <img class="cur-card-gif" src="${CUR_GIF_BASE}${e.id}.gif" alt="" loading="lazy">
+          <div class="cur-card-info"><div class="cur-card-name">${esc(e.name)}</div><div class="cur-card-tg">${esc(e.target)}</div></div>
+        </div>`).join('');
+      if (show.length < all.length)
+        grid.insertAdjacentHTML('beforeend', `<div class="cur-more" onclick="curMore()">Ver más (${all.length - show.length} restantes)</div>`);
+    }
+
+    function curResetRender() { _curPage = 0; curRender(); }
+    function curToggle(id) { if (_curSel.has(id)) _curSel.delete(id); else _curSel.add(id); curRender(); }
+    function curMore() { _curPage++; curRender(); }
+    function curSetFilter(k) {
+      _curFilter = k; _curPage = 0;
+      document.querySelectorAll('.cur-chip').forEach(c => c.classList.toggle('active', c.dataset.k === k));
+      curRender();
+    }
+    function curSetEquip(v) { _curEquip = v; _curPage = 0; curRender(); }
+    function curSearch(v) { _curSearch = v; _curPage = 0; curRender(); }
+
+    async function saveCuratedLibrary() {
+      const btns = [document.getElementById('cur-save')];
+      const msgs = [document.getElementById('cur-msg'), document.getElementById('cur-msg2')];
+      btns.forEach(b => { if (b) { b.disabled = true; b.textContent = 'Guardando…'; } });
+      msgs.forEach(m => { if (m) { m.className = 'cur-msg'; m.textContent = ''; } });
+      try {
+        await db.collection('config').doc('library').set({
+          exerciseIds: [..._curSel],
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        msgs.forEach(m => { if (m) { m.className = 'cur-msg ok'; m.textContent = '✓ Guardado: ' + _curSel.size + ' ejercicios en tu biblioteca'; } });
+      } catch(e) {
+        msgs.forEach(m => { if (m) { m.className = 'cur-msg err'; m.textContent = 'Error: ' + (e.message || e); } });
+      }
+      btns.forEach(b => { if (b) { b.disabled = false; b.textContent = 'Guardar selección'; } });
+    }
+  </script>
+</body>
+</html>
