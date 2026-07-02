@@ -23,7 +23,8 @@ function saveState() {
       nombre: S.nombre, peso: S.peso, talla: S.talla, edad: S.edad, sexo: S.sexo,
       act: S.act, obj: S.obj, objLabel: S.objLabel, dietType: S.dietType,
       pesoObj: S.pesoObj, waterCount: S.waterCount, waterMeta: S.waterMeta,
-      diary: S.diary, plan: S.plan,
+      waterDate: S.waterDate || null,
+      diary: S.diary, plan: S.plan, training: S.training || null,
       waterFilled: (typeof waterFilled !== 'undefined' ? waterFilled : 0),
       onboarded: !!S.onboarded,
       remMeals: !!S.remMeals, remWater: !!S.remWater,
@@ -93,8 +94,10 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('touchmove', (e) => {
     let el = e.target;
     while (el && el.nodeType === 1 && el !== document.body) {
-      const oy = getComputedStyle(el).overflowY;
-      if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight) return;
+      const cs = getComputedStyle(el);
+      if ((cs.overflowY === 'auto' || cs.overflowY === 'scroll') && el.scrollHeight > el.clientHeight) return;
+      /* También ejes horizontales (chips de filtros, sugerencias del chat) */
+      if ((cs.overflowX === 'auto' || cs.overflowX === 'scroll') && el.scrollWidth > el.clientWidth) return;
       el = el.parentElement;
     }
     e.preventDefault();
@@ -635,6 +638,13 @@ function setPesoObj() {
 /* ══ RESET PROFILE ══ */
 function resetProfile() {
   try { localStorage.removeItem(STATE_KEY); } catch(_) {}
+  /* Borrar también la nube: sin esto, al recargar fbAutoSync re-hidrataba el
+     perfil viejo (onboarded:true) y el reinicio se deshacía solo */
+  if (typeof fbCurrentUser !== 'undefined' && fbCurrentUser && fbDb) {
+    const uid = fbCurrentUser.uid;
+    fbDb.collection('users').doc(uid).set({ onboarded: false }, { merge: true }).catch(() => {});
+    fbDb.collection('users').doc(uid).collection('diary').doc('entries').delete().catch(() => {});
+  }
   S.onboarded = false;
   S.diary = {};
   S.pesoObj = null;
@@ -678,6 +688,27 @@ async function doLogin() {
     const code = m ? m[1] : '';
     if (errEl) errEl.textContent = msgs[code] || 'Error al iniciar sesión';
     if (btn) { btn.textContent = 'Ingresar'; btn.disabled = false; }
+  }
+}
+
+/* ══ RESET DE CONTRASEÑA ══ */
+async function doResetPass() {
+  const email = document.getElementById('login-email')?.value?.trim();
+  const errEl = document.getElementById('login-error');
+  if (!email) { if (errEl) errEl.textContent = 'Escribe tu correo arriba y vuelve a tocar aquí'; return; }
+  try {
+    await fbResetPass(email);
+    if (errEl) errEl.textContent = '';
+    toast('📬 Te enviamos un correo para restablecer tu contraseña');
+  } catch(e) {
+    const m = String(e).match(/\(([^)]+)\)/);
+    const code = m ? m[1] : '';
+    const msgs = {
+      'auth/user-not-found': 'Ese correo no está registrado',
+      'auth/invalid-email': 'Correo inválido',
+      'auth/too-many-requests': 'Demasiados intentos. Espera un momento'
+    };
+    if (errEl) errEl.textContent = msgs[code] || 'No se pudo enviar el correo';
   }
 }
 
@@ -761,7 +792,8 @@ function calcMetrics() {
   if (plan.fat   != null && plan.fat   !== '') fat  = Math.round(+plan.fat);
   if (plan.aguaL != null && plan.aguaL !== '') agua = +(+plan.aguaL).toFixed(1) || agua;
 
-  Object.assign(S, { tdee, prot, cho, fat, agua, waterMeta: Math.max(1, Math.ceil(agua / 0.25)) });
+  /* Tope de 16 vasos: initWater solo renderiza 16; sin el tope la meta era inalcanzable */
+  Object.assign(S, { tdee, prot, cho, fat, agua, waterMeta: Math.min(16, Math.max(1, Math.ceil(agua / 0.25))) });
 
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
 
@@ -940,6 +972,7 @@ async function toggleMealReminder(on, silent) {
     const cb = document.getElementById('rem-meals');
     if (cb) cb.checked = false;
     S.remMeals = false;
+    saveState();
     return;
   }
   const times = [
@@ -973,6 +1006,7 @@ async function toggleWaterReminder(on, silent) {
     const cb = document.getElementById('rem-water');
     if (cb) cb.checked = false;
     S.remWater = false;
+    saveState();
     return;
   }
   _waterTimer = setInterval(() => {
@@ -999,6 +1033,9 @@ function initReminderToggles() {
 /* ══ WATER ══ */
 let waterFilled = 0;
 function initWater() {
+  /* Nuevo día → el agua arranca en 0 (antes el conteo de ayer se arrastraba
+     para siempre porque se persistía sin fecha) */
+  if (S.waterDate !== todayKey()) { waterFilled = 0; S.waterCount = 0; S.waterDate = todayKey(); }
   const meta  = S.waterMeta || 12;
   const track = document.getElementById('water-cups');
   if (!track) return;
@@ -1008,7 +1045,9 @@ function initWater() {
     d.className = 'wcup' + (i < waterFilled ? ' full' : '');
     d.textContent = '💧';
     d.onclick = () => {
-      waterFilled = i + 1;
+      /* Tocar el primer vaso estando en 1 lo regresa a 0 */
+      waterFilled = (i === 0 && waterFilled === 1) ? 0 : i + 1;
+      S.waterDate = todayKey();
       document.querySelectorAll('.wcup').forEach((c, j) => c.classList.toggle('full', j < waterFilled));
       updateWater();
       saveState();
@@ -1338,6 +1377,8 @@ function buildWeekStrip() {
 function renderDiaryMeals(dateKey) {
   if (!dateKey) dateKey = _diaryViewKey || todayKey();
   _diaryViewKey = dateKey;
+  /* Sincronizar la tira semanal (al venir del calendario quedaba marcado otro día) */
+  document.querySelectorAll('.week-day-col').forEach(c => c.classList.toggle('sel', c.dataset.key === dateKey));
   const entry = getDayEntry(dateKey);
   const container = document.getElementById('diary-meals');
   if (!container) return;

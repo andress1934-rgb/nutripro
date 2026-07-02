@@ -39,6 +39,10 @@ async function fbSignIn(email, password) {
   }
 }
 
+async function fbResetPass(email) {
+  await fbAuth.sendPasswordResetEmail(email);
+}
+
 async function fbSignOut() {
   await fbAuth.signOut();
   fbCurrentUser = null;
@@ -63,6 +67,7 @@ async function fbSaveUserProfile() {
     act: S.act, obj: S.obj, objLabel: S.objLabel, dietType: S.dietType,
     pesoObj: S.pesoObj, tdee: S.tdee, prot: S.prot, cho: S.cho, fat: S.fat,
     agua: S.agua, waterMeta: S.waterMeta, waterCount: S.waterCount,
+    waterDate: S.waterDate || null,
     remMeals: !!S.remMeals, remWater: !!S.remWater,
     trainDone: S.trainDone || {},
     onboarded: true, ts: firebase.firestore.FieldValue.serverTimestamp()

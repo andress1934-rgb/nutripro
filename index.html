@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=47">
+  <link rel="stylesheet" href="styles.css?v=48">
 
   <!-- Aplica tema ANTES del primer render para evitar flash de color incorrecto -->
   <script>
@@ -86,6 +86,7 @@
         </div>
         <div class="login-error" id="login-error"></div>
         <button class="btn-yellow" id="login-btn" onclick="doLogin()">Ingresar</button>
+        <a class="login-forgot" onclick="doResetPass()">¿Olvidaste tu contraseña?</a>
       </div>
 
       <div class="login-divider"><span>¿Primera vez?</span></div>
@@ -927,6 +928,7 @@
       </div>
       <div class="login-error" id="reg-error"></div>
       <button class="btn-yellow" id="reg-btn" onclick="finishSetup()">Crear mi cuenta</button>
+      <a class="login-forgot" onclick="goScreen('s-login')">¿Ya tienes cuenta? Inicia sesión</a>
     </div>
     <div class="ob-footnote" style="margin-top:10px">
       Al registrarte aceptas los <a>Términos de Servicio</a> y <a>Política de Privacidad</a>
@@ -1627,8 +1629,8 @@
 
 </div><!-- /phone -->
 
-<script src="firebase.js?v=28"></script>
-<script src="app.js?v=47"></script>
+<script src="firebase.js?v=48"></script>
+<script src="app.js?v=48"></script>
 
 </body>
 </html>
