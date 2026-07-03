@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=50">
+  <link rel="stylesheet" href="styles.css?v=51">
 
   <!-- Aplica tema ANTES del primer render para evitar flash de color incorrecto -->
   <script>
@@ -1236,6 +1236,14 @@
             </div>
           </div>
           <div class="settings-group">
+            <div class="settings-group-title">Apariencia</div>
+            <div class="setting-item">
+              <div class="setting-icon-wrap">🌙</div>
+              <div class="setting-label">Tema oscuro</div>
+              <label class="toggle"><input type="checkbox" id="theme-check" onchange="toggleTheme()"><div class="toggle-slider"></div></label>
+            </div>
+          </div>
+          <div class="settings-group">
             <div class="settings-group-title">Cuenta</div>
             <div class="setting-item" onclick="toast('📋 Mis recetas próximamente')">
               <div class="setting-icon-wrap">📋</div>
@@ -1630,7 +1638,7 @@
 </div><!-- /phone -->
 
 <script src="firebase.js?v=48"></script>
-<script src="app.js?v=50"></script>
+<script src="app.js?v=51"></script>
 
 </body>
 </html>

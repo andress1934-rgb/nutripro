@@ -68,9 +68,11 @@ function applyTheme(dark) {
     requestAnimationFrame(() => phone.classList.remove('no-transition'));
   });
 
-  /* Icono y meta-color */
+  /* Icono, toggle de Ajustes y meta-color */
   const icon = document.getElementById('theme-icon');
   if (icon) icon.textContent = dark ? '🌙' : '☀️';
+  const tc = document.getElementById('theme-check');
+  if (tc) tc.checked = dark;
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute('content', bg);
 }
