@@ -1029,7 +1029,9 @@ html, body {
 .meals-scroll::-webkit-scrollbar { display: none; }
 
 .meal-card {
-  min-width: 148px; background: var(--white); border-radius: var(--r);
+  /* Ancho FIJO: sin él, un nombre largo del plan (asignado por el coach) estira
+     la tarjeta a su ancho intrínseco y el carrusel se vuelve kilométrico. */
+  width: 200px; min-width: 200px; background: var(--white); border-radius: var(--r);
   overflow: hidden; box-shadow: var(--shadow-s); cursor: pointer; flex-shrink: 0;
   transition: transform .18s, box-shadow .18s;
 }
