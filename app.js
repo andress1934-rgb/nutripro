@@ -979,21 +979,28 @@ async function toggleMealReminder(on, silent) {
     {h:7,m:30,name:'Desayuno'},{h:12,m:30,name:'Almuerzo'},
     {h:15,m:30,name:'Merienda'},{h:19,m:0,name:'Cena'}
   ];
-  let _lastMealKey = '';
+  /* Antes solo avisaba en el minuto EXACTO (12:30:00) con la app abierta: en la
+     práctica nunca llegaba nada. Ahora hay una ventana de 45 min y un registro
+     persistente de "ya avisé", así el aviso llega al abrir la app aunque sea tarde. */
+  const WINDOW_MIN = 45;
   function checkMeals() {
     const now = new Date();
+    const mins = now.getHours() * 60 + now.getMinutes();
     times.forEach(t => {
-      if (now.getHours()===t.h && now.getMinutes()===t.m) {
-        /* Dedupe: una sola notificación por horario por día, aunque el
-           intervalo dispare dos veces dentro del mismo minuto. */
-        const key = todayKey() + '-' + t.h + ':' + t.m;
-        if (key === _lastMealKey) return;
-        _lastMealKey = key;
-        showNotif('🍽️ Hora de comer', `¡Es tiempo de tu ${t.name}! Recuerda registrarlo en tu diario.`);
-      }
+      const start = t.h * 60 + t.m;
+      if (mins < start || mins > start + WINDOW_MIN) return;
+      let seen = {};
+      try { seen = JSON.parse(localStorage.getItem('np-notified') || '{}'); } catch(_) {}
+      const key = todayKey() + '-' + t.h + ':' + t.m;
+      if (seen[key]) return;
+      Object.keys(seen).forEach(k => { if (!k.startsWith(todayKey())) delete seen[k]; });
+      seen[key] = 1;
+      try { localStorage.setItem('np-notified', JSON.stringify(seen)); } catch(_) {}
+      showNotif('🍽️ Hora de comer', `¡Es tiempo de tu ${t.name}! Recuerda registrarlo en tu diario.`);
     });
   }
   _mealTimer = setInterval(checkMeals, 60000);
+  checkMeals();
   if (!silent) toast('🔔 Recordatorio de comidas activado');
 }
 
@@ -1009,12 +1016,22 @@ async function toggleWaterReminder(on, silent) {
     saveState();
     return;
   }
-  _waterTimer = setInterval(() => {
+  /* Antes el contador de 90 min arrancaba de cero en cada apertura de la app
+     y nunca se cumplía. Ahora la marca del último aviso persiste, se revisa
+     cada 10 min y también al abrir la app. Sin avisos de 22:00 a 8:00. */
+  function checkWater() {
+    const h = new Date().getHours();
+    if (h < 8 || h >= 22) return;
     const liters = parseFloat((waterFilled * 0.25).toFixed(2));
     const meta = S.agua || 2;
-    if (liters < meta)
-      showNotif('💧 ¡Toma agua!', `Llevas ${liters}L de ${meta}L. ¡Toma un vaso ahora!`);
-  }, 90 * 60 * 1000); /* cada 90 min */
+    if (liters >= meta) return;
+    const last = +(localStorage.getItem('np-water-notif') || 0);
+    if (Date.now() - last < 90 * 60 * 1000) return;
+    try { localStorage.setItem('np-water-notif', String(Date.now())); } catch(_) {}
+    showNotif('💧 ¡Toma agua!', `Llevas ${liters}L de ${meta}L. ¡Toma un vaso ahora!`);
+  }
+  _waterTimer = setInterval(checkWater, 10 * 60 * 1000);
+  checkWater();
   if (!silent) toast('💧 Recordatorio de agua activado');
 }
 

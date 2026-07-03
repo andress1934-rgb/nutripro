@@ -2402,3 +2402,30 @@ html, body {
 .cr-gen:active { transform: scale(.98); }
 .cr-save { background: var(--card2); color: var(--accent-d); border: 1px solid var(--accent); }
 .rt-chip.cr-dis, .rt-chip:disabled { opacity: .3; cursor: not-allowed; text-decoration: line-through; }
+
+/* ═══════════════════════════════════════
+   ESCRITORIO / TABLET: la app es un diseño de teléfono; en pantallas anchas
+   se muestra dentro de un marco de teléfono centrado con fondo ambiental
+   (antes se estiraba a todo el ancho y los cuadros quedaban kilométricos).
+═══════════════════════════════════════ */
+@media (min-width: 520px) {
+  body {
+    /* !important: applyTheme() pone el fondo inline y taparía el ambiental */
+    background:
+      radial-gradient(1100px 750px at 18% -8%, rgba(244,199,90,.08), transparent 60%),
+      radial-gradient(900px 650px at 108% 108%, rgba(244,199,90,.05), transparent 60%),
+      #060709 !important;
+  }
+  .phone {
+    top: 50%; left: 50%; right: auto; bottom: auto;
+    transform: translate(-50%, -50%);
+    width: 402px;
+    height: min(874px, 96vh);
+    border-radius: 40px;
+    border: 1px solid rgba(255,255,255,.09);
+    box-shadow:
+      0 0 0 10px #101114,
+      0 0 0 11px rgba(255,255,255,.07),
+      0 45px 120px rgba(0,0,0,.8);
+  }
+}
