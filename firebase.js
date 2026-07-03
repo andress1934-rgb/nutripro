@@ -15,6 +15,9 @@ function fbInit() {
   if (fbAuth) return;
   fbAuth = firebase.auth();
   fbDb = firebase.firestore();
+  /* Persistencia offline: lo registrado sin señal sobrevive al cierre de la app
+     y se sube solo al volver la conexión (antes esas comidas se perdían). */
+  try { fbDb.enablePersistence({ synchronizeTabs: true }).catch(() => {}); } catch(_) {}
   /* El listener onAuthStateChanged autoritativo vive en app.js (DOMContentLoaded).
      Tener uno aquí provocaba doble fbAutoSync() y carrera sobre S/S.diary. */
 }
@@ -63,6 +66,8 @@ async function fbSaveUserProfile() {
   if (!fbCurrentUser) return;
   const uid = fbCurrentUser.uid;
   const snap = {
+    email: (fbCurrentUser && fbCurrentUser.email) || null,
+    miEntreno: S.miEntreno || null,
     nombre: S.nombre, peso: S.peso, talla: S.talla, edad: S.edad, sexo: S.sexo,
     act: S.act, obj: S.obj, objLabel: S.objLabel, dietType: S.dietType,
     pesoObj: S.pesoObj, tdee: S.tdee, prot: S.prot, cho: S.cho, fat: S.fat,
@@ -73,6 +78,9 @@ async function fbSaveUserProfile() {
     onboarded: true, ts: firebase.firestore.FieldValue.serverTimestamp()
   };
   await fbDb.collection('users').doc(uid).set(snap, { merge: true });
+  /* trainDone se REEMPLAZA completo: merge:true nunca borra claves anidadas,
+     así que desmarcar un ejercicio "resucitaba" al reabrir la app. */
+  await fbDb.collection('users').doc(uid).update({ trainDone: S.trainDone || {} }).catch(() => {});
 }
 
 async function fbLoadUserProfile() {

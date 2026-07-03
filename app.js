@@ -25,6 +25,7 @@ function saveState() {
       pesoObj: S.pesoObj, waterCount: S.waterCount, waterMeta: S.waterMeta,
       waterDate: S.waterDate || null,
       diary: S.diary, plan: S.plan, training: S.training || null,
+      miEntreno: S.miEntreno || null,
       waterFilled: (typeof waterFilled !== 'undefined' ? waterFilled : 0),
       onboarded: !!S.onboarded,
       remMeals: !!S.remMeals, remWater: !!S.remWater,
@@ -199,6 +200,10 @@ function resetSessionState() {
   waterFilled = 0;
   _diaryViewKey = null;
   _rtInit = false;
+  /* Entreno propio: en memoria y claves legacy locales — sin esto se filtraba
+     la rutina del usuario anterior en un dispositivo compartido */
+  _crWorkout = null;
+  try { localStorage.removeItem('np-mi-entreno'); localStorage.removeItem('np-train-done'); } catch(_) {}
   /* Detener timers de recordatorios del usuario anterior */
   if (typeof _mealTimer  !== 'undefined' && _mealTimer)  { clearInterval(_mealTimer);  _mealTimer  = null; }
   if (typeof _waterTimer !== 'undefined' && _waterTimer) { clearInterval(_waterTimer); _waterTimer = null; }
@@ -390,6 +395,16 @@ function showFood() {
 
 /* Pinta "Mi Plan de Comidas" con el plan real; sin plan conserva los platos de ejemplo */
 function renderPlanMeals() {
+  /* Indicaciones del coach: ANTES del early-return para que también se
+     oculten cuando el plan se quita */
+  const nbox = document.getElementById('coach-notes');
+  if (nbox) {
+    const notas = (S.plan && S.plan.notas) ? String(S.plan.notas).trim() : '';
+    nbox.style.display = notas ? '' : 'none';
+    nbox.innerHTML = notas
+      ? `<div class="coach-notes-card"><div class="coach-notes-title">📝 Indicaciones de tu coach</div><div class="coach-notes-text">${esc(notas)}</div></div>`
+      : '';
+  }
   const box = document.getElementById('dash-meals');
   if (!box) return;
   const meals = (S.plan && Array.isArray(S.plan.meals)) ? S.plan.meals : null;
@@ -575,6 +590,18 @@ function setEdad() {
   if (display) display.textContent = val + ' años';
   closeSheet();
   if (S.onboarded) { calcMetrics(); saveState(); }
+}
+
+function setNombre() {
+  const inp = document.getElementById('input-nombre');
+  if (!inp) return;
+  const val = inp.value.trim().slice(0, 40);
+  if (!val) { closeSheet(); return; }
+  S.nombre = val;
+  closeSheet();
+  calcMetrics();   /* repinta greet-name y prof-name */
+  saveState();
+  toast('✓ Nombre actualizado');
 }
 
 function setAltura() {
@@ -2891,6 +2918,8 @@ function openCreate() {
     document.getElementById('cr-enfoque').innerHTML = Object.keys(FOCUS).map(k => `<button class="rt-chip${k===_crEnfoque?' active':''}" data-v="${k}" onclick="setCrChip('enfoque','${k}',this)">${FOCUS[k].label}</button>`).join('');
     document.getElementById('cr-dif').innerHTML = ['principiante','intermedio','avanzado'].map(k => `<button class="rt-chip${k===_crDif?' active':''}" data-v="${k}" onclick="setCrChip('dif','${k}',this)">${k[0].toUpperCase()+k.slice(1)}</button>`).join('');
   }
+  /* Preferir la cuenta (sincronizado); localStorage solo como legacy */
+  if (!_crWorkout) _crWorkout = S.miEntreno || null;
   if (!_crWorkout) { try { _crWorkout = JSON.parse(localStorage.getItem('np-mi-entreno') || 'null'); } catch(_) {} }
   if (_crWorkout) renderGenerated();
   _crUpdateZoneAvail();
@@ -2969,8 +2998,11 @@ function renderGenerated() {
 
 function saveMyWorkout() {
   if (!_crWorkout) return;
-  try { localStorage.setItem('np-mi-entreno', JSON.stringify(_crWorkout)); toast('💾 Entrenamiento guardado'); }
-  catch(_) { toast('No se pudo guardar'); }
+  /* A la cuenta (Firestore vía saveState), no solo a este teléfono */
+  S.miEntreno = _crWorkout;
+  saveState();
+  try { localStorage.setItem('np-mi-entreno', JSON.stringify(_crWorkout)); } catch(_) {}
+  toast('💾 Entrenamiento guardado en tu cuenta');
 }
 
 /* ════════════════════════════════════════════════════════════

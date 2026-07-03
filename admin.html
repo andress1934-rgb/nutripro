@@ -430,7 +430,11 @@
 
     function num(v, d){ const n = Number(v); return isNaN(n) ? (d!=null?d:'—') : n; }
     function sexLabel(s){ return s==='f' ? 'Mujer' : s==='m' ? 'Hombre' : '—'; }
-    function goalLabel(o){ return o==='perder'?'Perder grasa':o==='musculo'?'Ganar músculo':o==='mantener'?'Mantener peso':o==='recomp'?'Recomposición':(o||'—'); }
+    function goalLabel(o){
+      /* La app guarda obj numérico (-1/0/1) y el label en objLabel; el cargador usó strings */
+      const nums = { '-1':'Perder grasa', '1':'Ganar músculo', '0':'Mantener peso' };
+      return o==='perder'?'Perder grasa':o==='musculo'?'Ganar músculo':o==='mantener'?'Mantener peso':o==='recomp'?'Recomposición':nums[String(o)]||(o||'—');
+    }
 
     function renderDetail(c, diary) {
       const name = c.nombre || c.email || 'Cliente';
@@ -462,7 +466,7 @@
             <div class="stat"><div class="stat-val">${num(plan.cho ?? c.cho)}<span style="font-size:12px">g</span></div><div class="stat-lbl">Carbos</div></div>
             <div class="stat"><div class="stat-val">${num(plan.fat ?? c.fat)}<span style="font-size:12px">g</span></div><div class="stat-lbl">Grasas</div></div>
           </div>
-          <div class="sub" style="font-size:12px;color:var(--muted)">Objetivo: <b style="color:var(--mid)">${goalLabel(c.objetivo ?? c.obj)}</b> · Agua meta: <b style="color:var(--mid)">${num(plan.aguaL ?? c.agua)} L</b></div>
+          <div class="sub" style="font-size:12px;color:var(--muted)">Objetivo: <b style="color:var(--mid)">${esc(c.objLabel || goalLabel(c.objetivo ?? c.obj))}</b> · Agua meta: <b style="color:var(--mid)">${num(plan.aguaL ?? c.agua)} L</b></div>
         </div>
 
         <!-- Editor de plan -->
@@ -521,6 +525,12 @@
           </div>
         </div>
 
+        <!-- Adherencia al entrenamiento -->
+        <div class="panel" style="margin-top:18px">
+          <div class="section-head" style="margin-top:0">✅ Adherencia al entrenamiento</div>
+          ${renderAdherence(c)}
+        </div>
+
         <!-- Diario -->
         <div class="panel" style="margin-top:18px">
           <div class="section-head" style="margin-top:0">📔 Diario de comidas</div>
@@ -528,6 +538,28 @@
         </div>
       `;
       ensureExLib();
+    }
+
+    /* Ejercicios marcados por día (trainDone: {fecha: {'dia-ej':1}}) + agua de hoy */
+    function renderAdherence(c){
+      const td = c.trainDone || {};
+      const dias = (c.training && c.training.dias) || [];
+      const water = (c.waterDate && c.waterCount != null)
+        ? `<div class="sub" style="margin-bottom:10px">💧 Agua del ${esc(c.waterDate)}: <b style="color:var(--mid)">${Number(c.waterCount)||0} vasos (${(((Number(c.waterCount)||0)*0.25)).toFixed(2).replace(/\.?0+$/,'')} L)</b></div>`
+        : '';
+      const dates = Object.keys(td).filter(d => td[d] && Object.keys(td[d]).length).sort().reverse().slice(0, 14);
+      if (!dates.length) return water + '<div class="empty">Aún no ha marcado ejercicios completados.</div>';
+      const rows = dates.map(d => {
+        const per = {};
+        Object.keys(td[d]).forEach(k => { const di = k.split('-')[0]; per[di] = (per[di]||0) + 1; });
+        const desc = Object.keys(per).map(di => {
+          const day = dias[+di];
+          const tot = day && day.ex ? day.ex.length : 0;
+          return esc(day ? day.t : 'Día ' + (+di+1)) + ': <b style="color:var(--gold,#F4C75A)">' + per[di] + (tot ? '/' + tot : '') + '</b>';
+        }).join(' · ');
+        return `<div class="sub" style="padding:6px 0;border-bottom:1px solid var(--border)">${esc(d)} — ${desc}</div>`;
+      }).join('');
+      return water + rows;
     }
 
     function mealRowHtml(m, i){
@@ -599,7 +631,7 @@
     function trainExHtml(ex){
       ex = ex || {};
       return `<div class="t-ex-row">
-        <input class="t-nombre" data-exid="${esc(ex.exId||'')}" placeholder="Ejercicio" value="${esc(ex.nombre||'')}">
+        <input class="t-nombre" data-exid="${esc(ex.exId||'')}" oninput="this.dataset.exid=''" placeholder="Ejercicio" value="${esc(ex.nombre||'')}">
         <button class="t-pick" onclick="openPicker(this)" title="Elegir de la biblioteca">🔍</button>
         <input class="t-sets" placeholder="Sets" value="${esc(ex.sets||'')}">
         <input class="t-reps" placeholder="Reps" value="${esc(ex.reps||'')}">

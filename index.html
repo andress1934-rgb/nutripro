@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=51">
+  <link rel="stylesheet" href="styles.css?v=52">
 
   <!-- Aplica tema ANTES del primer render para evitar flash de color incorrecto -->
   <script>
@@ -1027,6 +1027,8 @@
             </div>
           </div>
 
+          <div id="coach-notes" style="display:none"></div>
+
           <div class="sec-head"><h2>Mi Plan de Comidas</h2><a onclick="goTab('diary')">Ver todo</a></div>
           <div class="meals-scroll" id="dash-meals">
             <div class="meal-card" onclick="openFood('🥑','Tostada de Aguacate','Desayuno',380)">
@@ -1209,6 +1211,12 @@
           </div>
           <div class="settings-group">
             <div class="settings-group-title">Configuración del Plan</div>
+            <div class="setting-item" onclick="openSheet('sheet-nombre')">
+              <div class="setting-icon-wrap">👤</div>
+              <div class="setting-label">Nombre</div>
+              <div class="setting-val">Editar</div>
+              <div class="setting-arrow">›</div>
+            </div>
             <div class="setting-item" onclick="openSheet('sheet-peso-obj')">
               <div class="setting-icon-wrap">🎯</div>
               <div class="setting-label">Objetivo</div>
@@ -1441,6 +1449,14 @@
     <button class="btn-yellow" style="width:100%;margin:0" onclick="setAltura()">Guardar</button>
   </div>
 
+  <!-- Nombre -->
+  <div class="bottom-sheet" id="sheet-nombre">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Tu nombre</div>
+    <input class="sheet-input" id="input-nombre" type="text" maxlength="40" placeholder="Ej. Cristian Sánchez" autocomplete="name">
+    <button class="btn-yellow" style="width:100%;margin:0" onclick="setNombre()">Guardar</button>
+  </div>
+
   <!-- Peso -->
   <div class="bottom-sheet" id="sheet-peso">
     <div class="sheet-handle"></div>
@@ -1637,8 +1653,8 @@
 
 </div><!-- /phone -->
 
-<script src="firebase.js?v=48"></script>
-<script src="app.js?v=51"></script>
+<script src="firebase.js?v=52"></script>
+<script src="app.js?v=52"></script>
 
 </body>
 </html>
