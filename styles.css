@@ -570,8 +570,10 @@ html, body {
   font-size: 16px; font-weight: 700; color: var(--dark);
   cursor: pointer; transition: transform .15s, box-shadow .15s;
   flex-shrink: 0;
+  /* Halo dorado suave: el botón principal "emite luz" */
+  box-shadow: 0 8px 28px rgba(244, 199, 90, .22);
 }
-.btn-yellow:active { transform: scale(.98); }
+.btn-yellow:active { transform: scale(.98); box-shadow: 0 4px 14px rgba(244, 199, 90, .18); }
 .btn-yellow:disabled { background: var(--card2); color: var(--muted); }
 
 .btn-yellow-sm {
@@ -925,16 +927,21 @@ html, body {
   position: absolute; left: 14px; right: 14px;
   bottom: calc(10px + env(safe-area-inset-bottom, 0px));
   border-radius: 28px;
-  border: 1px solid var(--border);
-  background: rgba(21, 22, 26, .62);
-  -webkit-backdrop-filter: blur(18px) saturate(160%);
-  backdrop-filter: blur(18px) saturate(160%);
-  box-shadow: var(--shadow-m);
+  border: 1px solid rgba(255, 255, 255, .1);
+  background: rgba(21, 22, 26, .45);
+  -webkit-backdrop-filter: blur(26px) saturate(185%);
+  backdrop-filter: blur(26px) saturate(185%);
+  /* Brillo interior en el borde superior: el "filo" del cristal */
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .09), var(--shadow-m);
   display: flex; align-items: center;
   padding: 7px 6px;
   z-index: 50;
 }
-.phone.light .bottom-nav { background: rgba(255, 255, 255, .68); }
+.phone.light .bottom-nav {
+  background: rgba(255, 255, 255, .42);
+  border-color: rgba(26, 26, 26, .08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .75), var(--shadow-m);
+}
 /* WebViews viejos sin blur: fondo casi opaco para que siga legible */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .bottom-nav { background: var(--card); }
@@ -1984,7 +1991,10 @@ html, body {
   padding: 0 16px; border: 1.5px solid var(--border);
   transition: border-color .2s;
 }
-.login-inp-wrap:focus-within { border-color: var(--accent); }
+.login-inp-wrap:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(244, 199, 90, .14);
+}
 .login-inp-icon { font-size: 16px; flex-shrink: 0; }
 .login-inp {
   flex: 1; border: none; background: transparent;
@@ -2045,11 +2055,8 @@ html, body {
 }
 
 /* 4. Barra de navegación: vidrio esmerilado + glifo dorado con halo */
-.phone.dark .bottom-nav {
-  background: linear-gradient(180deg, rgba(21,22,26,.82), rgba(10,11,13,.96));
-  backdrop-filter: blur(20px) saturate(120%);
-  -webkit-backdrop-filter: blur(20px) saturate(120%);
-}
+/* (El fondo de cristal del nav vive en la regla base .bottom-nav —
+   el gradiente casi opaco que había aquí anulaba la transparencia) */
 .phone.dark .nav-item.active .nav-icon {
   filter: drop-shadow(0 0 8px rgba(244,199,90,.5));
 }
@@ -2341,11 +2348,21 @@ html, body {
 }
 .drawer {
   position: absolute; top: 0; left: 0; bottom: 0;
-  width: 80%; max-width: 300px; background: var(--card);
-  border-right: 1px solid var(--border); box-shadow: var(--shadow-l);
+  width: 80%; max-width: 300px;
+  /* Panel de cristal: la app se ve detrás, difuminada */
+  background: rgba(16, 17, 20, .78);
+  -webkit-backdrop-filter: blur(28px) saturate(170%);
+  backdrop-filter: blur(28px) saturate(170%);
+  border-right: 1px solid rgba(255, 255, 255, .08);
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, .04), var(--shadow-l);
   padding: max(54px, calc(env(safe-area-inset-top, 0px) + 54px)) 14px 24px;
   transform: translateX(-100%); transition: transform .28s cubic-bezier(.4,0,.2,1);
   overflow-y: auto;
+}
+.phone.light .drawer {
+  background: rgba(247, 245, 237, .85);
+  border-right-color: rgba(26, 26, 26, .08);
+  box-shadow: var(--shadow-l);
 }
 .drawer-overlay.open .drawer { transform: translateX(0); }
 .drawer-head {
@@ -2354,9 +2371,14 @@ html, body {
 }
 .drawer-logo { font-size: 20px; font-weight: 800; color: var(--dark); letter-spacing: -.02em; }
 .drawer-close {
-  width: 30px; height: 30px; border-radius: 50%; background: var(--card2);
-  border: none; color: var(--mid); font-size: 14px; cursor: pointer;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(255, 255, 255, .06);
+  border: 1px solid var(--border); color: var(--mid);
+  font-size: 14px; cursor: pointer;
+  transition: transform .18s cubic-bezier(.34,1.56,.64,1);
 }
+.drawer-close:active { transform: scale(.88); }
+.phone.light .drawer-close { background: rgba(26, 26, 26, .05); }
 .drawer-sec-label {
   font-size: 11px; font-weight: 700; color: var(--muted);
   text-transform: uppercase; letter-spacing: .06em; margin: 16px 6px 8px;
@@ -2369,12 +2391,14 @@ html, body {
 .drawer-item {
   display: flex; align-items: center; gap: 12px; width: 100%;
   background: none; border: none; cursor: pointer;
-  padding: 10px 8px; border-radius: 12px; text-align: left;
-  transition: background .15s; font-family: inherit;
+  padding: 10px 8px; border-radius: 14px; text-align: left;
+  transition: background .15s, transform .18s cubic-bezier(.34,1.56,.64,1);
+  font-family: inherit;
 }
-.drawer-item:active { background: var(--card2); }
+.drawer-item:active { background: rgba(244,199,90,.08); transform: scale(.97); }
 .drawer-ic {
-  width: 38px; height: 38px; border-radius: 10px; background: var(--icon-bg);
+  width: 38px; height: 38px; border-radius: 11px; background: var(--icon-bg);
+  border: 1px solid rgba(244, 199, 90, .16);
   display: flex; align-items: center; justify-content: center;
   font-size: 18px; flex-shrink: 0;
 }
@@ -2519,6 +2543,7 @@ html, body {
   background: var(--card); border: 1px solid var(--border);
   display: flex; align-items: center; justify-content: center;
   font-size: 38px;
+  animation: bootPulse 2.4s ease-in-out infinite;
 }
 .offline-title { font-size: 22px; font-weight: 800; color: var(--dark); letter-spacing: -.02em; }
 .offline-sub   { font-size: 14px; color: var(--mid); line-height: 1.5; max-width: 260px; }
@@ -2526,18 +2551,34 @@ html, body {
 
 /* Píldora "sin conexión" mientras se usa la app offline */
 #net-pill {
-  /* Centrado con margin:auto (no translateX): toastAnim pisa transform */
+  /* Centrado con margin:auto (no translateX): toastAnim pisa transform.
+     z-index bajo el drawer (100): el menú lateral la cubre al abrirse. */
   position: absolute; top: 14px; left: 0; right: 0;
   margin: 0 auto; width: fit-content;
-  z-index: 300; pointer-events: none;
-  background: var(--card); color: var(--dark);
-  border: 1px solid rgba(255,168,43,.45);
-  border-radius: 24px; padding: 9px 16px;
+  z-index: 90; pointer-events: none;
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(21, 22, 26, .68); color: var(--dark);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: 24px; padding: 9px 16px 9px 13px;
   font-size: 12px; font-weight: 600; white-space: nowrap;
-  box-shadow: var(--shadow-m);
+  letter-spacing: .01em;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), var(--shadow-m);
   animation: toastAnim .3s cubic-bezier(.34,1.56,.64,1);
 }
+/* Punto ámbar latiendo: estado vivo, sin emoji */
+#net-pill::before {
+  content: ''; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--orange); flex-shrink: 0;
+  animation: netDot 1.8s ease-in-out infinite;
+}
+@keyframes netDot { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+.phone.light #net-pill { background: rgba(255, 255, 255, .72); border-color: rgba(26, 26, 26, .1); }
 #net-pill[hidden] { display: none; }
+/* Con el menú lateral abierto la píldora estorba (el drawer vive en el
+   stacking context de s-app y no puede taparla): se oculta con :has */
+.phone:has(.drawer-overlay.open) #net-pill { display: none; }
 /* La pantalla s-offline ya dice "sin conexión": no duplicar con la píldora */
 #s-offline.active ~ #net-pill { display: none; }
 
