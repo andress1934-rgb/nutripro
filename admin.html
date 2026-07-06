@@ -428,6 +428,13 @@
       renderDetail(c, diary);
     }
 
+    function weightTrendHtml(log) {
+      if (!Array.isArray(log) || log.length < 2) return '';
+      const first = log[0].kg, last = log[log.length-1].kg;
+      const delta = +(last - first).toFixed(1);
+      const sign = delta > 0 ? '+' : '';
+      return `<div class="sub" style="font-size:12px;color:var(--muted);margin-top:4px">Peso: <b style="color:var(--mid)">${last} kg</b> (${sign}${delta} kg desde el ${esc(log[0].d)}, ${log.length} registros)</div>`;
+    }
     function num(v, d){ const n = Number(v); return isNaN(n) ? (d!=null?d:'—') : n; }
     function sexLabel(s){ return s==='f' ? 'Mujer' : s==='m' ? 'Hombre' : '—'; }
     function goalLabel(o){
@@ -467,6 +474,7 @@
             <div class="stat"><div class="stat-val">${num(plan.fat ?? c.fat)}<span style="font-size:12px">g</span></div><div class="stat-lbl">Grasas</div></div>
           </div>
           <div class="sub" style="font-size:12px;color:var(--muted)">Objetivo: <b style="color:var(--mid)">${esc(c.objLabel || goalLabel(c.objetivo ?? c.obj))}</b> · Agua meta: <b style="color:var(--mid)">${num(plan.aguaL ?? c.agua)} L</b></div>
+          ${weightTrendHtml(c.pesoLog)}
         </div>
 
         <!-- Editor de plan -->

@@ -1564,6 +1564,10 @@ html, body {
 }
 .fsearch-inp::placeholder { color: var(--muted); }
 .fsearch-results { display: flex; flex-direction: column; gap: 6px; }
+.fsearch-src {
+  font-size: 11px; font-weight: 700; letter-spacing: .04em; color: var(--muted);
+  margin: 6px 2px 0; text-transform: uppercase;
+}
 .fsearch-row {
   background: var(--white); border-radius: var(--r-sm);
   padding: 12px 14px; display: flex; align-items: center; gap: 10px;

@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=53">
+  <link rel="stylesheet" href="styles.css?v=54">
 
   <!-- Aplica tema ANTES del primer render para evitar flash de color incorrecto -->
   <script>
@@ -1050,7 +1050,7 @@
           </div>
           <div class="settings-group">
             <div class="settings-group-title">Cuenta</div>
-            <div class="setting-item" onclick="toast('📊 Historial de progreso')">
+            <div class="setting-item" onclick="openSheet('sheet-weight-history')">
               <div class="setting-icon-wrap">📊</div>
               <div class="setting-label">Historial de Progreso</div>
               <div class="setting-arrow">›</div>
@@ -1255,6 +1255,13 @@
     <button class="btn-yellow" style="width:100%;margin:0" onclick="setPeso()">Guardar</button>
   </div>
 
+  <!-- Historial de peso -->
+  <div class="bottom-sheet" id="sheet-weight-history">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Historial de Progreso</div>
+    <div id="wh-body"></div>
+  </div>
+
   <!-- Peso actual (personalize screen) -->
   <div class="bottom-sheet" id="sheet-peso-actual">
     <div class="sheet-handle"></div>
@@ -1417,8 +1424,8 @@
 
 </div><!-- /phone -->
 
-<script src="firebase.js?v=53"></script>
-<script src="app.js?v=53"></script>
+<script src="firebase.js?v=54"></script>
+<script src="app.js?v=54"></script>
 
 </body>
 </html>

@@ -25,7 +25,7 @@ function saveState() {
       pesoObj: S.pesoObj, waterCount: S.waterCount, waterMeta: S.waterMeta,
       waterDate: S.waterDate || null,
       diary: S.diary, plan: S.plan, training: S.training || null,
-      miEntreno: S.miEntreno || null,
+      miEntreno: S.miEntreno || null, pesoLog: S.pesoLog || [],
       waterFilled: (typeof waterFilled !== 'undefined' ? waterFilled : 0),
       onboarded: !!S.onboarded,
       remMeals: !!S.remMeals, remWater: !!S.remWater,
@@ -546,6 +546,7 @@ function openSheet(id) {
   }
   overlay.classList.add('open');
   sheet.classList.add('open');
+  if (id === 'sheet-weight-history') renderWeightHistory();
 }
 
 function closeSheet() {
@@ -610,6 +611,7 @@ function setPeso() {
   if (pa) pa.textContent = val + ' kg';
   const ipa = document.getElementById('input-peso-actual');
   if (ipa) ipa.value = val;
+  logWeight(val);
   closeSheet();
   if (S.onboarded) { calcMetrics(); saveState(); }
 }
@@ -621,8 +623,56 @@ function setPesoActual() {
   S.peso = val;
   const display = document.getElementById('display-peso-actual');
   if (display) display.textContent = val + ' kg';
+  logWeight(val);
   closeSheet();
   if (S.onboarded) { calcMetrics(); saveState(); }
+}
+
+/* Historial de peso: un punto por día (si se pesa 2 veces el mismo día, actualiza el punto) */
+function logWeight(kg) {
+  const day = todayKey();
+  S.pesoLog = S.pesoLog || [];
+  const i = S.pesoLog.findIndex(e => e.d === day);
+  if (i >= 0) S.pesoLog[i].kg = kg;
+  else S.pesoLog.push({ d: day, kg });
+  S.pesoLog.sort((a, b) => a.d < b.d ? -1 : 1);
+  if (S.pesoLog.length > 60) S.pesoLog = S.pesoLog.slice(-60);
+}
+
+function renderWeightHistory() {
+  const box = document.getElementById('wh-body');
+  if (!box) return;
+  const log = S.pesoLog || [];
+  if (log.length < 2) {
+    box.innerHTML = `<div class="rt-empty" style="padding:20px 0">
+      <div style="font-size:36px">📈</div>
+      <div class="rt-name" style="margin-top:8px">Aún no hay suficiente historial</div>
+      <div class="rt-meta" style="margin-top:4px">Registra tu peso en Ajustes y aquí verás tu progreso.</div>
+    </div>`;
+    return;
+  }
+  const W = 300, H = 120, PAD = 10;
+  const kgs = log.map(e => e.kg);
+  const min = Math.min(...kgs), max = Math.max(...kgs);
+  const range = Math.max(max - min, 1);
+  const x = i => PAD + (i / (log.length - 1)) * (W - PAD*2);
+  const y = kg => H - PAD - ((kg - min) / range) * (H - PAD*2);
+  const pts = log.map((e, i) => `${x(i)},${y(e.kg)}`).join(' ');
+  const first = log[0].kg, last = log[log.length - 1].kg;
+  const delta = +(last - first).toFixed(1);
+  const deltaTxt = (delta > 0 ? '+' : '') + delta + ' kg desde el ' + log[0].d;
+  box.innerHTML = `
+    <div style="text-align:center;margin-bottom:14px">
+      <div style="font-size:28px;font-weight:800;color:var(--dark)">${last} kg</div>
+      <div style="font-size:13px;color:${delta <= 0 ? 'var(--green)' : 'var(--mid)'};font-weight:600">${deltaTxt}</div>
+    </div>
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:${H}px">
+      <polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+      ${log.map((e,i) => `<circle cx="${x(i)}" cy="${y(e.kg)}" r="${i===log.length-1?3.5:2}" fill="var(--accent)"/>`).join('')}
+    </svg>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:14px;max-height:180px;overflow-y:auto">
+      ${log.slice().reverse().map(e => `<div style="display:flex;justify-content:space-between;font-size:13px;color:var(--mid);padding:6px 0;border-bottom:1px solid var(--border)"><span>${e.d}</span><b style="color:var(--dark)">${e.kg} kg</b></div>`).join('')}
+    </div>`;
 }
 
 function setPesoObj() {
@@ -796,8 +846,25 @@ function calcMetrics() {
 
   let prot = Math.round(peso * 2.2);
   let fat  = Math.round(peso * 1.0);
-  let cho  = Math.max(0, Math.round((tdee - prot*4 - fat*9) / 4));
   let agua = +(peso * 0.035 + 0.5).toFixed(1);
+
+  /* Reparto según el tipo de dieta elegido en el onboarding (S.dietType).
+     Antes se ignoraba: un cliente "keto" recibía ~300g de carbos igual que todos. */
+  if (S.dietType === 'keto') {
+    cho  = Math.min(40, Math.max(0, Math.round((tdee - prot*4) / 4 * 0.15)));
+    fat  = Math.max(0, Math.round((tdee - prot*4 - cho*4) / 9));
+  } else if (S.dietType === 'lowcarb') {
+    cho  = Math.max(0, Math.round(tdee * 0.20 / 4));
+    fat  = Math.max(0, Math.round((tdee - prot*4 - cho*4) / 9));
+  } else if (S.dietType === 'highprot') {
+    prot = Math.round(peso * 2.6);
+    cho  = Math.max(0, Math.round((tdee - prot*4 - fat*9) / 4));
+  } else if (S.dietType === 'lowfat') {
+    fat  = Math.max(20, Math.round(peso * 0.6));
+    cho  = Math.max(0, Math.round((tdee - prot*4 - fat*9) / 4));
+  } else {
+    cho  = Math.max(0, Math.round((tdee - prot*4 - fat*9) / 4));
+  }
 
   /* Si un nutricionista asignó un plan, sus metas mandan sobre el cálculo automático */
   const plan = S.plan || {};
@@ -1543,6 +1610,7 @@ function searchFoodDB(query) {
   panel.style.display = 'none';
   _selectedFoodItem = null;
   const results = document.getElementById('fsearch-results');
+  clearTimeout(_offTimer);
   if (!q) { results.innerHTML = ''; return; }
   const matches = FOOD_DB.filter(f => f.name.toLowerCase().includes(q)).slice(0, 15);
   results.innerHTML = matches.map((f, i) => `
@@ -1553,7 +1621,72 @@ function searchFoodDB(query) {
       </div>
       <div class="fsearch-row-kcal">${f.kcal}kcal</div>
     </div>`).join('');
-  if (matches.length === 0) results.innerHTML = '<div class="dms-empty" style="padding:16px 4px">No se encontraron resultados</div>';
+  /* OpenFoodFacts: miles de productos reales (la misma API del código de barras) */
+  const willSearchOff = q.length >= 3;
+  if (matches.length === 0) results.innerHTML =
+    `<div class="dms-empty" id="fsearch-empty" style="padding:16px 4px">${willSearchOff ? 'Buscando en la base de datos…' : 'No se encontraron resultados'}</div>`;
+  if (willSearchOff) _offTimer = setTimeout(() => searchOpenFoodFacts(q), 450);
+}
+
+/* ── Búsqueda en OpenFoodFacts (gratis, sin key) ── */
+let _offResults = [], _offTimer = null, _offSeq = 0;
+
+async function searchOpenFoodFacts(q) {
+  const seq = ++_offSeq;
+  try {
+    const url = 'https://world.openfoodfacts.org/cgi/search.pl?action=process&json=1&page_size=8&search_simple=1' +
+      '&fields=product_name,brands,nutriments&search_terms=' + encodeURIComponent(q);
+    const res = await fetch(url);
+    const data = await res.json();
+    /* Ignorar respuestas tardías de búsquedas viejas */
+    if (seq !== _offSeq) return;
+    const inp = document.getElementById('fsearch-inp');
+    if (!inp || inp.value.trim().toLowerCase() !== q) return;
+    const results = document.getElementById('fsearch-results');
+    if (!results) return;
+    _offResults = (data.products || [])
+      .filter(p => p.product_name && p.nutriments && (p.nutriments['energy-kcal_100g'] || p.nutriments['energy-kcal']))
+      .slice(0, 8)
+      .map(p => ({
+        name: p.product_name.slice(0, 60) + (p.brands ? ' · ' + String(p.brands).split(',')[0].slice(0, 20) : ''),
+        kcal: Math.round(p.nutriments['energy-kcal_100g'] || p.nutriments['energy-kcal'] || 0),
+        p: Math.round((p.nutriments.proteins_100g || 0) * 10) / 10,
+        c: Math.round((p.nutriments.carbohydrates_100g || 0) * 10) / 10,
+        g: Math.round((p.nutriments.fat_100g || 0) * 10) / 10,
+        unit: '100g'
+      }));
+    const empty = document.getElementById('fsearch-empty');
+    if (!_offResults.length) {
+      if (empty) empty.textContent = 'No se encontraron resultados';
+      return;
+    }
+    if (empty) empty.remove();
+    results.insertAdjacentHTML('beforeend',
+      '<div class="fsearch-src">🌐 Base de datos mundial · por 100g</div>' +
+      _offResults.map((f, i) => `
+    <div class="fsearch-row" onclick="selectFoodOFF(${i})">
+      <div>
+        <div class="fsearch-row-name">${esc(f.name)}</div>
+        <div class="fsearch-row-macros">P${f.p}g · C${f.c}g · G${f.g}g · 100g</div>
+      </div>
+      <div class="fsearch-row-kcal">${f.kcal}kcal</div>
+    </div>`).join(''));
+  } catch(_) {
+    const empty = document.getElementById('fsearch-empty');
+    if (empty) empty.textContent = 'No se encontraron resultados';
+  }
+}
+
+function selectFoodOFF(i) {
+  const f = _offResults[i];
+  if (!f) return;
+  _selectedFoodItem = f;
+  _fqtyGrams = 100;
+  const panel = document.getElementById('fqty-panel');
+  panel.style.display = 'block';
+  document.getElementById('fqty-name').textContent = f.name;
+  document.getElementById('fqty-unit').textContent = 'g';
+  updateQtyDisplay();
 }
 
 function selectFoodFromDB(idx) {
