@@ -154,6 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
     firebase.auth().onAuthStateChanged(async (user) => {
       if (user) {
         fbCurrentUser = user;
+        _checkCoachAccess(user);
         if (_booted) return;
         _booted = true;
         const prev = loadState();
@@ -174,8 +175,13 @@ document.addEventListener('DOMContentLoaded', () => {
           else goScreen('s-welcome');
         }
       } else {
-        /* No logueado: login (el logout navega explícito en doLogout) */
+        /* No logueado: login (el logout navega explícito en doLogout).
+           Se rearma _booted: sin esto, un re-login en la misma sesión
+           (logout → login sin recargar) se quedaba colgado en "Ingresando..." */
         fbCurrentUser = null;
+        _booted = false;
+        const coachSec = document.getElementById('drawer-coach-sec');
+        if (coachSec) coachSec.style.display = 'none';
         if (_currentScreenId === 's-boot') {
           goScreen(navigator.onLine ? 's-login' : 's-offline');
         } else if (_currentScreenId === 's-app') {
@@ -234,6 +240,21 @@ document.addEventListener('DOMContentLoaded', () => {
 function retryBoot() {
   if (navigator.onLine) location.reload();
   else toast('📡 Aún sin conexión');
+}
+
+/* Muestra el acceso al panel de coach en el menú si la cuenta logueada
+   está en la colección `admins` (misma verificación que hace admin.html).
+   La sesión de Firebase se comparte entre index.html y admin.html, así
+   que el coach entra al panel sin volver a escribir su clave. */
+async function _checkCoachAccess(user) {
+  const sec = document.getElementById('drawer-coach-sec');
+  if (!sec || !fbDb) return;
+  try {
+    const doc = await fbDb.collection('admins').doc(user.uid).get();
+    sec.style.display = doc.exists ? '' : 'none';
+  } catch (_) {
+    sec.style.display = 'none';
+  }
 }
 
 /* ══ STATE ══ */

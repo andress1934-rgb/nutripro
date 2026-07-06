@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=56">
+  <link rel="stylesheet" href="styles.css?v=57">
 
   <!-- Aplica tema ANTES del primer render para evitar flash de color incorrecto -->
   <script>
@@ -830,6 +830,15 @@
             <span class="drawer-ic">👤</span>
             <div><div class="drawer-item-t">Perfil</div><div class="drawer-item-s">Ajustes y datos</div></div>
           </button>
+
+          <!-- Solo visible para cuentas en la colección `admins` (el coach) -->
+          <div id="drawer-coach-sec" style="display:none">
+            <div class="drawer-sec-label">Coach <span class="drawer-vip">ADMIN</span></div>
+            <button class="drawer-item" onclick="window.location.href='admin.html'">
+              <span class="drawer-ic">🗂️</span>
+              <div><div class="drawer-item-t">Panel de coach</div><div class="drawer-item-s">Clientes, rutinas y planes</div></div>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1449,8 +1458,8 @@
 
 </div><!-- /phone -->
 
-<script src="firebase.js?v=56"></script>
-<script src="app.js?v=56"></script>
+<script src="firebase.js?v=57"></script>
+<script src="app.js?v=57"></script>
 
 </body>
 </html>
