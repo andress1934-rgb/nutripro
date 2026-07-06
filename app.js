@@ -145,7 +145,6 @@ document.addEventListener('DOMContentLoaded', () => {
           goScreen('s-app');
           setSection('train');
           initWater();
-          buildCalendar();
           renderPlanMeals();
           setTimeout(animateMacroBars, 400);
           setTimeout(buildDiary, 200);
@@ -167,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
       Object.assign(S, prev);
       if (typeof prev.waterFilled === 'number') waterFilled = prev.waterFilled;
       calcMetrics(); goScreen('s-app'); setSection('train');
-      initWater(); buildCalendar(); renderPlanMeals();
+      initWater(); renderPlanMeals();
       setTimeout(animateMacroBars, 400);
       setTimeout(buildDiary, 200);
     }
@@ -215,10 +214,10 @@ let currentTab = 'dash';
 /* Orden de pantallas para saber si avanzamos o retrocedemos */
 const SCREEN_ORDER = [
   's-login',
-  's-welcome','s-goal','s-method','s-calorie-intro','s-profile',
+  's-welcome','s-goal','s-calorie-intro','s-profile',
   's-activity','s-lifestyle','s-diet','s-personalize','s-results',
-  's-progress-preview','s-mealplan-intro','s-meals-count','s-meal-style',
-  's-foods','s-planning','s-variety','s-rating','s-notifications',
+  's-progress-preview','s-mealplan-intro','s-meals-count',
+  's-foods','s-notifications',
   's-register','s-app'
 ];
 
@@ -492,18 +491,16 @@ function selGoal(el, goal) {
   const objs   = { perder: -1, musculo: 1, mantener: 0 };
   S.obj = objs[goal] || 0;
   S.objLabel = labels[goal] || 'Perder Grasa';
-  setTimeout(() => goScreen('s-method'), 280);
+  setTimeout(() => goScreen('s-calorie-intro'), 280);
 }
 
-/* ══ ONBOARDING — METHOD ══ */
-function selMethod(el, method) {
-  document.querySelectorAll('#s-method .opt-card').forEach(c => c.classList.remove('sel'));
+/* Marca visual de tarjeta seleccionada (estilo de vida, dieta) */
+function selRow(el) {
+  el.parentElement.querySelectorAll('.opt-card').forEach(c => c.classList.remove('sel'));
   el.classList.add('sel');
-  const btn = document.getElementById('btn-method-next');
-  if (btn) btn.disabled = false;
 }
 
-/* ══ ONBOARDING — ACTIVITY ══ */
+/* Selector de nivel de actividad (onboarding) */
 function selActivity(el, val, label) {
   document.querySelectorAll('#s-activity .opt-card').forEach(c => c.classList.remove('sel'));
   el.classList.add('sel');
@@ -511,20 +508,6 @@ function selActivity(el, val, label) {
   setTimeout(() => goScreen('s-lifestyle'), 280);
 }
 
-/* ══ ONBOARDING — GENERIC ROW SELECTION ══ */
-function selRow(el) {
-  const parent = el.closest('.ob-body') || el.parentElement;
-  parent.querySelectorAll('.opt-card').forEach(c => c.classList.remove('sel'));
-  el.classList.add('sel');
-}
-
-/* ══ ONBOARDING — RATING ══ */
-function selRating(el) {
-  document.querySelectorAll('.rating-num').forEach(n => n.classList.remove('sel'));
-  el.classList.add('sel');
-}
-
-/* ══ ONBOARDING — CHECK ROWS (meals count) ══ */
 function toggleCheck(el) {
   el.classList.toggle('checked');
   const circle = el.querySelector('.check-circle');
@@ -682,8 +665,6 @@ function resetProfile() {
   waterFilled = 0;
   S.waterCount = 0;
   /* Devolver el onboarding a su estado inicial */
-  const bm = document.getElementById('btn-method-next');
-  if (bm) bm.disabled = true;
   const bp = document.getElementById('btn-crear-plan');
   if (bp) bp.disabled = true;
   const dpo = document.getElementById('display-peso-obj');
@@ -718,6 +699,13 @@ async function doLogin() {
     if (errEl) errEl.textContent = msgs[code] || 'Error al iniciar sesión';
     if (btn) { btn.textContent = 'Ingresar'; btn.disabled = false; }
   }
+}
+
+/* Pantalla de notificaciones del onboarding: pedir el permiso REAL */
+async function enableReminders() {
+  const ok = await requestNotifPermission();
+  if (ok) { S.remMeals = true; S.remWater = true; saveState(); toast('🔔 Recordatorios activados'); }
+  goScreen('s-register');
 }
 
 /* ══ RESET DE CONTRASEÑA ══ */
@@ -784,14 +772,12 @@ async function finishSetup() {
   goScreen('s-app');
   setSection('train');
   initWater();
-  buildCalendar();
   setTimeout(animateMacroBars, 600);
   setTimeout(buildDiary, 300);
+  setTimeout(initReminderToggles, 600);
   saveState();
 }
 
-/* Legacy alias */
-function finishOnboarding() { finishSetup(); }
 
 /* ══ METRICS ══ */
 function calcMetrics() {
@@ -843,7 +829,7 @@ function calcMetrics() {
   set('greet-name', S.nombre);
   set('prof-name',  S.nombre);
   set('prof-sub',   `${peso} kg · ${talla} cm · ${edad} años`);
-  set('prof-objetivo', labelObjetivo(S.objetivo) || S.objLabel || 'Perder Grasa');
+  set('prof-objetivo', S.pesoObj ? S.pesoObj + ' kg' : 'Definir');
   set('st-tdee',    tdee.toLocaleString('es'));
   set('st-prot',    (peso ? (prot / peso) : 2.2).toFixed(1) + 'g');
   set('mn-prot-meta', prot);
@@ -1112,49 +1098,8 @@ function updateWater() {
   set('st-agua',  liters + 'L');
 }
 
-/* ══ CALENDAR ══ */
-function buildCalendar() {
-  const grid = document.getElementById('cal-grid');
-  const label = document.getElementById('cal-month-label');
-  if (!grid) return;
-  grid.innerHTML = '';
-  const today    = new Date();
-  const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  if (label) label.textContent = monthNames[today.getMonth()] + ' ' + today.getFullYear();
-  /* getDay(): 0=Domingo. Convertir a semana que empieza en Lunes */
-  const rawFirst = new Date(today.getFullYear(), today.getMonth(), 1).getDay();
-  const firstDay = rawFirst === 0 ? 6 : rawFirst - 1;
-  const daysInMonth = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
-
-  /* Días del mes actual con comidas registradas en el diario */
-  const yr = today.getFullYear();
-  const mo = String(today.getMonth()+1).padStart(2,'0');
-  const dataDays = new Set();
-  Object.keys(S.diary || {}).forEach(k => {
-    const parts = k.split('-');
-    if (parts[0] === String(yr) && parts[1] === mo) {
-      const hasFood = Object.values(S.diary[k]).some(arr => Array.isArray(arr) && arr.length > 0);
-      if (hasFood) dataDays.add(parseInt(parts[2], 10));
-    }
-  });
-
-  for (let i = 0; i < firstDay; i++) {
-    const d = document.createElement('div'); d.className = 'cal-day other'; grid.appendChild(d);
-  }
-  for (let d = 1; d <= daysInMonth; d++) {
-    const el = document.createElement('div');
-    el.className = 'cal-day' + (d === today.getDate() ? ' today' : '') + (dataDays.has(d) ? ' has-data' : '');
-    el.textContent = d;
-    const dayKey = yr + '-' + mo + '-' + String(d).padStart(2,'0');
-    el.onclick = () => { goTab('diary'); setTimeout(() => renderDiaryMeals(dayKey), 120); };
-    grid.appendChild(el);
-  }
-}
-
-/* ══ CHAT ══ */
 function openChat() {
   const ov = document.getElementById('chat-overlay'); if (ov) ov.classList.add('open');
-  const n = document.getElementById('nav-ai'); if (n) n.classList.add('active');
 }
 
 function closeChat() {
@@ -1237,7 +1182,7 @@ function nutriBotReply(q) {
   if (/vitamina|mineral|micronutri|hierro|calcio|magnesio|zinc|omega/i.test(t))
     return `🌿 Los micronutrientes son los directores de orquesta de tu metabolismo. Prioridades clave:\n\n• Vitamina D: 1000–2000 UI/día\n• Magnesio: 300–400mg (mejora sueño y fuerza)\n• Omega-3: 2–3g EPA+DHA (antiinflamatorio)\n• Zinc: 15–25mg (testosterona y sistema inmune)\n\nUna dieta variada y colorida cubre la mayoría. 🎨`;
 
-  if (/keto|cetosis|low.?carb|cetogenica|ayuno/i.test(t))
+  if (/keto|cetosis|low.?carb|cetogenica/i.test(t))
     return `🥑 La dieta keto puede ser efectiva para pérdida de grasa e insulina estable. Restricción a <50g de carbos/día.\n\nAdaptación: 2–4 semanas de "keto flu". Requiere alta adherencia. No es superior en grasa perdida vs dietas isocalóricas, pero algunos la prefieren por control del apetito. ¿Tienes contexto específico? 🧠`;
 
   if (/mediterrane|mediterráneo/i.test(t))
@@ -1273,12 +1218,6 @@ function nutriBotReply(q) {
 function quickChat(q) { document.getElementById('chat-inp').value = q; sendMsg(); }
 
 /* ══ UI HELPERS ══ */
-function selMgPill(el) {
-  document.querySelectorAll('.mg-pill').forEach(p => p.classList.remove('sel'));
-  el.classList.add('sel');
-  toast('⚖️ Protocolo actualizado: ' + el.textContent);
-}
-
 function toast(msg) {
   const host = document.getElementById('toast-host');
   if (!host) return;
@@ -1527,7 +1466,6 @@ function closeFoodLog() {
     const overlay = document.getElementById('flog-overlay');
     if (overlay) overlay.classList.remove('open');
     stopCamera();
-    stopVoice();
     /* Olvidar el día apuntado: si no, una comida añadida luego desde el
        dashboard se registraría en el día pasado que se estaba viendo. */
     S.logDate = null;
@@ -1540,7 +1478,6 @@ function switchFlogTab(tab) {
   document.getElementById('ftab-' + tab)?.classList.add('active');
   document.getElementById('flt-' + tab)?.classList.add('active');
   try { if (tab !== 'escaner') stopCamera(); } catch(_) {}
-  try { if (tab !== 'voz') stopVoice(); } catch(_) {}
 }
 
 /* ── TAB 1: RECETAS ── */
@@ -1663,17 +1600,8 @@ function addFoodFromSearch() {
 
 /* ── TAB 3: ESCÁNER ── */
 let _cameraStream = null;
-let _scannerMode = 'food';
 let _barcodeLoop = null;
 let _scannerResult = null;
-
-function setScannerMode(mode) {
-  _scannerMode = mode;
-  document.getElementById('sbtn-food').classList.toggle('active', mode === 'food');
-  document.getElementById('sbtn-barcode').classList.toggle('active', mode === 'barcode');
-  stopCamera();
-  startCamera(mode);
-}
 
 async function startCamera(mode) {
   const video = document.getElementById('scanner-video');
@@ -1687,12 +1615,7 @@ async function startCamera(mode) {
     video.style.display = 'block';
     placeholder.style.display = 'none';
     frame.style.display = 'block';
-    if (mode === 'barcode') {
-      startBarcodeDetection();
-    } else {
-      // Food photo mode: add capture button
-      addCaptureButton();
-    }
+    startBarcodeDetection();
   } catch(err) {
     toast('📷 Cámara no disponible: ' + err.message);
   }
@@ -1712,65 +1635,6 @@ function stopCamera() {
   if (frame) frame.style.display = 'none';
   const capBtn = document.getElementById('capture-btn');
   if (capBtn) capBtn.remove();
-}
-
-function addCaptureButton() {
-  const wrap = document.querySelector('.scanner-wrap');
-  if (!wrap || document.getElementById('capture-btn')) return;
-  const btn = document.createElement('button');
-  btn.id = 'capture-btn';
-  btn.textContent = '📸 Capturar';
-  btn.style.cssText = 'position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:var(--accent);border:none;border-radius:50px;padding:10px 24px;font-family:Inter,sans-serif;font-size:14px;font-weight:700;color:var(--dark);cursor:pointer;z-index:10';
-  btn.onclick = captureAndAnalyze;
-  wrap.appendChild(btn);
-}
-
-async function captureAndAnalyze() {
-  const video = document.getElementById('scanner-video');
-  if (!video || !_cameraStream) { toast('📷 Activa la cámara primero'); return; }
-  const canvas = document.createElement('canvas');
-  canvas.width = video.videoWidth || 640;
-  canvas.height = video.videoHeight || 480;
-  canvas.getContext('2d').drawImage(video, 0, 0);
-  const base64 = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
-  toast('🔍 Analizando imagen...');
-  await analyzeFood(base64);
-}
-
-async function analyzeFood(imageBase64) {
-  const key = localStorage.getItem('np-claude-key');
-  if (!key) { promptClaudeKey(); return; }
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': key,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 256,
-        messages: [{
-          role: 'user',
-          content: [
-            { type:'image', source:{ type:'base64', media_type:'image/jpeg', data: imageBase64 } },
-            { type:'text', text: 'Analiza esta comida y devuelve SOLO un JSON válido sin texto adicional: {"food":"nombre del alimento","kcal":numero,"p":proteinas_gramos,"c":carbohidratos_gramos,"g":grasas_gramos}' }
-          ]
-        }]
-      })
-    });
-    const data = await res.json();
-    const txt = data.content?.[0]?.text || '';
-    const jsonMatch = txt.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('No JSON found');
-    const parsed = JSON.parse(jsonMatch[0]);
-    _scannerResult = { name: parsed.food, kcal: parsed.kcal, p: parsed.p, c: parsed.c, g: parsed.g };
-    showScannerResult(_scannerResult);
-  } catch(err) {
-    toast('⚠️ Error al analizar: ' + err.message);
-  }
 }
 
 function startBarcodeDetection() {
@@ -1856,130 +1720,6 @@ function showScannerResult(item) {
 function addFoodFromScanner() {
   if (!_scannerResult) return;
   addToDiary(_scannerResult, S.selectedMeal);
-  closeFoodLog();
-}
-
-/* ── TAB 4: VOZ ── */
-let _recognition = null;
-let _voiceTimerInterval = null;
-let _voiceSeconds = 0;
-let _voiceResult = null;
-
-function toggleVoice() {
-  const btn = document.getElementById('voz-mic-btn');
-  if (_recognition && btn.classList.contains('listening')) {
-    stopVoice();
-  } else {
-    startVoice();
-  }
-}
-
-function startVoice() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) { toast('🎤 Reconocimiento de voz no disponible en este navegador'); return; }
-  _recognition = new SpeechRecognition();
-  _recognition.lang = 'es-ES';
-  _recognition.continuous = false;
-  _recognition.interimResults = true;
-
-  const btn = document.getElementById('voz-mic-btn');
-  const timerEl = document.getElementById('voz-timer');
-  const transcript = document.getElementById('voz-transcript');
-  const sub = document.getElementById('voz-sub');
-  const resultCard = document.getElementById('voz-result');
-
-  btn.classList.add('listening');
-  timerEl.style.display = 'block';
-  resultCard.style.display = 'none';
-  sub.textContent = 'Escuchando...';
-  transcript.textContent = '';
-  _voiceSeconds = 0;
-  timerEl.textContent = '0:00';
-
-  _voiceTimerInterval = setInterval(() => {
-    _voiceSeconds++;
-    const m = Math.floor(_voiceSeconds/60);
-    const s = _voiceSeconds % 60;
-    timerEl.textContent = m + ':' + String(s).padStart(2,'0');
-  }, 1000);
-
-  _recognition.onresult = (event) => {
-    const t = Array.from(event.results).map(r => r[0].transcript).join('');
-    transcript.textContent = t;
-  };
-
-  _recognition.onend = () => {
-    const finalText = transcript.textContent.trim();
-    stopVoice(false);
-    if (finalText) matchVoiceToFood(finalText);
-  };
-
-  _recognition.onerror = (e) => {
-    stopVoice(false);
-    toast('🎤 Error: ' + e.error);
-  };
-
-  _recognition.start();
-}
-
-function stopVoice(clearUI) {
-  if (_recognition) {
-    try { _recognition.stop(); } catch(_) {}
-    _recognition = null;
-  }
-  if (_voiceTimerInterval) { clearInterval(_voiceTimerInterval); _voiceTimerInterval = null; }
-  const btn = document.getElementById('voz-mic-btn');
-  if (btn) btn.classList.remove('listening');
-  const timerEl = document.getElementById('voz-timer');
-  if (timerEl && clearUI !== false) timerEl.style.display = 'none';
-  const sub = document.getElementById('voz-sub');
-  if (sub && clearUI !== false) sub.textContent = 'Toca el micrófono y dilo en voz alta';
-}
-
-function matchVoiceToFood(text) {
-  const words = text.toLowerCase().split(/\s+/);
-  let best = null, bestScore = 0;
-  FOOD_DB.forEach(f => {
-    const fname = f.name.toLowerCase();
-    let score = 0;
-    words.forEach(w => { if (w.length > 3 && fname.includes(w)) score++; });
-    if (score > bestScore) { bestScore = score; best = f; }
-  });
-
-  const transcript = document.getElementById('voz-transcript');
-  transcript.textContent = '"' + text + '"';
-
-  if (best && bestScore > 0) {
-    _voiceResult = best;
-    document.getElementById('voz-res-name').textContent = best.name;
-    document.getElementById('voz-res-macros').textContent =
-      `${best.kcal}kcal por ${best.unit} · P${best.p}g · C${best.c}g · G${best.g}g`;
-    document.getElementById('voz-result').style.display = 'block';
-    document.getElementById('voz-sub').textContent = 'Encontrado:';
-  } else {
-    toast('🔍 No encontré "' + text + '" en la base de datos');
-    document.getElementById('voz-sub').textContent = 'Intenta de nuevo';
-  }
-}
-
-function cancelVoice() {
-  _voiceResult = null;
-  document.getElementById('voz-result').style.display = 'none';
-  document.getElementById('voz-transcript').textContent = '';
-  document.getElementById('voz-sub').textContent = 'Toca el micrófono y dilo en voz alta';
-  document.getElementById('voz-timer').style.display = 'none';
-}
-
-function addFoodFromVoice() {
-  if (!_voiceResult) return;
-  addToDiary({
-    name: _voiceResult.name,
-    kcal: _voiceResult.kcal,
-    p: _voiceResult.p,
-    c: _voiceResult.c,
-    g: _voiceResult.g,
-  }, S.selectedMeal);
-  cancelVoice();
   closeFoodLog();
 }
 
@@ -2072,37 +1812,17 @@ function closeScanner() {
 }
 
 function setMainScanMode(mode) {
-  _mainScanMode = mode;
+  _mainScanMode = 'barcode';
   const screen = document.getElementById('s-scanner');
-  const btnFood = document.getElementById('msc-btn-food');
-  const btnBar  = document.getElementById('msc-btn-barcode');
-  const hint    = document.getElementById('msc-hint');
-  const title   = document.getElementById('msc-title');
-  const shutter = document.getElementById('msc-shutter');
-  const shutLbl = document.getElementById('msc-shutter-label');
-
-  if (btnFood)  btnFood.classList.toggle('active', mode === 'food');
-  if (btnBar)   btnBar.classList.toggle('active', mode === 'barcode');
-
-  if (mode === 'food') {
-    screen?.classList.remove('barcode-mode');
-    if (hint)    hint.textContent = 'Apunta la cámara al plato de comida';
-    if (title)   title.textContent = 'Escanea tu comida';
-    if (shutter) shutter.style.display = 'block';
-    if (shutLbl) shutLbl.textContent = 'Toca para capturar';
-  } else {
-    screen?.classList.add('barcode-mode');
-    if (hint)    hint.textContent = 'Apunta al código de barras del producto';
-    if (title)   title.textContent = 'Código de barras';
-    if (shutter) shutter.style.display = 'none';
-    if (shutLbl) shutLbl.textContent = 'Detección automática';
-  }
-
+  screen?.classList.add('barcode-mode');
+  const hint  = document.getElementById('msc-hint');
+  const title = document.getElementById('msc-title');
+  if (hint)  hint.textContent = 'Apunta al código de barras del producto';
+  if (title) title.textContent = 'Código de barras';
   stopMainScan();
   mscHideResult();
-  startMainCamera(mode);
+  startMainCamera('barcode');
 }
-
 async function startMainCamera(mode) {
   const video = document.getElementById('main-scanner-video');
   if (!video) return;
@@ -2127,142 +1847,6 @@ function stopMainScan() {
   }
   if (_mainBarcodeLoop) { clearInterval(_mainBarcodeLoop); _mainBarcodeLoop = null; }
   _flashTrack = null;
-}
-
-async function mscCapture() {
-  const video = document.getElementById('main-scanner-video');
-  if (!video || !_mainScanStream) { toast('📷 Activa la cámara primero'); return; }
-  const canvas = document.createElement('canvas');
-  canvas.width  = video.videoWidth  || 640;
-  canvas.height = video.videoHeight || 480;
-  canvas.getContext('2d').drawImage(video, 0, 0);
-  const base64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
-  toast('🔍 Analizando...');
-  await mscAnalyzeFood(base64);
-}
-
-/* Prompt de alta precisión nutricional para Claude Vision */
-const NUTRITION_PROMPT = `Eres un nutricionista clínico experto y dietista certificado con acceso a bases de datos nutricionales (USDA, INCAP, FAO). Tu tarea es analizar con MÁXIMA PRECISIÓN la imagen de comida.
-
-PROCESO DE ANÁLISIS (sigue estos pasos exactamente):
-1. IDENTIFICACIÓN: Examina con detalle cada alimento visible — color, textura, forma, método de cocción, recipiente/plato para estimar tamaño.
-2. PORCIÓN: Estima el peso en gramos de cada componente usando el tamaño del recipiente como referencia (plato estándar ≈ 26cm, caja de icopor ≈ 20×15cm).
-3. MACROS POR COMPONENTE: Usa datos nutricionales por 100g de la base USDA:
-   - Arroz cocido: 130kcal, P2.7g, C28g, G0.3g
-   - Pollo pechuga cocido: 165kcal, P31g, C0g, G3.6g
-   - Pollo muslo/pierna cocido: 209kcal, P26g, C0g, G11g
-   - Carne res magra: 250kcal, P26g, C0g, G15g
-   - Papa cocida: 87kcal, P1.9g, C20g, G0.1g
-   - Plátano maduro frito: 181kcal, P0.9g, C35g, G5g
-   - Frijoles/lentejas cocidos: 116kcal, P9g, C20g, G0.4g
-   - Ensalada (lechuga+tomate): 20kcal, P1g, C4g, G0.2g
-   - Aceite/fritura extra: 45kcal, P0g, C0g, G5g (por cucharada estimada)
-   - Huevo cocido: 155kcal, P13g, C1g, G11g (por unidad ≈ 50g)
-   - Pan: 265kcal, P9g, C49g, G3.2g (por 100g)
-4. TOTAL: Suma todos los componentes.
-5. CONFIANZA: Evalúa del 0 al 1 qué tan seguro estás de la identificación.
-
-REGLAS CRÍTICAS:
-- SOLO describe lo que REALMENTE ves en la imagen. NUNCA inventes alimentos.
-- Si la imagen es borrosa o no puedes identificar algo, dilo en "notes".
-- Sé específico: "pechuga de pollo apanada frita" es mejor que "pollo".
-- Ajusta macros si ves aceite, salsas o aderezos visibles.
-
-Responde ÚNICAMENTE con JSON válido (sin markdown, sin texto extra):
-{
-  "food": "nombre completo y específico del plato",
-  "ingredients": [
-    {"name": "nombre ingrediente", "grams": número, "kcal": número, "p": número, "c": número, "g": número}
-  ],
-  "kcal": total_número,
-  "p": total_proteínas_g,
-  "c": total_carbohidratos_g,
-  "g": total_grasas_g,
-  "confidence": número_0_a_1,
-  "notes": "observaciones o advertencias si aplica"
-}`;
-
-async function mscAnalyzeFood(base64) {
-  const key = localStorage.getItem('np-claude-key');
-
-  if (!key) {
-    mscShowApiKeySetup();
-    return;
-  }
-
-  /* Indicador de carga */
-  mscShowLoading();
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': key,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',   /* Sonnet tiene mejor visión que Haiku */
-        max_tokens: 800,
-        messages: [{
-          role: 'user',
-          content: [
-            {
-              type: 'image',
-              source: { type: 'base64', media_type: 'image/jpeg', data: base64 }
-            },
-            { type: 'text', text: NUTRITION_PROMPT }
-          ]
-        }]
-      })
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      const msg = err?.error?.message || res.statusText;
-      if (res.status === 401) {
-        mscShowApiKeySetup('API Key inválida. Ingrésala de nuevo.');
-      } else {
-        mscShowError('Error ' + res.status + ': ' + msg);
-      }
-      return;
-    }
-
-    const data = await res.json();
-    const text = (data?.content?.[0]?.text || '').replace(/```json|```/g, '').trim();
-
-    let j;
-    try {
-      j = JSON.parse(text);
-    } catch(_) {
-      /* Intento rescatar JSON parcial */
-      const m = text.match(/\{[\s\S]*\}/);
-      if (m) j = JSON.parse(m[0]);
-      else throw new Error('No se pudo parsear la respuesta');
-    }
-
-    mscShowDetailedResult(j);
-
-  } catch(e) {
-    mscShowError('No se pudo analizar la imagen. Intenta de nuevo.');
-    console.error('mscAnalyzeFood:', e);
-  }
-}
-
-function mscShowLoading() {
-  const r = document.getElementById('msc-result');
-  if (!r) return;
-  r.style.display = 'block';
-  r.innerHTML = `
-    <div style="display:flex;align-items:center;gap:12px;padding:4px 0">
-      <div class="msc-spinner"></div>
-      <div>
-        <div style="font-size:15px;font-weight:700;color:#1A1A1A">Analizando imagen...</div>
-        <div style="font-size:12px;color:#888;margin-top:2px">IA nutricional procesando</div>
-      </div>
-    </div>`;
-  document.getElementById('msc-hint').style.display = 'none';
 }
 
 function mscShowDetailedResult(j) {
@@ -2308,54 +1892,6 @@ function mscShowDetailedResult(j) {
     </div>`;
   r.style.display = 'block';
   document.getElementById('msc-hint').style.display = 'none';
-}
-
-function mscShowError(msg) {
-  const r = document.getElementById('msc-result');
-  if (!r) return;
-  r.innerHTML = `
-    <div style="color:#FF3B30;font-weight:700;margin-bottom:8px">❌ ${esc(msg)}</div>
-    <button class="msc-rescan-btn" style="width:100%" onclick="mscRescan()">🔄 Intentar de nuevo</button>`;
-  r.style.display = 'block';
-}
-
-function mscShowApiKeySetup(errorMsg) {
-  const r = document.getElementById('msc-result');
-  if (!r) return;
-  r.style.display = 'block';
-  r.innerHTML = `
-    <div style="font-size:15px;font-weight:800;color:#1A1A1A;margin-bottom:6px">🔑 Configura tu API Key</div>
-    <div style="font-size:12px;color:#666;margin-bottom:12px;line-height:1.5">
-      ${errorMsg || 'Para análisis real de comida con IA, necesitas una API key de Anthropic (Claude).'}
-      <br><br>
-      <b>Cómo obtenerla:</b><br>
-      1. Ve a <b>console.anthropic.com</b><br>
-      2. Crea una cuenta gratis<br>
-      3. Genera una API key<br>
-      4. Pégala aquí abajo
-    </div>
-    <input id="msc-key-input" type="password"
-      style="width:100%;border:1.5px solid #ddd;border-radius:12px;padding:11px 14px;font-size:14px;font-family:Inter,sans-serif;margin-bottom:10px;box-sizing:border-box;outline:none"
-      placeholder="sk-ant-api03-...">
-    <button class="btn-yellow" style="width:100%;margin:0;padding:14px" onclick="mscSaveKeyAndRetry()">
-      ✓ Guardar y analizar
-    </button>`;
-  document.getElementById('msc-hint').style.display = 'none';
-}
-
-async function mscSaveKeyAndRetry() {
-  const inp = document.getElementById('msc-key-input');
-  const key = inp?.value?.trim();
-  if (!key || !key.startsWith('sk-')) {
-    inp.style.borderColor = '#FF3B30';
-    toast('❌ La key debe comenzar con sk-ant...');
-    return;
-  }
-  localStorage.setItem('np-claude-key', key);
-  toast('✅ API Key guardada');
-  /* Re-capturar */
-  mscHideResult();
-  mscCapture();
 }
 
 function startMainBarcodeDetection() {
@@ -2457,15 +1993,6 @@ function toggleFlash() {
   document.getElementById('msc-flash').textContent = current ? '⚡' : '💡';
 }
 
-function promptClaudeKey() {
-  const current = localStorage.getItem('np-claude-key') || '';
-  const key = prompt('Ingresa tu API Key de Anthropic (Claude):\n\nSe guarda solo en tu dispositivo.', current);
-  if (key !== null) {
-    localStorage.setItem('np-claude-key', key.trim());
-    toast(key.trim() ? '✅ API Key guardada' : '🗑 API Key eliminada');
-  }
-}
-
 /* ── Init diary on app start (buildDiary ya integrado en goTab) ── */
 
 /* ════════════════════════════════════════════════════════════
@@ -2512,6 +2039,7 @@ async function _loadCuratedLibrary() {
     /* Sin curaduría disponible → mostrar todo */
   }
 }
+
 
 function _parseCsvLine(line) {
   const result = [];
@@ -2751,7 +2279,7 @@ async function openExTab() {
   if (!grid) return;
   initBodyMap();
   /* Si el coach le asignó rutina, aterriza directo en "Mi rutina"; si no, en el mapa muscular */
-  const hasAssigned = !!(S.training && ((Array.isArray(S.training.dias) && S.training.dias.length) || ROUTINES[S.training.rutina]));
+  const hasAssigned = !!(S.training && Array.isArray(S.training.dias) && S.training.dias.length);
   exSetView(hasAssigned ? 'routines' : 'body');
   _buildExFilterChips();
   if (!_exData) {
@@ -3005,203 +2533,13 @@ function saveMyWorkout() {
   toast('💾 Entrenamiento guardado en tu cuenta');
 }
 
-/* ════════════════════════════════════════════════════════════
-   RUTINAS POR NIVEL (gym + peso corporal) — propuesta editable
-   Formato de ejercicio: [exId, nombre, series, reps, descansoSeg]
-   ════════════════════════════════════════════════════════════ */
-const ROUTINES = {
-  inicial: {
-    nivel: 'Inicial', nombre: 'Primeros pasos',
-    meta: 'Adaptación y técnica · 3 días · cuerpo completo',
-    nota: 'Enfócate en hacer bien el movimiento, no en el peso. Descansa 1 día entre sesiones.',
-    dias: [
-      { t: 'Día A · Cuerpo completo', ex: [
-        ['1760','Sentadilla goblet',3,'12',90],
-        ['0577','Press de pecho en máquina',3,'12',90],
-        ['2330','Jalón al pecho',3,'12',90],
-        ['0464','Plancha',3,'30 seg',60],
-      ]},
-      { t: 'Día B · Cuerpo completo', ex: [
-        ['2287','Prensa de piernas',3,'12',90],
-        ['0603','Press de hombro en máquina',3,'12',90],
-        ['0180','Remo en polea',3,'12',90],
-        ['1385','Elevación de talones',3,'15',60],
-      ]},
-      { t: 'Día C · Cuerpo completo', ex: [
-        ['0662','Flexiones',3,'10',90],
-        ['0017','Dominadas asistidas',3,'10',90],
-        ['3635','Zancadas',3,'10 c/u',90],
-        ['0472','Elevación de piernas',3,'12',60],
-      ]},
-    ],
-  },
-  basico: {
-    nivel: 'Básico', nombre: 'Construyendo base',
-    meta: 'Intro al peso libre · 4 días · torso / pierna',
-    nota: 'Sube el peso poco a poco cada semana manteniendo la técnica.',
-    dias: [
-      { t: 'Día A · Torso', ex: [
-        ['0289','Press de banca con mancuernas',3,'10-12',90],
-        ['0180','Remo en polea sentado',3,'10-12',90],
-        ['0603','Press de hombro en máquina',3,'12',75],
-        ['0294','Curl con mancuernas',3,'12',60],
-        ['0201','Extensión de tríceps en polea',3,'12',60],
-      ]},
-      { t: 'Día B · Pierna', ex: [
-        ['1760','Sentadilla goblet',4,'10',90],
-        ['1459','Peso muerto rumano',3,'12',90],
-        ['0585','Extensión de cuádriceps',3,'12',60],
-        ['1385','Elevación de talones',4,'15',45],
-      ]},
-      { t: 'Día C · Torso', ex: [
-        ['0314','Press inclinado con mancuernas',3,'10',90],
-        ['2330','Jalón al pecho',3,'12',90],
-        ['0334','Elevaciones laterales',3,'15',45],
-        ['0298','Curl martillo',3,'12',60],
-      ]},
-      { t: 'Día D · Pierna y core', ex: [
-        ['2287','Prensa de piernas',4,'12',90],
-        ['3635','Zancadas',3,'10 c/u',75],
-        ['0464','Plancha',3,'40 seg',60],
-        ['0472','Elevación de piernas',3,'12',60],
-      ]},
-    ],
-  },
-  intermedio: {
-    nivel: 'Intermedio', nombre: 'Fuerza y volumen',
-    meta: 'Peso libre con barra · 4 días · empuje / tirón / pierna',
-    nota: 'Deja 1-2 repeticiones en reserva en los ejercicios pesados.',
-    dias: [
-      { t: 'Día A · Empuje', ex: [
-        ['0025','Press de banca con barra',4,'8-10',120],
-        ['0314','Press inclinado con mancuernas',3,'10',90],
-        ['0603','Press de hombro en máquina',3,'10',90],
-        ['0334','Elevaciones laterales',3,'15',45],
-        ['0201','Extensión de tríceps en polea',3,'12',60],
-      ]},
-      { t: 'Día B · Tirón', ex: [
-        ['2330','Jalón al pecho',4,'10',90],
-        ['0180','Remo en polea sentado',4,'10',90],
-        ['0017','Dominadas asistidas',3,'8',90],
-        ['0031','Curl con barra',3,'10',60],
-        ['0298','Curl martillo',3,'12',60],
-      ]},
-      { t: 'Día C · Pierna', ex: [
-        ['0043','Sentadilla con barra',4,'8',120],
-        ['0085','Peso muerto rumano con barra',3,'10',90],
-        ['2287','Prensa de piernas',3,'12',75],
-        ['0585','Extensión de cuádriceps',3,'12',60],
-        ['1385','Elevación de talones',4,'15',45],
-      ]},
-      { t: 'Día D · Puntos débiles', ex: [
-        ['0289','Press de banca con mancuernas',3,'10',75],
-        ['0180','Remo en polea sentado',3,'12',75],
-        ['0334','Elevaciones laterales',4,'15',45],
-        ['0294','Curl con mancuernas',3,'12',60],
-        ['0464','Plancha',3,'45 seg',60],
-      ]},
-    ],
-  },
-  avanzado: {
-    nivel: 'Avanzado', nombre: 'Alto rendimiento',
-    meta: 'Split por grupo muscular · 5 días · alto volumen',
-    nota: 'Calienta bien antes de los compuestos pesados. Cuida la recuperación y el sueño.',
-    dias: [
-      { t: 'Día 1 · Pecho', ex: [
-        ['0025','Press de banca con barra',4,'6-8',120],
-        ['0314','Press inclinado con mancuernas',4,'10',90],
-        ['0577','Press de pecho en máquina',3,'12',75],
-        ['3287','Fondos',3,'al fallo',90],
-      ]},
-      { t: 'Día 2 · Espalda', ex: [
-        ['0032','Peso muerto convencional',4,'6',150],
-        ['2330','Jalón al pecho',4,'10',90],
-        ['0180','Remo en polea sentado',4,'10',90],
-        ['0017','Dominadas asistidas',3,'8',90],
-      ]},
-      { t: 'Día 3 · Pierna', ex: [
-        ['0043','Sentadilla con barra',5,'6-8',150],
-        ['0085','Peso muerto rumano con barra',4,'8',120],
-        ['2287','Prensa de piernas',4,'12',90],
-        ['0585','Extensión de cuádriceps',3,'15',60],
-        ['1385','Elevación de talones',4,'20',45],
-      ]},
-      { t: 'Día 4 · Hombro', ex: [
-        ['0603','Press de hombro en máquina',4,'8',90],
-        ['0334','Elevaciones laterales',4,'15',45],
-        ['0180','Remo en polea sentado',3,'12',75],
-        ['0472','Elevación de piernas',4,'15',60],
-      ]},
-      { t: 'Día 5 · Brazos', ex: [
-        ['0031','Curl con barra',4,'10',75],
-        ['0298','Curl martillo',3,'12',60],
-        ['0201','Extensión de tríceps en polea',4,'12',60],
-        ['3287','Fondos',3,'al fallo',90],
-      ]},
-    ],
-  },
-  elite: {
-    nivel: 'Élite', nombre: 'Máximo nivel',
-    meta: 'Alto volumen + supersets · 5 días · atleta avanzado',
-    nota: 'Haz superseries en los aislamientos. Lleva los compuestos cerca del fallo (1 rep en reserva).',
-    dias: [
-      { t: 'Día 1 · Pecho y tríceps', ex: [
-        ['0025','Press de banca con barra',5,'5',180],
-        ['0314','Press inclinado con mancuernas',4,'8-10',90],
-        ['0577','Press de pecho en máquina',4,'12',75],
-        ['0201','Extensión de tríceps en polea',4,'12',60],
-        ['3287','Fondos',4,'al fallo',75],
-      ]},
-      { t: 'Día 2 · Espalda y bíceps', ex: [
-        ['0032','Peso muerto convencional',5,'5',180],
-        ['2330','Jalón al pecho',4,'8-10',90],
-        ['0180','Remo en polea sentado',4,'10',90],
-        ['0031','Curl con barra',4,'10',60],
-        ['0298','Curl martillo',4,'12',60],
-      ]},
-      { t: 'Día 3 · Pierna', ex: [
-        ['0043','Sentadilla con barra',5,'5',180],
-        ['0085','Peso muerto rumano con barra',4,'8',120],
-        ['2287','Prensa de piernas',4,'15',90],
-        ['0585','Extensión de cuádriceps',4,'15',60],
-        ['1385','Elevación de talones',5,'20',45],
-      ]},
-      { t: 'Día 4 · Hombro y core', ex: [
-        ['0603','Press de hombro en máquina',5,'8',90],
-        ['0334','Elevaciones laterales',5,'15-20',45],
-        ['3635','Zancadas',4,'12 c/u',75],
-        ['0472','Elevación de piernas',4,'15',45],
-        ['0464','Plancha',4,'60 seg',45],
-      ]},
-      { t: 'Día 5 · Volumen full body', ex: [
-        ['0289','Press de banca con mancuernas',4,'10',75],
-        ['0017','Dominadas asistidas',4,'10',75],
-        ['3635','Zancadas',4,'12 c/u',75],
-        ['0334','Elevaciones laterales',4,'15',45],
-        ['0630','Mountain climbers',4,'40 seg',45],
-      ]},
-    ],
-  },
-};
-
-const RT_LEVELS = ['inicial','basico','intermedio','avanzado','elite'];
 let _rtLevel = 'inicial';
 let _rtInit = false;
 
 function openRoutines() {
-  /* Sin niveles: el cliente solo ve la rutina que le asignó el entrenador */
-  const wrap = document.getElementById('rt-levels');
-  if (wrap) wrap.style.display = 'none';
   const hasCustom = !!(S.training && Array.isArray(S.training.dias) && S.training.dias.length);
-  const hasLevel  = !!(S.training && ROUTINES[S.training.rutina]);
-  _rtLevel = hasCustom ? '__mine__' : (hasLevel ? S.training.rutina : '__none__');
+  _rtLevel = hasCustom ? '__mine__' : '__none__';
   if (hasCustom && !_exData) _loadExData().then(() => renderRoutine());
-  renderRoutine();
-}
-
-function selectRoutineLevel(l) {
-  _rtLevel = l;
-  document.querySelectorAll('.rt-chip').forEach(c => c.classList.toggle('active', c.dataset.l === l));
   renderRoutine();
 }
 
@@ -3214,9 +2552,6 @@ function renderRoutine() {
     title = S.training.nombre || 'Mi rutina';
     meta = 'Asignada por tu coach';
     nota = S.training.nota; dias = S.training.dias;
-  } else if (ROUTINES[_rtLevel]) {
-    const r = ROUTINES[_rtLevel];
-    title = r.nombre; meta = 'Asignada por tu coach'; nota = r.nota; dias = r.dias;
   } else {
     /* Sin rutina asignada por el entrenador */
     box.innerHTML = `<div class="rt-empty">

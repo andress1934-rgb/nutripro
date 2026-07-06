@@ -1022,6 +1022,14 @@ html, body {
 .sec-head a { font-size: 12px; font-weight: 600; color: var(--accent-d); cursor: pointer; }
 
 /* Meal cards */
+/* Estado vacío del plan (sin comidas asignadas aún) */
+.dash-empty-plan {
+  background: var(--card); border: 1px dashed var(--border);
+  border-radius: var(--r); padding: 22px 18px; width: 100%;
+  font-size: 13px; color: var(--mid); line-height: 1.6; text-align: center;
+}
+.dash-empty-plan a { color: var(--accent-d); font-weight: 700; cursor: pointer; }
+
 /* Indicaciones del coach (plan.notas) */
 .coach-notes-card {
   background: var(--card); border: 1px solid var(--border);
