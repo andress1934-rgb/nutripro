@@ -28,6 +28,9 @@ function saveState() {
       miEntreno: S.miEntreno || null, pesoLog: S.pesoLog || [],
       waterFilled: (typeof waterFilled !== 'undefined' ? waterFilled : 0),
       onboarded: !!S.onboarded,
+      /* Dueño del snapshot: evita hidratar datos de otra cuenta en un
+         dispositivo compartido si la sesión expiró sin logout */
+      uid: (typeof fbCurrentUser !== 'undefined' && fbCurrentUser) ? fbCurrentUser.uid : null,
       remMeals: !!S.remMeals, remWater: !!S.remWater,
       trainDone: S.trainDone || {}
     };
@@ -125,37 +128,60 @@ document.addEventListener('DOMContentLoaded', () => {
     _lastTap = now;
   }, { passive: false });
 
-  /* ── Inicializar Firebase y escuchar estado de autenticación ── */
+  /* ── Inicializar Firebase y escuchar estado de autenticación ──
+     La app arranca en el splash (#s-boot); aquí se decide la ruta:
+     · sesión guardada + datos locales → directo a la app (sync en 2º plano)
+     · sesión guardada sin datos locales (dispositivo nuevo) → esperar la nube
+     · sin sesión → login (u offline si no hay red) */
+  const enterApp = () => {
+    calcMetrics();
+    goScreen('s-app');
+    setSection('train');
+    initWater();
+    renderPlanMeals();
+    setTimeout(animateMacroBars, 400);
+    setTimeout(buildDiary, 200);
+    setTimeout(initReminderToggles, 600);
+  };
+  /* Solo renders de datos: el sync en 2º plano nunca re-navega */
+  const rerenderData = () => {
+    calcMetrics(); initWater(); renderPlanMeals();
+    updateConsumedUI(); buildDiary();
+  };
+  let _booted = false;
   try {
     fbInit();
     firebase.auth().onAuthStateChanged(async (user) => {
       if (user) {
-        /* Usuario logueado: cargar su perfil desde Firestore */
         fbCurrentUser = user;
-        toast('🔄 Cargando tu perfil...');
-        try {
-          await fbAutoSync();
-        } catch(e) {
-          /* Si falla la nube, intentar local */
-          const prev = loadState();
-          if (prev) { Object.assign(S, prev); if (typeof prev.waterFilled === 'number') waterFilled = prev.waterFilled; }
-        }
-        if (S.onboarded || hasPlan()) {
-          calcMetrics();
-          goScreen('s-app');
-          setSection('train');
-          initWater();
-          renderPlanMeals();
-          setTimeout(animateMacroBars, 400);
-          setTimeout(buildDiary, 200);
-          setTimeout(initReminderToggles, 600);
+        if (_booted) return;
+        _booted = true;
+        const prev = loadState();
+        if (prev && prev.onboarded && (!prev.uid || prev.uid === user.uid)) {
+          /* Ruta rápida: pintar YA con los datos locales, sincronizar detrás */
+          Object.assign(S, prev);
+          if (typeof prev.waterFilled === 'number') waterFilled = prev.waterFilled;
+          enterApp();
+          fbAutoSync().then(rerenderData).catch(() => {});
         } else {
-          goScreen('s-welcome');
+          /* Dispositivo nuevo (o snapshot de otra cuenta): esperar la nube */
+          try {
+            await fbAutoSync();
+          } catch(e) {
+            if (prev && prev.uid === user.uid) { Object.assign(S, prev); if (typeof prev.waterFilled === 'number') waterFilled = prev.waterFilled; }
+          }
+          if (S.onboarded || hasPlan()) enterApp();
+          else goScreen('s-welcome');
         }
       } else {
-        /* No logueado: mostrar pantalla de login */
+        /* No logueado: login (el logout navega explícito en doLogout) */
         fbCurrentUser = null;
-        if (_currentScreenId !== 's-login') goScreen('s-login');
+        if (_currentScreenId === 's-boot') {
+          goScreen(navigator.onLine ? 's-login' : 's-offline');
+        } else if (_currentScreenId === 's-app') {
+          /* Sesión revocada remotamente (cambio de contraseña, etc.) */
+          goScreen('s-login');
+        }
       }
     });
   } catch(e) {
@@ -165,17 +191,50 @@ document.addEventListener('DOMContentLoaded', () => {
     if (prev && prev.onboarded) {
       Object.assign(S, prev);
       if (typeof prev.waterFilled === 'number') waterFilled = prev.waterFilled;
-      calcMetrics(); goScreen('s-app'); setSection('train');
-      initWater(); renderPlanMeals();
-      setTimeout(animateMacroBars, 400);
-      setTimeout(buildDiary, 200);
+      enterApp();
+    } else {
+      goScreen(navigator.onLine ? 's-login' : 's-offline');
     }
   }
+  /* Red de seguridad: si Firebase nunca responde (CDN caído, red muerta),
+     no dejar al usuario colgado en el splash */
+  setTimeout(() => {
+    if (_currentScreenId !== 's-boot' || _booted) return;
+    const prev = loadState();
+    if (prev && prev.onboarded) {
+      Object.assign(S, prev);
+      if (typeof prev.waterFilled === 'number') waterFilled = prev.waterFilled;
+      enterApp();
+    } else {
+      goScreen(navigator.onLine ? 's-login' : 's-offline');
+    }
+  }, 7000);
+
+  /* ── Estado de red: píldora informativa + auto-reintento desde s-offline ── */
+  const netPill = document.getElementById('net-pill');
+  const showNet = (on) => { if (netPill) netPill.hidden = on; };
+  window.addEventListener('offline', () => showNet(false));
+  window.addEventListener('online', () => {
+    showNet(true);
+    if (_currentScreenId === 's-offline') { location.reload(); return; }
+    toast('✅ Conexión restablecida');
+  });
+  if (!navigator.onLine) showNet(false);
+
+  /* Pre-construir el mapa corporal: los PNG se decodifican mientras el
+     usuario sigue en el splash/dashboard y el tab Entreno abre instantáneo */
+  initBodyMap();
 
   /* Chat overlay click-outside */
   const ov = document.getElementById('chat-overlay');
   if (ov) ov.addEventListener('click', function(e) { if (e.target === this) closeChat(); });
 });
+
+/* Botón "Reintentar" de la pantalla sin conexión */
+function retryBoot() {
+  if (navigator.onLine) location.reload();
+  else toast('📡 Aún sin conexión');
+}
 
 /* ══ STATE ══ */
 function freshState() {
@@ -213,7 +272,7 @@ let currentTab = 'dash';
 /* ══ NAVIGATION ══ */
 /* Orden de pantallas para saber si avanzamos o retrocedemos */
 const SCREEN_ORDER = [
-  's-login',
+  's-boot','s-offline','s-login',
   's-welcome','s-goal','s-calorie-intro','s-profile',
   's-activity','s-lifestyle','s-diet','s-personalize','s-results',
   's-progress-preview','s-mealplan-intro','s-meals-count',
@@ -224,7 +283,7 @@ const SCREEN_ORDER = [
 /* Pantallas que disparan el flash verde al entrar */
 const SUCCESS_SCREENS = new Set(['s-results','s-progress-preview']);
 
-let _currentScreenId = 's-login';
+let _currentScreenId = 's-boot';
 
 function goScreen(id) {
   if (id === _currentScreenId) return;
@@ -324,7 +383,8 @@ function goTab(tab) {
   if (tab === 'dash')       updateConsumedUI();
   if (tab === 'macros')     setTimeout(animateMacroBars, 200);
   if (tab === 'diary')      setTimeout(buildDiary, 100);
-  if (tab === 'ejercicios') setTimeout(openExTab, 100);
+  /* Sin delay: el mapa ya está pre-construido desde el boot */
+  if (tab === 'ejercicios') openExTab();
 }
 
 function openFood(emoji, name, type, kcal) {
@@ -2416,7 +2476,10 @@ async function openExTab() {
   exSetView(hasAssigned ? 'routines' : 'body');
   _buildExFilterChips();
   if (!_exData) {
-    grid.innerHTML = '<div class="ex-loading"><div class="ex-spinner"></div><p>Cargando ejercicios…</p></div>';
+    /* Skeletons con brillo en vez de spinner: la cuadrícula ya se ve "viva" */
+    grid.innerHTML = Array.from({ length: 6 }, () =>
+      '<div class="sk-ex-card"><div class="skeleton sk-gif"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div></div>'
+    ).join('');
     if (empty) empty.style.display = 'none';
     await _loadExData();
   }
@@ -2430,7 +2493,7 @@ async function openExTab() {
    Zonas en coordenadas naturales de cada imagen (front 616×1000, back 459×1000)
    ════════════════════════════════════════════════════════════ */
 const BM_VIEWS = {
-  front: { img: 'body-front.png?v=19', vb: '112 35 456 930', w: 456, h: 930, zones: [
+  front: { img: 'body-front.png?v=20', vb: '112 35 456 930', w: 456, h: 930, zones: [
     { bp:'shoulders',  label:'Hombros',    cx:235, cy:222, rx:32,  ry:28 },
     { bp:'shoulders',  label:'Hombros',    cx:445, cy:222, rx:32,  ry:28 },
     { bp:'chest',      label:'Pecho',      cx:340, cy:280, rx:76,  ry:46 },
@@ -2444,7 +2507,7 @@ const BM_VIEWS = {
     { bp:'lower legs', label:'Gemelos',    cx:290, cy:855, rx:35,  ry:90 },
     { bp:'lower legs', label:'Gemelos',    cx:390, cy:855, rx:35,  ry:90 },
   ]},
-  back: { img: 'body-back.png?v=19', vb: '112 35 456 930', w:456, h:930, zones: [
+  back: { img: 'body-back.png?v=20', vb: '112 35 456 930', w:456, h:930, zones: [
     { bp:'shoulders',  label:'Hombros',    cx:232, cy:220, rx:34,  ry:28 },
     { bp:'shoulders',  label:'Hombros',    cx:450, cy:220, rx:34,  ry:28 },
     { bp:'back',       label:'Espalda',    cx:340, cy:305, rx:82,  ry:80 },
@@ -2461,8 +2524,34 @@ const BM_VIEWS = {
 };
 let _bmView = 'front';
 let _bmSel = null;
+let _bmBuilt = false;
 
 function initBodyMap() { bmView(_bmView); }
+
+/* Construye AMBAS vistas una sola vez (grupos <g>); el flip Frente/Espalda
+   solo alterna visibilidad. Antes se reconstruía el SVG entero con innerHTML
+   en cada flip y el PNG se re-decodificaba = corte visible. */
+function _bmBuild(svg, stage) {
+  if (_bmBuilt) return;
+  _bmBuilt = true;
+  stage.classList.add('skeleton');
+  /* La imagen va DENTRO del SVG (coords naturales 0-680/0-1000) para que el
+     viewBox recorte imagen y zonas juntas y queden siempre alineadas. */
+  svg.innerHTML = Object.keys(BM_VIEWS).map(v => {
+    const cfg = BM_VIEWS[v];
+    return `<g id="bm-g-${v}" style="display:none">` +
+      `<image href="${cfg.img}" x="0" y="0" width="680" height="1000"></image>` +
+      cfg.zones.map(z =>
+        `<ellipse class="bm-zone" cx="${z.cx}" cy="${z.cy}" rx="${z.rx}" ry="${z.ry}" data-bp="${z.bp}" onclick="selectMuscle('${z.bp}','${z.label}')"></ellipse>`
+      ).join('') +
+    '</g>';
+  }).join('');
+  /* Quitar el shimmer del stage cuando la imagen ya pintó (los PNG tienen
+     fondo transparente: dejar el shimmer detrás se vería a través del cuerpo) */
+  const img = svg.querySelector('#bm-g-front image');
+  if (img) img.addEventListener('load', () => stage.classList.remove('skeleton'), { once: true });
+  setTimeout(() => stage.classList.remove('skeleton'), 4000);
+}
 
 function bmView(view) {
   _bmView = view;
@@ -2470,20 +2559,20 @@ function bmView(view) {
   const svg = document.getElementById('bm-svg');
   const stage = document.getElementById('bm-stage');
   if (!svg || !stage) return;
+  _bmBuild(svg, stage);
   svg.setAttribute('viewBox', cfg.vb);
   stage.style.width = '';
   stage.style.aspectRatio = cfg.w + ' / ' + cfg.h;
-  /* La imagen va DENTRO del SVG (coords naturales 0-680/0-1000) para que el
-     viewBox recorte imagen y zonas juntas y queden siempre alineadas. */
-  svg.innerHTML =
-    `<image href="${cfg.img}" x="0" y="0" width="680" height="1000"></image>` +
-    cfg.zones.map(z =>
-      `<ellipse class="bm-zone" cx="${z.cx}" cy="${z.cy}" rx="${z.rx}" ry="${z.ry}" data-bp="${z.bp}" onclick="selectMuscle('${z.bp}','${z.label}')"></ellipse>`
-    ).join('');
+  Object.keys(BM_VIEWS).forEach(v => {
+    const g = document.getElementById('bm-g-' + v);
+    if (g) g.style.display = (v === view) ? '' : 'none';
+  });
   const bf = document.getElementById('bm-front'), bb = document.getElementById('bm-back');
   if (bf) bf.classList.toggle('active', view === 'front');
   if (bb) bb.classList.toggle('active', view === 'back');
   _bmSel = null;
+  /* Con build-once los nodos sobreviven al flip: limpiar la selección previa */
+  document.querySelectorAll('.bm-zone.active').forEach(z => z.classList.remove('active'));
   const hint = document.getElementById('bm-hint');
   if (hint) hint.innerHTML = 'Toca un músculo para ver sus ejercicios';
 }

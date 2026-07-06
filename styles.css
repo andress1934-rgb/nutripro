@@ -919,34 +919,49 @@ html, body {
 /* ─────────────────────────────────────────
    APP SHELL — BOTTOM NAV
 ───────────────────────────────────────── */
+/* Pastilla flotante de cristal (estilo Instagram): el contenido se extiende
+   por debajo y se ve a través del blur. */
 .bottom-nav {
-  background: var(--white);
-  border-top: 1px solid var(--border);
+  position: absolute; left: 14px; right: 14px;
+  bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  border-radius: 28px;
+  border: 1px solid var(--border);
+  background: rgba(21, 22, 26, .62);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  backdrop-filter: blur(18px) saturate(160%);
+  box-shadow: var(--shadow-m);
   display: flex; align-items: center;
-  /* Sin min-height: la barra mide lo que miden los íconos + un respiro abajo.
-     (env(safe-area) ya no aplica porque se quitó viewport-fit=cover.) */
-  padding: 10px 4px max(6px, env(safe-area-inset-bottom, 6px));
-  flex-shrink: 0; position: relative; z-index: 50;
+  padding: 7px 6px;
+  z-index: 50;
+}
+.phone.light .bottom-nav { background: rgba(255, 255, 255, .68); }
+/* WebViews viejos sin blur: fondo casi opaco para que siga legible */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .bottom-nav { background: var(--card); }
 }
 .nav-item {
   flex: 1; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 3px;
-  background: none; border: none; cursor: pointer; padding: 4px 4px;
-  transition: transform .15s; position: relative;
+  align-items: center; justify-content: center; gap: 2px;
+  background: none; border: none; cursor: pointer; padding: 2px 4px;
+  /* Curva con rebote: al soltar el botón "salta" de vuelta */
+  transition: transform .18s cubic-bezier(.34, 1.56, .64, 1);
+  position: relative;
 }
-.nav-item:active { transform: scale(.92); }
-.nav-icon { font-size: 20px; line-height: 1; }
+.nav-item:active { transform: scale(.85); }
+.nav-icon {
+  font-size: 20px; line-height: 1;
+  padding: 5px 14px; border-radius: 15px;
+  transition: background .25s;
+}
+.nav-item.active .nav-icon { background: var(--accent-l); }
 .nav-label {
   font-size: 10px; font-weight: 600; color: var(--muted);
   transition: color .2s; letter-spacing: .02em;
 }
 .nav-item.active .nav-label { color: var(--accent-d); font-weight: 700; }
-.nav-dot {
-  width: 4px; height: 4px; border-radius: 50%;
-  background: var(--accent); margin: 0 auto;
-  opacity: 0; transition: opacity .2s;
-}
-.nav-item.active .nav-dot { opacity: 1; }
+/* El punto activo era el indicador de la barra sólida; la pastilla
+   tintada detrás del icono lo reemplaza */
+.nav-dot { display: none; }
 
 /* ─────────────────────────────────────────
    TOP BAR (app tabs)
@@ -973,7 +988,7 @@ html, body {
 ───────────────────────────────────────── */
 #s-dash { background: var(--bg); }
 .dash-scroll {
-  flex: 1; overflow-y: auto; padding: 0 20px 20px;
+  flex: 1; overflow-y: auto; padding: 0 20px 100px;
   touch-action: pan-y; overscroll-behavior: contain;
 }
 .dash-scroll::-webkit-scrollbar { display: none; }
@@ -1122,7 +1137,7 @@ html, body {
    MACROS TAB
 ───────────────────────────────────────── */
 #s-macros { background: var(--bg); display: flex; flex-direction: column; height: 100%; }
-.macros-scroll { flex: 1; overflow-y: auto; padding: 0 20px 20px; touch-action: pan-y; overscroll-behavior: contain; }
+.macros-scroll { flex: 1; overflow-y: auto; padding: 0 20px 100px; touch-action: pan-y; overscroll-behavior: contain; }
 .macros-scroll::-webkit-scrollbar { display: none; }
 
 .macro-big-card {
@@ -1204,7 +1219,8 @@ html, body {
 .step-num { width: 26px; height: 26px; border-radius: 8px; background: var(--accent); color: var(--dark); font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
 .step-text { font-size: 13px; color: var(--mid); line-height: 1.6; }
 
-.add-food-bar { padding: 12px 20px 28px; background: var(--bg); }
+/* Deja libre la pastilla flotante de navegación */
+.add-food-bar { padding: 12px 20px 96px; background: var(--bg); }
 .btn-add-food {
   width: 100%; background: var(--accent); border: none; border-radius: 50px;
   padding: 16px; font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 700;
@@ -2109,7 +2125,7 @@ html, body {
 
 /* Grid */
 .ex-grid {
-  flex: 1; overflow-y: auto; padding: 12px 16px 80px;
+  flex: 1; overflow-y: auto; padding: 12px 16px 100px;
   display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
   grid-auto-rows: max-content; align-content: start;
   scrollbar-width: thin; scrollbar-color: var(--border) transparent;
@@ -2127,7 +2143,11 @@ html, body {
   /* altura fija: aspect-ratio:1 colapsaba a una barra en el grid (la img con
      height:100% creaba dependencia circular y no reservaba alto). */
   width: 100%; height: 150px;
-  background: #0f1014; overflow: hidden;
+  /* Shimmer mientras el GIF (lazy) baja: nunca un hueco negro */
+  background: linear-gradient(90deg, var(--card) 25%, var(--card2) 50%, var(--card) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+  overflow: hidden;
   display: flex; align-items: center; justify-content: center;
 }
 .ex-gif {
@@ -2237,7 +2257,10 @@ html, body {
 
 #ex-bodyview {
   flex: 1; display: flex; flex-direction: column;
-  align-items: center; overflow: hidden; padding: 6px 2px 20px;
+  align-items: center; overflow: hidden; padding: 6px 2px 0;
+  /* Sin padding inferior: el cuerpo se extiende por detrás de la pastilla
+     de cristal y se ve más grande. El hint flota encima (absolute). */
+  position: relative;
 }
 
 /* Front/back toggle */
@@ -2282,9 +2305,15 @@ html, body {
   fill: rgba(244,199,90,.34); stroke: var(--accent); stroke-width: 2.5;
 }
 .bm-hint {
-  margin-top: 6px; font-size: 13px; color: var(--mid);
+  /* Flota sobre la pastilla de navegación sin empujar el layout */
+  position: absolute; left: 0; right: 0;
+  bottom: calc(78px + env(safe-area-inset-bottom, 0px));
+  z-index: 45; pointer-events: none;
+  font-size: 13px; color: var(--mid);
   text-align: center; min-height: 20px; font-weight: 500;
+  text-shadow: 0 1px 8px var(--bg);
 }
+.bm-hint button { pointer-events: auto; box-shadow: var(--shadow-m); }
 .bm-hint b { color: var(--accent-d); font-weight: 700; }
 
 /* ════════════════════════════════════════════════════════════
@@ -2369,7 +2398,7 @@ html, body {
 .rt-chip.active { background: var(--accent); color: #17130A; border-color: var(--accent); }
 
 .rt-body {
-  flex: 1; overflow-y: auto; padding: 6px 16px 90px;
+  flex: 1; overflow-y: auto; padding: 6px 16px 100px;
   scrollbar-width: thin; scrollbar-color: var(--border) transparent;
   touch-action: pan-y; overscroll-behavior: contain;
 }
@@ -2396,7 +2425,10 @@ html, body {
 .rt-ex:active { transform: scale(.99); border-color: var(--accent); }
 .rt-ex-gif {
   width: 52px; height: 52px; border-radius: 9px; object-fit: cover;
-  background: #0f1014; flex-shrink: 0;
+  background: linear-gradient(90deg, var(--card) 25%, var(--card2) 50%, var(--card) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+  flex-shrink: 0;
 }
 .rt-ex-info { flex: 1; min-width: 0; }
 .rt-ex-name { font-size: 13px; font-weight: 600; color: var(--dark); text-transform: capitalize; line-height: 1.3; }
@@ -2417,7 +2449,7 @@ html, body {
 }
 
 /* ── Generador "Crear" ── */
-#ex-createview { flex: 1; overflow-y: auto; padding: 14px 16px 90px; touch-action: pan-y; overscroll-behavior: contain; }
+#ex-createview { flex: 1; overflow-y: auto; padding: 14px 16px 100px; touch-action: pan-y; overscroll-behavior: contain; }
 .cr-q { font-size: 14px; font-weight: 700; color: var(--dark); margin: 16px 2px 9px; }
 .cr-q:first-child { margin-top: 4px; }
 .cr-chips { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -2429,6 +2461,85 @@ html, body {
 .cr-gen:active { transform: scale(.98); }
 .cr-save { background: var(--card2); color: var(--accent-d); border: 1px solid var(--accent); }
 .rt-chip.cr-dis, .rt-chip:disabled { opacity: .3; cursor: not-allowed; text-decoration: line-through; }
+
+/* ═══════════════════════════════════════
+   BOOT SPLASH · SKELETONS · OFFLINE (v55)
+═══════════════════════════════════════ */
+#s-boot {
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+}
+.boot-wrap { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+.boot-logo {
+  display: flex; align-items: center; gap: 10px;
+  animation: bootPulse 2.2s ease-in-out infinite;
+}
+.boot-logo .welcome-logo-text { color: var(--dark); }
+@keyframes bootPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: .72; transform: scale(.97); }
+}
+.boot-msg {
+  font-size: 13px; font-weight: 600; color: var(--muted);
+  background: linear-gradient(90deg, var(--muted) 25%, var(--dark) 50%, var(--muted) 75%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 1.8s linear infinite;
+}
+
+/* Utilidad skeleton: silueta con brillo mientras carga contenido real */
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--card) 25%, var(--card2) 50%, var(--card) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+  border-radius: var(--r-sm);
+}
+.sk-ex-card {
+  border-radius: var(--r); overflow: hidden;
+  border: 1px solid var(--border); background: var(--card);
+}
+.sk-ex-card .sk-gif  { height: 150px; border-radius: 0; }
+.sk-ex-card .sk-line { height: 12px; margin: 12px 12px 8px; }
+.sk-ex-card .sk-line.short { width: 55%; margin-top: 0; margin-bottom: 14px; }
+
+/* Pantalla sin conexión (solo cuando no hay forma de arrancar) */
+#s-offline {
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  padding: 40px 28px;
+}
+.offline-wrap { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; }
+.offline-icon {
+  width: 84px; height: 84px; border-radius: 50%;
+  background: var(--card); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 38px;
+}
+.offline-title { font-size: 22px; font-weight: 800; color: var(--dark); letter-spacing: -.02em; }
+.offline-sub   { font-size: 14px; color: var(--mid); line-height: 1.5; max-width: 260px; }
+#s-offline .btn-yellow { margin-top: 10px; width: auto; padding: 14px 40px; }
+
+/* Píldora "sin conexión" mientras se usa la app offline */
+#net-pill {
+  /* Centrado con margin:auto (no translateX): toastAnim pisa transform */
+  position: absolute; top: 14px; left: 0; right: 0;
+  margin: 0 auto; width: fit-content;
+  z-index: 300; pointer-events: none;
+  background: var(--card); color: var(--dark);
+  border: 1px solid rgba(255,168,43,.45);
+  border-radius: 24px; padding: 9px 16px;
+  font-size: 12px; font-weight: 600; white-space: nowrap;
+  box-shadow: var(--shadow-m);
+  animation: toastAnim .3s cubic-bezier(.34,1.56,.64,1);
+}
+#net-pill[hidden] { display: none; }
+/* La pantalla s-offline ya dice "sin conexión": no duplicar con la píldora */
+#s-offline.active ~ #net-pill { display: none; }
 
 /* ═══════════════════════════════════════
    ESCRITORIO / TABLET: la app es un diseño de teléfono; en pantallas anchas
