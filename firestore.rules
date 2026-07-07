@@ -2,10 +2,15 @@ rules_version = '2';
 
 /* Reglas de seguridad de NutriPro.
    Aplicar en: consola Firebase → Firestore Database → pestaña "Reglas" → pegar → Publicar.
+   (Prueba antes en el "Playground" de esa misma pantalla: no deberías poder leer
+    users de otro uid, ni escribir en /admins, ni tocar plan/training siendo cliente.)
+
    Modelo:
    - Cada cliente solo ve y edita SU propio perfil y diario (users/{su-uid}).
-   - El entrenador/admin (doc en /admins/{uid}) puede leer y escribir el de cualquier cliente.
-   - La biblioteca de ejercicios (config/library) la lee cualquier usuario logueado; solo el admin la escribe.
+   - Los campos `plan` y `training` los escribe SOLO el coach (admin): un cliente
+     no puede alterar el plan/rutina que le asignaron (sí puede leerlos).
+   - El entrenador/admin (doc en /admins/{uid}) lee y escribe el de cualquier cliente.
+   - La biblioteca de ejercicios (config/library) la lee cualquier logueado; solo admin escribe.
    - La lista de admins NO se puede modificar desde la app (se crea a mano en la consola). */
 
 service cloud.firestore {
@@ -15,18 +20,39 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // ¿El usuario actual está en la colección /admins? (acceso de servicio: no pasa por reglas de lectura)
+    // ¿El usuario actual está en /admins? (exists() usa acceso de servicio, no pasa por reglas de lectura)
     function isAdmin() {
       return signedIn() &&
              exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
 
-    // Perfil del cliente y todas sus subcolecciones (diary/entries, etc.)
-    match /users/{uid} {
-      allow read, write: if signedIn() && (request.auth.uid == uid || isAdmin());
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
 
+    // Campos que SOLO el coach puede escribir. El cliente no puede crearlos ni cambiarlos.
+    function noTocaCamposDeCoach() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['plan', 'training']);
+    }
+
+    // Perfil del cliente
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+
+      // Crear: el cliente hace su onboarding sin plan/training (esos los pone el coach)
+      allow create: if isAdmin() ||
+                    (isOwner(uid) && !request.resource.data.keys().hasAny(['plan', 'training']));
+
+      // Actualizar: el cliente guarda su perfil pero no puede cambiar plan/training
+      allow update: if isAdmin() ||
+                    (isOwner(uid) && noTocaCamposDeCoach());
+
+      // Borrar el doc: solo admin (el cliente reinicia con onboarded:false, no borra)
+      allow delete: if isAdmin();
+
+      // Subcolecciones (diary/entries): el dueño y el admin las gestionan por completo
       match /{sub=**} {
-        allow read, write: if signedIn() && (request.auth.uid == uid || isAdmin());
+        allow read, write: if isOwner(uid) || isAdmin();
       }
     }
 
@@ -36,9 +62,9 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Lista de admins: cada quien puede comprobar su propio estatus; nadie escribe desde la app.
+    // Lista de admins: cada quien comprueba su propio estatus; nadie escribe desde la app.
     match /admins/{uid} {
-      allow read:  if signedIn() && request.auth.uid == uid;
+      allow read:  if isOwner(uid);
       allow write: if false;
     }
 

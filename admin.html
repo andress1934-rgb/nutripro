@@ -433,7 +433,11 @@
 
     function weightTrendHtml(log) {
       if (!Array.isArray(log) || log.length < 2) return '';
-      const first = log[0].kg, last = log[log.length-1].kg;
+      /* Coerción numérica: pesoLog lo escribe el CLIENTE (campo propio). Sin
+         num()/esc() un valor tipo '<img onerror=...>' se ejecutaría en la
+         sesión del COACH (XSS almacenado cliente→coach). */
+      const first = Number(log[0].kg), last = Number(log[log.length-1].kg);
+      if (isNaN(first) || isNaN(last)) return '';
       const delta = +(last - first).toFixed(1);
       const sign = delta > 0 ? '+' : '';
       return `<div class="sub" style="font-size:12px;color:var(--muted);margin-top:4px">Peso: <b style="color:var(--mid)">${last} kg</b> (${sign}${delta} kg desde el ${esc(log[0].d)}, ${log.length} registros)</div>`;
