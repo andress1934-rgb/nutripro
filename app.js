@@ -227,8 +227,10 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('offline', () => showNet(false));
   window.addEventListener('online', () => {
     showNet(true);
-    if (_currentScreenId === 's-offline') { location.reload(); return; }
-    toast('✅ Conexión restablecida');
+    /* Solo recarga si estabas en la pantalla de sin-conexión. En login/app:
+       silencio, sin toast ruidoso que roba foco del input. fbAutoSync en
+       background sincroniza sin navegar (guard _booted lo previene). */
+    if (_currentScreenId === 's-offline') { location.reload(); }
   });
   if (!navigator.onLine) showNet(false);
 
