@@ -36,6 +36,9 @@ function saveState() {
     };
     localStorage.setItem(STATE_KEY, JSON.stringify(snap));
   } catch(_) {}
+  /* Marca que hubo una edición local: evita que un fbAutoSync en vuelo
+     pise este cambio con datos más viejos de la nube */
+  if (typeof _localWrites !== 'undefined') _localWrites++;
   /* Sync to Firebase (non-blocking) */
   if (typeof fbCurrentUser !== 'undefined' && fbCurrentUser) {
     fbSaveUserProfile().catch(() => {});
@@ -158,7 +161,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (_booted) return;
         _booted = true;
         const prev = loadState();
-        if (prev && prev.onboarded && (!prev.uid || prev.uid === user.uid)) {
+        /* uid EXACTO: un snapshot sin uid (legacy o corrupto) ya no entra por
+           la ruta rápida — va por la nube y no puede hidratar datos ajenos */
+        if (prev && prev.onboarded && prev.uid === user.uid) {
           /* Ruta rápida: pintar YA con los datos locales, sincronizar detrás */
           Object.assign(S, prev);
           if (typeof prev.waterFilled === 'number') waterFilled = prev.waterFilled;
@@ -279,6 +284,13 @@ function resetSessionState() {
   waterFilled = 0;
   _diaryViewKey = null;
   _rtInit = false;
+  /* Filtros y selecciones de UI del usuario anterior (auditoría v58):
+     sin esto, el siguiente usuario veía chips/filtros pre-seleccionados */
+  _exFilter = 'all'; _exSearch = ''; _exPage = 0; _bmSel = null;
+  if (typeof _crZona !== 'undefined') _crZona = null;
+  if (typeof _crEnfoque !== 'undefined') _crEnfoque = null;
+  if (typeof _crDif !== 'undefined') _crDif = null;
+  S.logDate = null;
   /* Entreno propio: en memoria y claves legacy locales — sin esto se filtraba
      la rutina del usuario anterior en un dispositivo compartido */
   _crWorkout = null;
@@ -309,6 +321,17 @@ let _currentScreenId = 's-boot';
 function goScreen(id) {
   if (id === _currentScreenId) return;
   closeSheet();
+
+  /* Al llegar a "Personaliza tu objetivo": si no eligió peso objetivo, se usa
+     un valor sugerido y se habilita el botón — antes quedaba gris sin aviso y
+     el usuario no sabía por qué no podía continuar (auditoría v58) */
+  if (id === 's-personalize' && (S.pesoObj == null)) {
+    S.pesoObj = Math.round(+S.peso || 65);
+    const dpo = document.getElementById('display-peso-obj');
+    if (dpo) { dpo.textContent = S.pesoObj + ' kg'; dpo.classList.remove('accent-text'); }
+    const bcp = document.getElementById('btn-crear-plan');
+    if (bcp) bcp.disabled = false;
+  }
 
   const prev = document.getElementById(_currentScreenId);
   const next = document.getElementById(id);
@@ -2769,7 +2792,7 @@ function renderGenerated() {
     _crWorkout.ex.map(n =>
       `<div class="rt-ex" onclick="openExDetail('${n.exId}')">
          <img class="rt-ex-gif" src="${EX_GIF_BASE}${n.exId}.gif" loading="lazy" alt="" onerror="this.outerHTML=&quot;<div class='rt-ex-gif rt-gif-fail'>🏋️</div>&quot;">
-         <div class="rt-ex-info"><div class="rt-ex-name">${n.nombre}</div><div class="rt-ex-sets">${n.sets} series × ${n.reps}</div></div>
+         <div class="rt-ex-info"><div class="rt-ex-name">${esc(n.nombre)}</div><div class="rt-ex-sets">${esc(String(n.sets))} series × ${esc(String(n.reps))}</div></div>
          <span class="rt-ex-arrow">›</span>
        </div>`).join('') + `</div>` +
     `<div style="display:flex;gap:8px;margin-top:14px">
@@ -2797,7 +2820,8 @@ function openRoutines() {
   renderRoutine();
 }
 
-/* ponytail: input del entrenador (dueño) = confiable, no se escapa */
+/* Los textos del coach (nota, nombres de ejercicios) SÍ se escapan: viajan
+   por Firestore y se renderizan en el cliente — nunca inyectar HTML ajeno */
 function renderRoutine() {
   const box = document.getElementById('rt-body');
   if (!box) return;
@@ -2826,11 +2850,11 @@ function renderRoutine() {
         line2: ex.nota || '' };
   const done = assigned ? _getTrainDone() : {};
   box.innerHTML =
-    (assigned ? `<div style="background:var(--accent-l);border:1px solid rgba(244,199,90,.3);border-radius:10px;padding:9px 12px;font-size:12px;color:var(--accent-d);font-weight:600;margin:10px 0 2px">★ Asignada por tu coach — marca cada ejercicio al hacerlo${nota ? '. ' + nota : ''}</div>` : '') +
+    (assigned ? `<div style="background:var(--accent-l);border:1px solid rgba(244,199,90,.3);border-radius:10px;padding:9px 12px;font-size:12px;color:var(--accent-d);font-weight:600;margin:10px 0 2px">★ Asignada por tu coach — marca cada ejercicio al hacerlo${nota ? '. ' + esc(nota) : ''}</div>` : '') +
     `<div class="rt-head">
        <div class="rt-name">${title}</div>
        <div class="rt-meta">${meta}</div>
-       ${(!assigned && nota) ? `<div class="rt-note">💡 ${nota}</div>` : ''}
+       ${(!assigned && nota) ? `<div class="rt-note">💡 ${esc(nota)}</div>` : ''}
      </div>` +
     dias.map((d, di) => {
       const exs = d.ex.map(norm);
@@ -2845,9 +2869,9 @@ function renderRoutine() {
                 ? `<img class="rt-ex-gif" src="${EX_GIF_BASE}${n.exId}.gif" loading="lazy" alt="" onerror="this.outerHTML=&quot;<div class='rt-ex-gif rt-gif-fail'>🏋️</div>&quot;">`
                 : `<div class="rt-ex-gif" style="display:flex;align-items:center;justify-content:center;font-size:22px">🏋️</div>`}
               <div class="rt-ex-info">
-                <div class="rt-ex-name">${n.nombre}</div>
-                <div class="rt-ex-sets">${n.line1}</div>
-                ${n.line2 ? `<div style="font-size:11px;color:var(--mid);margin-top:2px">${n.line2}</div>` : ''}
+                <div class="rt-ex-name">${esc(n.nombre)}</div>
+                <div class="rt-ex-sets">${esc(n.line1)}</div>
+                ${n.line2 ? `<div style="font-size:11px;color:var(--mid);margin-top:2px">${esc(n.line2)}</div>` : ''}
               </div>
               ${assigned
                 ? `<button class="rt-check${isDone ? ' on' : ''}" onclick="event.stopPropagation();toggleExDone('${key}')" title="Marcar como hecho">${isDone ? '✓' : ''}</button>`

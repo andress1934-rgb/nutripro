@@ -100,20 +100,29 @@ async function fbLoadDiary() {
   return doc.exists ? doc.data() : {};
 }
 
+/* Contador de escrituras locales: si el usuario edita algo mientras el sync
+   de 2º plano está en vuelo, no dejamos que la nube (con datos más viejos)
+   pise ese cambio. saveState() lo incrementa. */
+let _localWrites = 0;
+
 async function fbAutoSync() {
   try {
+    const writesBefore = _localWrites;
     const data = await fbLoadUserProfile();
-    if (data) {
+    const diary = data ? await fbLoadDiary() : null;
+    /* El usuario editó DURANTE la carga: sus datos locales son más nuevos que
+       los que acaba de traer la nube. Solo fusionamos el diario (aditivo) y
+       dejamos intactos los campos de perfil que pudo haber cambiado. */
+    const userEdited = _localWrites !== writesBefore;
+    if (data && !userEdited) {
       Object.assign(S, data);
       /* waterCount ya ES el nº de vasos (no litros): sin ×4.
-         Usar data.waterCount (Firestore) no S.waterCount (que tiene default 0 del objeto JS).
          Respetar 0 real (cliente nuevo); si el campo no existe en Firestore → 0. */
       waterFilled = (data.waterCount != null) ? +data.waterCount : 0;
       S.waterCount = waterFilled;
-      const diary = await fbLoadDiary();
-      /* No reemplazar el diario local con uno vacío de la nube */
-      if (diary && Object.keys(diary).length) S.diary = { ...(S.diary || {}), ...diary };
     }
+    /* El diario siempre se fusiona (aditivo, nunca pisa): no reemplazar con vacío */
+    if (diary && Object.keys(diary).length) S.diary = { ...(S.diary || {}), ...diary };
   } catch(e) {
     console.error('fbAutoSync error:', e);
     /* Re-lanzar: app.js cae al respaldo localStorage (sin esto, abrir la PWA
