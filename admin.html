@@ -557,12 +557,20 @@
 
     /* Ejercicios marcados por día (trainDone: {fecha: {'dia-ej':1}}) + agua de hoy */
     function renderAdherence(c){
-      const td = c.trainDone || {};
+      /* trainDone lo escribe el cliente: puede llegar malformado (array, string,
+         miles de claves basura) vía la API de Firestore. Se blinda para que no
+         corrompa ni cuelgue el panel del coach. */
+      let td = c.trainDone;
+      if (!td || typeof td !== 'object' || Array.isArray(td)) td = {};
       const dias = (c.training && c.training.dias) || [];
       const water = (c.waterDate && c.waterCount != null)
         ? `<div class="sub" style="margin-bottom:10px">💧 Agua del ${esc(c.waterDate)}: <b style="color:var(--mid)">${Number(c.waterCount)||0} vasos (${(((Number(c.waterCount)||0)*0.25)).toFixed(2).replace(/\.?0+$/,'')} L)</b></div>`
         : '';
-      const dates = Object.keys(td).filter(d => td[d] && Object.keys(td[d]).length).sort().reverse().slice(0, 14);
+      /* Solo fechas reales YYYY-MM-DD: descarta claves inventadas (evita el
+         spoof "Día 10001" y el lag por sort de cientos de claves basura). */
+      const dates = Object.keys(td)
+        .filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d) && td[d] && typeof td[d] === 'object' && Object.keys(td[d]).length)
+        .sort().reverse().slice(0, 14);
       if (!dates.length) return water + '<div class="empty">Aún no ha marcado ejercicios completados.</div>';
       const rows = dates.map(d => {
         const per = {};
