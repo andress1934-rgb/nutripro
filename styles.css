@@ -928,9 +928,11 @@ html, body {
   bottom: calc(10px + env(safe-area-inset-bottom, 0px));
   border-radius: 28px;
   border: 1px solid rgba(255, 255, 255, .1);
-  background: rgba(21, 22, 26, .45);
-  -webkit-backdrop-filter: blur(26px) saturate(185%);
-  backdrop-filter: blur(26px) saturate(185%);
+  /* Blur alto: difumina los bordes de tarjetas que pasan por detrás
+     (con 26px se veían "vetas" en vistas con paneles, ej. Crear) */
+  background: rgba(21, 22, 26, .52);
+  -webkit-backdrop-filter: blur(36px) saturate(170%);
+  backdrop-filter: blur(36px) saturate(170%);
   /* Brillo interior en el borde superior: el "filo" del cristal */
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .09), var(--shadow-m);
   display: flex; align-items: center;
@@ -938,7 +940,7 @@ html, body {
   z-index: 50;
 }
 .phone.light .bottom-nav {
-  background: rgba(255, 255, 255, .42);
+  background: rgba(255, 255, 255, .5);
   border-color: rgba(26, 26, 26, .08);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .75), var(--shadow-m);
 }
@@ -2160,6 +2162,17 @@ html, body {
 .ex-gif {
   width: 100%; height: 100%; object-fit: cover;
   display: block;
+}
+/* GIF que no pudo bajar (sin conexión): pesa tenue en vez de icono roto */
+.ex-gif-wrap.img-fail {
+  animation: none; background: var(--card2);
+}
+.ex-gif-wrap.img-fail::after {
+  content: '🏋️'; font-size: 34px; opacity: .3;
+}
+.rt-gif-fail {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; opacity: .45; animation: none;
 }
 .ex-card-info { padding: 8px 10px 10px; }
 .ex-card-name {

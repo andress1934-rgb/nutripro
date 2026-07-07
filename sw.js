@@ -1,4 +1,4 @@
-const CACHE = 'nutripro-v57';
+const CACHE = 'nutripro-v58';
 const FILES = [
   './',
   './index.html',
@@ -12,9 +12,11 @@ const FILES = [
 
 self.addEventListener('install', e => {
   self.skipWaiting();
-  e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(FILES)).catch(() => {})
-  );
+  /* SIN .catch(): si el precache falla (p. ej. sin señal a mitad de la
+     actualización), la instalación debe FALLAR para que el SW viejo siga
+     sirviendo. Tragarse el error activaba un SW con caché vacío que además
+     borraba el caché anterior → pantalla blanca al abrir offline. */
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)));
 });
 
 self.addEventListener('activate', e => {
@@ -64,7 +66,10 @@ self.addEventListener('fetch', e => {
         return res;
       })
       .catch(() =>
-        caches.match(req).then(r =>
+        /* ignoreSearch: el precache guarda styles.css SIN query pero la app
+           pide styles.css?v=N — sin esto, tras cada bump de versión la
+           primera apertura offline quedaba sin CSS/JS (pantalla blanca). */
+        caches.match(req, { ignoreSearch: true }).then(r =>
           r || (req.mode === 'navigate' ? caches.match('./index.html') : undefined)
         )
       )

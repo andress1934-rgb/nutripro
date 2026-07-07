@@ -400,6 +400,17 @@ function goTab(tab) {
   }
   const navEl = document.getElementById(navIds[tab]);
   if (navEl) navEl.classList.add('active');
+  /* En Perfil la barra flotante no lleva a ningún lado (se llega por el
+     menú ☰): se oculta para despejar la vista */
+  const navT = document.getElementById('navbar-train');
+  const navN = document.getElementById('navbar-nutri');
+  if (tab === 'settings') {
+    if (navT) navT.style.display = 'none';
+    if (navN) navN.style.display = 'none';
+  } else {
+    if (navT) navT.style.display = currentSection === 'train' ? 'flex' : 'none';
+    if (navN) navN.style.display = currentSection === 'nutri' ? 'flex' : 'none';
+  }
   currentTab = tab;
   if (tab === 'dash')       updateConsumedUI();
   if (tab === 'macros')     setTimeout(animateMacroBars, 200);
@@ -2757,7 +2768,7 @@ function renderGenerated() {
     `<div class="rt-day" style="margin-top:18px"><div class="rt-day-title">${_crWorkout.titulo}</div>` +
     _crWorkout.ex.map(n =>
       `<div class="rt-ex" onclick="openExDetail('${n.exId}')">
-         <img class="rt-ex-gif" src="${EX_GIF_BASE}${n.exId}.gif" loading="lazy" alt="">
+         <img class="rt-ex-gif" src="${EX_GIF_BASE}${n.exId}.gif" loading="lazy" alt="" onerror="this.outerHTML=&quot;<div class='rt-ex-gif rt-gif-fail'>🏋️</div>&quot;">
          <div class="rt-ex-info"><div class="rt-ex-name">${n.nombre}</div><div class="rt-ex-sets">${n.sets} series × ${n.reps}</div></div>
          <span class="rt-ex-arrow">›</span>
        </div>`).join('') + `</div>` +
@@ -2831,7 +2842,7 @@ function renderRoutine() {
            const isDone = assigned && !!done[key];
            return `<div class="rt-ex${isDone ? ' done' : ''}"${n.exId ? ` onclick="openExDetail('${n.exId}')"` : ''}>
               ${n.exId
-                ? `<img class="rt-ex-gif" src="${EX_GIF_BASE}${n.exId}.gif" loading="lazy" alt="">`
+                ? `<img class="rt-ex-gif" src="${EX_GIF_BASE}${n.exId}.gif" loading="lazy" alt="" onerror="this.outerHTML=&quot;<div class='rt-ex-gif rt-gif-fail'>🏋️</div>&quot;">`
                 : `<div class="rt-ex-gif" style="display:flex;align-items:center;justify-content:center;font-size:22px">🏋️</div>`}
               <div class="rt-ex-info">
                 <div class="rt-ex-name">${n.nombre}</div>
@@ -2908,7 +2919,7 @@ function renderExercises() {
   grid.innerHTML = show.map(e => `
     <div class="ex-card" onclick="openExDetail('${e.id}')">
       <div class="ex-gif-wrap">
-        <img class="ex-gif" src="${EX_GIF_BASE}${e.id}.gif" alt="${e.name}" loading="lazy">
+        <img class="ex-gif" src="${EX_GIF_BASE}${e.id}.gif" alt="" loading="lazy" onerror="this.parentNode.classList.add('img-fail'); this.remove()">
       </div>
       <div class="ex-card-info">
         <div class="ex-card-name">${e.name}</div>
