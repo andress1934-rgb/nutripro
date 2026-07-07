@@ -915,6 +915,8 @@ async function finishSetup() {
     const errEl = document.getElementById('reg-error');
     const btn   = document.getElementById('reg-btn');
     if (!email || !pass) { if (errEl) errEl.textContent = 'Ingresa tu correo y una contraseña'; return; }
+    const terms = document.getElementById('reg-terms');
+    if (terms && !terms.checked) { if (errEl) errEl.textContent = 'Debes aceptar los Términos y la Política de Privacidad'; return; }
     if (btn) { btn.textContent = 'Creando cuenta...'; btn.disabled = true; }
     if (errEl) errEl.textContent = '';
     try {

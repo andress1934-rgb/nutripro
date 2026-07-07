@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=60">
+  <link rel="stylesheet" href="styles.css?v=61">
 
   <!-- Aplica tema ANTES del primer render para evitar flash de color incorrecto -->
   <script>
@@ -779,12 +779,13 @@
         <span class="login-inp-icon">🔒</span>
         <input class="login-inp" id="reg-pass" type="password" placeholder="Contraseña (mínimo 6 caracteres)" autocomplete="new-password">
       </div>
+      <label class="reg-terms" for="reg-terms">
+        <input type="checkbox" id="reg-terms" onchange="document.getElementById('reg-error').textContent=''">
+        <span>Acepto los <a href="terminos.html" target="_blank" rel="noopener">Términos de Servicio</a> y la <a href="privacidad.html" target="_blank" rel="noopener">Política de Privacidad</a></span>
+      </label>
       <div class="login-error" id="reg-error"></div>
       <button class="btn-yellow" id="reg-btn" onclick="finishSetup()">Crear mi cuenta</button>
       <a class="login-forgot" onclick="goScreen('s-login')">¿Ya tienes cuenta? Inicia sesión</a>
-    </div>
-    <div class="ob-footnote" style="margin-top:10px">
-      Al registrarte aceptas los <a>Términos de Servicio</a> y <a>Política de Privacidad</a>
     </div>
   </div>
 
@@ -1458,8 +1459,8 @@
 
 </div><!-- /phone -->
 
-<script src="firebase.js?v=60"></script>
-<script src="app.js?v=60"></script>
+<script src="firebase.js?v=61"></script>
+<script src="app.js?v=61"></script>
 
 </body>
 </html>

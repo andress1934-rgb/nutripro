@@ -1,4 +1,4 @@
-const CACHE = 'nutripro-v60';
+const CACHE = 'nutripro-v61';
 const FILES = [
   './',
   './index.html',
@@ -6,6 +6,8 @@ const FILES = [
   './styles.css',
   './firebase.js',
   './manifest.json',
+  './terminos.html',
+  './privacidad.html',
   './body-front.png',
   './body-back.png'
 ];
