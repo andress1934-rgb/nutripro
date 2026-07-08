@@ -2579,8 +2579,8 @@ html, body {
 #net-pill {
   /* Centrado con margin:auto (no translateX): toastAnim pisa transform.
      z-index bajo el drawer (100): el menú lateral la cubre al abrirse. */
-  position: absolute; top: 14px; left: 0; right: 0;
-  margin: 0 auto; width: fit-content;
+  position: absolute; top: 11px; left: 0; right: 0;
+  margin: 0 auto; width: fit-content; max-width: calc(100% - 28px);
   z-index: 90; pointer-events: none;
   display: flex; align-items: center; gap: 8px;
   background: rgba(21, 22, 26, .68); color: var(--dark);
@@ -2602,6 +2602,13 @@ html, body {
 @keyframes netDot { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
 .phone.light #net-pill { background: rgba(255, 255, 255, .72); border-color: rgba(26, 26, 26, .1); }
 #net-pill[hidden] { display: none; }
+/* Sin conexión: el contenido de la app baja para reservarle una franja a la
+   píldora — así ya no tapa la barra "Entreno" ni el panel de opciones.
+   Solo #s-app (no login/onboarding). :has() = mismo patrón que el drawer. */
+.phone:has(#net-pill:not([hidden])) #s-app.active {
+  top: 50px;
+  transition: top .32s cubic-bezier(.4,0,.2,1);
+}
 /* Con el menú lateral abierto la píldora estorba (el drawer vive en el
    stacking context de s-app y no puede taparla): se oculta con :has */
 .phone:has(.drawer-overlay.open) #net-pill { display: none; }
