@@ -190,7 +190,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (_currentScreenId === 's-boot') {
           goScreen(navigator.onLine ? 's-login' : 's-offline');
         } else if (_currentScreenId === 's-app') {
-          /* Sesión revocada remotamente (cambio de contraseña, etc.) */
+          /* Sesión revocada remotamente (token, cambio de contraseña, cuenta
+             deshabilitada). Limpiar estado + localStorage antes de ir a login:
+             sin esto, otro cliente que entre en el mismo teléfono sin recargar
+             heredaba diario/plan del anterior (fuga en dispositivo compartido). */
+          resetSessionState();
+          try { localStorage.removeItem(STATE_KEY); } catch(_) {}
           goScreen('s-login');
         }
       }
@@ -816,6 +821,9 @@ function setPesoObj() {
 
 /* ══ RESET PROFILE ══ */
 function resetProfile() {
+  /* Acción irreversible: borra el diario también en la nube. Confirmar
+     (el botón está pegado a 'Cerrar sesión', fácil de tocar por error). */
+  if (!confirm('Esto borrará tu plan y todo tu diario de comidas, y no se puede deshacer. ¿Seguro que quieres reiniciar tu perfil?')) return;
   try { localStorage.removeItem(STATE_KEY); } catch(_) {}
   /* Borrar también la nube: sin esto, al recargar fbAutoSync re-hidrataba el
      perfil viejo (onboarded:true) y el reinicio se deshacía solo */
@@ -2485,7 +2493,10 @@ function _parseExerciseCsv(text) {
       if (s && s.trim()) steps.push(esText(s.trim()));
     }
     if (row['id'] && row['name']) {
-      rows.push({ id: row['id'], name: esName(row['name']),
+      /* El id viene de un CSV de un TERCERO y se interpola en onclick/src.
+         Saneado a [\w-] aquí (una vez) neutraliza inyección para todos los
+         consumidores; los ids reales de la biblioteca son alfanuméricos. */
+      rows.push({ id: String(row['id']).replace(/[^\w-]/g, ''), name: esName(row['name']),
                   bodyPart: row['bodyPart'],
                   target: T_MUSCLE[row['target'].toLowerCase()] || esText(row['target']),
                   equipment: T_EQUIP[row['equipment'].toLowerCase()] || esText(row['equipment']),
@@ -2950,8 +2961,8 @@ function renderExercises() {
         <img class="ex-gif" src="${EX_GIF_BASE}${e.id}.gif" alt="" loading="lazy" onerror="this.parentNode.classList.add('img-fail'); this.remove()">
       </div>
       <div class="ex-card-info">
-        <div class="ex-card-name">${e.name}</div>
-        <div class="ex-card-target">${e.target}</div>
+        <div class="ex-card-name">${esc(e.name)}</div>
+        <div class="ex-card-target">${esc(e.target)}</div>
       </div>
     </div>
   `).join('');
@@ -2977,7 +2988,7 @@ async function openExDetail(id) {
   document.getElementById('ex-detail-meta').textContent =
     [ex.target, ex.equipment].filter(Boolean).join(' · ');
   document.getElementById('ex-detail-steps').innerHTML =
-    ex.steps.map((s, i) => `<div class="ex-step"><span class="ex-step-num">${i+1}</span><span>${s}</span></div>`).join('');
+    ex.steps.map((s, i) => `<div class="ex-step"><span class="ex-step-num">${i+1}</span><span>${esc(s)}</span></div>`).join('');
   panel.classList.add('open');
 }
 
