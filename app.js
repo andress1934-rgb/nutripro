@@ -32,7 +32,8 @@ function saveState() {
          dispositivo compartido si la sesión expiró sin logout */
       uid: (typeof fbCurrentUser !== 'undefined' && fbCurrentUser) ? fbCurrentUser.uid : null,
       remMeals: !!S.remMeals, remWater: !!S.remWater,
-      trainDone: S.trainDone || {}
+      trainDone: S.trainDone || {},
+      photo: S.photo || null
     };
     localStorage.setItem(STATE_KEY, JSON.stringify(snap));
   } catch(_) {}
@@ -467,6 +468,44 @@ function openFood(emoji, name, type, kcal) {
 function closeFood() {
   const s = document.getElementById('s-food');
   s.style.opacity = '0'; s.style.pointerEvents = 'none'; s.style.zIndex = '1';
+}
+
+/* ══ FOTO DE PERFIL ══
+   Se guarda comprimida como dataURL dentro del perfil (sin costo de servidor:
+   ~15KB, muy por debajo del límite de 1MB de Firestore). Si no hay foto, se
+   muestra un ícono de persona como en redes sociales. */
+function renderAvatar() {
+  const img = document.getElementById('prof-photo');
+  const fb  = document.getElementById('prof-photo-fallback');
+  if (!img || !fb) return;
+  if (S.photo) { img.src = S.photo; img.style.display = 'block'; fb.style.display = 'none'; }
+  else { img.style.display = 'none'; fb.style.display = 'block'; }
+}
+function pickAvatar() { document.getElementById('avatar-input')?.click(); }
+function onAvatarFile(input) {
+  const file = input.files && input.files[0];
+  input.value = '';
+  if (!file) return;
+  if (!/^image\//.test(file.type)) { toast('Elige una imagen'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const im = new Image();
+    im.onload = () => {
+      const D = 220, cv = document.createElement('canvas');
+      cv.width = D; cv.height = D;
+      const ctx = cv.getContext('2d');
+      const side = Math.min(im.width, im.height);           /* recorte cuadrado centrado */
+      const sx = (im.width - side) / 2, sy = (im.height - side) / 2;
+      ctx.drawImage(im, sx, sy, side, side, 0, 0, D, D);
+      S.photo = cv.toDataURL('image/jpeg', 0.72);
+      renderAvatar();
+      saveState();
+      toast('✓ Foto actualizada');
+    };
+    im.onerror = () => toast('No se pudo leer la imagen');
+    im.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 
 /* ══ PLAN ASIGNADO POR EL NUTRICIONISTA ══ */
@@ -1025,6 +1064,7 @@ function calcMetrics() {
   set('greet-name', S.nombre);
   set('prof-name',  S.nombre);
   set('prof-sub',   `${peso} kg · ${talla} cm · ${edad} años`);
+  renderAvatar();
   set('prof-objetivo', S.pesoObj ? S.pesoObj + ' kg' : 'Definir');
   set('st-tdee',    tdee.toLocaleString('es'));
   set('st-prot',    (peso ? (prot / peso) : 2.2).toFixed(1) + 'g');

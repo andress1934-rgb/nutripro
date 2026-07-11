@@ -75,6 +75,7 @@ async function fbSaveUserProfile() {
     waterDate: S.waterDate || null, pesoLog: S.pesoLog || [],
     remMeals: !!S.remMeals, remWater: !!S.remWater,
     trainDone: S.trainDone || {},
+    photo: S.photo || null,
     onboarded: true, ts: firebase.firestore.FieldValue.serverTimestamp()
   };
   await fbDb.collection('users').doc(uid).set(snap, { merge: true });
