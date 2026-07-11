@@ -957,11 +957,13 @@ html, body {
 }
 .nav-item:active { transform: scale(.85); }
 .nav-icon {
-  font-size: 20px; line-height: 1;
+  color: var(--muted);
   padding: 5px 14px; border-radius: 15px;
-  transition: background .25s;
+  transition: background .25s, color .2s;
+  display: inline-flex; align-items: center; justify-content: center;
 }
-.nav-item.active .nav-icon { background: var(--accent-l); }
+.nav-icon svg { width: 23px; height: 23px; display: block; }
+.nav-item.active .nav-icon { background: var(--accent-l); color: var(--accent-d); }
 .nav-label {
   font-size: 10px; font-weight: 600; color: var(--muted);
   transition: color .2s; letter-spacing: .02em;
@@ -2422,11 +2424,11 @@ html, body {
 }
 .drawer-item:active { background: rgba(244,199,90,.08); transform: scale(.97); }
 .drawer-ic {
-  width: 38px; height: 38px; border-radius: 11px; background: var(--icon-bg);
-  border: 1px solid rgba(244, 199, 90, .16);
+  width: 36px; height: 36px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  font-size: 18px; flex-shrink: 0;
+  color: var(--accent-d);
 }
+.drawer-ic svg { width: 25px; height: 25px; }
 .drawer-item-t { font-size: 14px; font-weight: 600; color: var(--dark); }
 .drawer-item-s { font-size: 11px; color: var(--muted); margin-top: 1px; }
 
