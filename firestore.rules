@@ -1,6 +1,6 @@
 rules_version = '2';
 
-/* Reglas de seguridad de NutriPro.
+/* Reglas de seguridad de Imperium.
    Aplicar en: consola Firebase → Firestore Database → pestaña "Reglas" → pegar → Publicar.
    (Prueba antes en el "Playground" de esa misma pantalla: no deberías poder leer
     users de otro uid, ni escribir en /admins, ni tocar plan/training siendo cliente.)

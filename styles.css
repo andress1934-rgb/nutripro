@@ -652,14 +652,13 @@ html, body {
   display: flex; align-items: center; gap: 8px;
 }
 .welcome-logo-mark {
-  width: 38px; height: 38px; background: var(--accent);
-  border-radius: 10px; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 4px; padding: 9px;
+  width: 38px; height: 38px; background: #0E0F13;
+  border: 1px solid rgba(244,199,90,.28);
+  border-radius: 10px; display: flex;
+  align-items: center; justify-content: center; padding: 7px;
 }
-.welcome-logo-mark span {
-  display: block; width: 100%; height: 2.5px; background: #1A1A1A; border-radius: 2px;
-}
-.welcome-logo-mark span:last-child { width: 60%; align-self: flex-start; }
+.welcome-logo-mark svg { width: 100%; height: 100%; display: block; }
+.welcome-logo-mark span { display: none; }
 .welcome-logo-text {
   font-size: 17px; font-weight: 800; letter-spacing: -.02em;
   color: #FFFFFF;

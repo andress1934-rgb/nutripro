@@ -1,8 +1,8 @@
 @echo off
-title NutriPro - Servidor Local
+title Imperium - Servidor Local
 echo.
 echo  =====================================
-echo   NutriPro corriendo en localhost
+echo   Imperium corriendo en localhost
 echo  =====================================
 echo.
 echo  Abriendo http://localhost:8765 ...

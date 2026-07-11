@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>NutriPro · Panel de Administración</title>
+  <title>Imperium · Panel de Administración</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -48,12 +48,12 @@
     .brand { display:flex; align-items:center; gap:11px; }
     .brand-mark {
       width:40px; height:40px; border-radius:11px; flex-shrink:0;
-      background:linear-gradient(145deg,#F8D77A,#C99A3A); display:flex; flex-direction:column;
-      align-items:center; justify-content:center; gap:4px; padding:10px;
-      box-shadow:0 8px 22px rgba(244,199,90,.28);
+      background:#0E0F13; border:1px solid rgba(244,199,90,.3); display:flex;
+      align-items:center; justify-content:center; padding:8px;
+      box-shadow:0 8px 22px rgba(244,199,90,.14);
     }
-    .brand-mark span { display:block; width:100%; height:2.5px; background:#17130A; border-radius:2px; }
-    .brand-mark span:last-child { width:60%; align-self:flex-start; }
+    .brand-mark svg { width:100%; height:100%; display:block; }
+    .brand-mark span { display:none; }
     .brand-name { font-size:18px; font-weight:800; letter-spacing:-.02em; }
     .brand-name small { display:block; font-size:11px; font-weight:600; color:var(--accent-d); letter-spacing:.04em; text-transform:uppercase; }
     .btn-ghost {
@@ -280,8 +280,8 @@
     <div id="view-login">
       <div class="login-box">
         <div class="brand" style="margin-bottom:22px">
-          <div class="brand-mark"><span></span><span></span><span></span></div>
-          <div class="brand-name">NutriPro<small>Panel Admin</small></div>
+          <div class="brand-mark"><svg viewBox="0 0 24 24" fill="#F4C75A" aria-hidden="true"><polygon points="12,3.5 3.5,8.2 20.5,8.2"/><rect x="3.5" y="8.4" width="17" height="1.8" rx=".4"/><rect x="5" y="10.6" width="1.9" height="6.4"/><rect x="8.7" y="10.6" width="1.9" height="6.4"/><rect x="12.4" y="10.6" width="1.9" height="6.4"/><rect x="16.1" y="10.6" width="1.9" height="6.4"/><rect x="4" y="17.2" width="16" height="1.8" rx=".4"/><rect x="2.8" y="19.4" width="18.4" height="1.9" rx=".5"/></svg></div>
+          <div class="brand-name">Imperium<small>Panel Admin</small></div>
         </div>
         <h1>Acceso de administrador</h1>
         <p>Inicia sesión con tu cuenta de dueño.</p>
@@ -311,8 +311,8 @@
     <div id="view-dash" class="hidden">
       <div class="topbar">
         <div class="brand">
-          <div class="brand-mark"><span></span><span></span><span></span></div>
-          <div class="brand-name">NutriPro<small>Panel Admin</small></div>
+          <div class="brand-mark"><svg viewBox="0 0 24 24" fill="#F4C75A" aria-hidden="true"><polygon points="12,3.5 3.5,8.2 20.5,8.2"/><rect x="3.5" y="8.4" width="17" height="1.8" rx=".4"/><rect x="5" y="10.6" width="1.9" height="6.4"/><rect x="8.7" y="10.6" width="1.9" height="6.4"/><rect x="12.4" y="10.6" width="1.9" height="6.4"/><rect x="16.1" y="10.6" width="1.9" height="6.4"/><rect x="4" y="17.2" width="16" height="1.8" rx=".4"/><rect x="2.8" y="19.4" width="18.4" height="1.9" rx=".5"/></svg></div>
+          <div class="brand-name">Imperium<small>Panel Admin</small></div>
         </div>
         <div class="topbar-actions">
           <button class="btn-gold" style="width:auto;padding:9px 18px;font-size:13px" onclick="location.href='index.html'">👤 Ver como cliente</button>
