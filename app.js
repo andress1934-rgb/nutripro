@@ -510,7 +510,9 @@ function setHeroEmoji(emoji) {
 function showFood() {
   const s = document.getElementById('s-food');
   if (!s) return;
-  s.style.opacity = '1'; s.style.pointerEvents = 'all'; s.style.zIndex = '20';
+  /* z 45: por encima del botón ☰ (z40) para que la ficha lo tape y no
+     choquen; por debajo de la barra inferior (z50) que sí sigue visible */
+  s.style.opacity = '1'; s.style.pointerEvents = 'all'; s.style.zIndex = '45';
   s.style.transition = 'opacity .3s ease';
 }
 
