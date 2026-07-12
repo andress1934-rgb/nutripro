@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=75">
+  <link rel="stylesheet" href="styles.css?v=76">
 
   <!-- Aplica tema ANTES del primer render para evitar flash de color incorrecto -->
   <script>
@@ -1217,35 +1217,21 @@
         <!-- Top bar -->
         <div class="msc-topbar">
           <button class="msc-close" onclick="closeScanner()">✕</button>
-          <div class="msc-title" id="msc-title">Escanea tu comida</div>
+          <div class="msc-title">Estima por porciones</div>
           <button class="msc-flash" id="msc-flash" onclick="toggleFlash()">⚡</button>
         </div>
 
-        <!-- Scan frame overlay -->
-        <div class="msc-frame" id="msc-frame">
-          <div class="msc-corner msc-tl"></div>
-          <div class="msc-corner msc-tr"></div>
-          <div class="msc-corner msc-bl"></div>
-          <div class="msc-corner msc-br"></div>
-          <div class="msc-scan-line" id="msc-scan-line"></div>
-        </div>
+        <!-- Guía: usar la mano como medida -->
+        <div class="pz-guide" id="pz-guide">Usa tu mano como medida y toca lo que hay en tu plato</div>
 
-        <!-- Hint text -->
-        <div class="msc-hint" id="msc-hint">Apunta la cámara al plato de comida</div>
-
-        <!-- Result card (hidden until scan) -->
-        <div class="msc-result" id="msc-result" style="display:none">
-          <div class="msc-result-name" id="msc-result-name"></div>
-          <div class="msc-result-macros" id="msc-result-macros"></div>
-          <div style="display:flex;gap:10px;margin-top:12px">
-            <button class="msc-rescan-btn" onclick="mscRescan()">🔄 Nuevo</button>
-            <button class="btn-yellow" style="flex:1;margin:0;padding:14px" onclick="mscAddToDiary()">+ Agregar al Diario</button>
+        <!-- Panel de porciones (cristal, sobre la cámara) -->
+        <div class="pz-panel">
+          <div class="pz-tally" id="pz-tally"></div>
+          <div class="pz-grid" id="pz-grid"></div>
+          <div class="pz-actions">
+            <button class="pz-undo" onclick="undoLastPortion()">↶ Quitar</button>
+            <button class="btn-yellow" style="flex:1;margin:0;padding:14px" onclick="savePortionsToDiary()">+ Agregar al diario</button>
           </div>
-        </div>
-
-        <!-- Bottom controls (solo código de barras) -->
-        <div class="msc-bottom">
-          <div class="msc-shutter-label" id="msc-shutter-label">Detección automática</div>
         </div>
 
       </div><!-- /s-scanner -->
@@ -1466,8 +1452,8 @@
 
 </div><!-- /phone -->
 
-<script src="firebase.js?v=75"></script>
-<script src="app.js?v=75"></script>
+<script src="firebase.js?v=76"></script>
+<script src="app.js?v=76"></script>
 
 </body>
 </html>

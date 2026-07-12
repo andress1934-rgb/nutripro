@@ -2104,21 +2104,34 @@ function addFoodFromList() {
    MAIN SCANNER (pantalla completa, acceso directo desde nav)
 ══════════════════════════════════════════ */
 let _mainScanStream = null;
-let _mainScanMode  = 'food';
-let _mainBarcodeLoop = null;
-let _mainScanResult = null;
 let _flashTrack = null;
+
+/* ── Estimador por porciones (método de la mano) ──
+   Sin IA ni costo de servidor: el usuario usa su propia mano como medida
+   (palma=proteína, puño=carbos, pulgar=grasas, cuenco=verduras) y toca lo
+   que hay en su plato mirando la cámara. Valores estimados estándar. */
+const PORTIONS = [
+  { key:'prot',  hand:'🖐', label:'Proteína', ref:'1 palma',  kcal:120, p:22, c:0,  g:3 },
+  { key:'carb',  hand:'✊', label:'Carbos',   ref:'1 puño',   kcal:150, p:4,  c:30, g:1 },
+  { key:'veg',   hand:'🤲', label:'Verduras', ref:'1 cuenco', kcal:30,  p:2,  c:6,  g:0 },
+  { key:'fruit', hand:'🍎', label:'Fruta',    ref:'1 puño',   kcal:70,  p:1,  c:17, g:0 },
+  { key:'fat',   hand:'👍', label:'Grasas',   ref:'1 pulgar', kcal:100, p:0,  c:0,  g:11 },
+  { key:'dairy', hand:'🥛', label:'Lácteos',  ref:'1 vaso',   kcal:110, p:8,  c:9,  g:5 },
+];
+let _portionMeal = [];
 
 function openScanner() {
   const screen = document.getElementById('s-scanner');
   if (!screen) return;
-  S.logDate = todayKey();   /* lo escaneado se registra siempre en hoy */
+  S.logDate = todayKey();
+  _portionMeal = [];
   screen.style.opacity = '1';
   screen.style.pointerEvents = 'all';
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('nav-scanner')?.classList.add('active');
-  /* Solo código de barras: el modo foto-IA requería API key del usuario (no apto para clientes) */
-  setMainScanMode('barcode');
+  renderPortionGrid();
+  renderPortionTally();
+  startMainCamera();
 }
 
 function closeScanner() {
@@ -2131,19 +2144,7 @@ function closeScanner() {
   if (navEl) navEl.classList.add('active');
 }
 
-function setMainScanMode(mode) {
-  _mainScanMode = 'barcode';
-  const screen = document.getElementById('s-scanner');
-  screen?.classList.add('barcode-mode');
-  const hint  = document.getElementById('msc-hint');
-  const title = document.getElementById('msc-title');
-  if (hint)  hint.textContent = 'Apunta al código de barras del producto';
-  if (title) title.textContent = 'Código de barras';
-  stopMainScan();
-  mscHideResult();
-  startMainCamera('barcode');
-}
-async function startMainCamera(mode) {
+async function startMainCamera() {
   const video = document.getElementById('main-scanner-video');
   if (!video) return;
   try {
@@ -2152,11 +2153,10 @@ async function startMainCamera(mode) {
     });
     video.srcObject = _mainScanStream;
     _flashTrack = _mainScanStream.getVideoTracks()[0] || null;
-    if (mode === 'barcode') startMainBarcodeDetection();
   } catch(err) {
-    toast('📷 ' + (err.name === 'NotAllowedError'
-      ? 'Permite el acceso a la cámara en Ajustes'
-      : 'Cámara no disponible: ' + err.message));
+    /* Sin cámara el estimador igual sirve: la cámara es solo referencia visual */
+    const g = document.getElementById('pz-guide');
+    if (g) g.textContent = 'Estima con tu mano las porciones de tu plato';
   }
 }
 
@@ -2165,141 +2165,69 @@ function stopMainScan() {
     _mainScanStream.getTracks().forEach(t => t.stop());
     _mainScanStream = null;
   }
-  if (_mainBarcodeLoop) { clearInterval(_mainBarcodeLoop); _mainBarcodeLoop = null; }
   _flashTrack = null;
 }
 
-function mscShowDetailedResult(j) {
-  _mainScanResult = {
-    name: j.food || 'Comida detectada',
-    kcal: Math.round(j.kcal || 0),
-    p:    Math.round((j.p || 0) * 10) / 10,
-    c:    Math.round((j.c || 0) * 10) / 10,
-    g:    Math.round((j.g || 0) * 10) / 10
-  };
-
-  const confidence = j.confidence || 0;
-  const confPct    = Math.round(confidence * 100);
-  const confColor  = confidence >= 0.8 ? '#34C759' : confidence >= 0.6 ? '#F5C518' : '#FF3B30';
-  const confLabel  = confidence >= 0.8 ? 'Alta precisión' : confidence >= 0.6 ? 'Precisión media' : 'Precisión baja';
-
-  /* Ingredientes detectados */
-  const ingrHTML = (j.ingredients || []).map(ing =>
-    `<div class="msc-ingr-row">
-      <span class="msc-ingr-name">${esc(ing.name)} (${Number(ing.grams) || 0}g)</span>
-      <span class="msc-ingr-kcal">${Math.round(ing.kcal) || 0} kcal</span>
-    </div>`
-  ).join('');
-
-  const r = document.getElementById('msc-result');
-  if (!r) return;
-  r.innerHTML = `
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
-      <div class="msc-result-name" style="flex:1">${esc(_mainScanResult.name)}</div>
-      <div style="font-size:11px;font-weight:700;color:${confColor};background:${confColor}20;padding:3px 8px;border-radius:20px;white-space:nowrap;margin-left:8px">${confPct}% ${confLabel}</div>
-    </div>
-    <div class="msc-macro-row">
-      <div class="msc-macro-pill">🔥 <b>${_mainScanResult.kcal}</b> kcal</div>
-      <div class="msc-macro-pill">P <b>${_mainScanResult.p}g</b></div>
-      <div class="msc-macro-pill">C <b>${_mainScanResult.c}g</b></div>
-      <div class="msc-macro-pill">G <b>${_mainScanResult.g}g</b></div>
-    </div>
-    ${ingrHTML ? `<div class="msc-ingr-list">${ingrHTML}</div>` : ''}
-    ${j.notes ? `<div class="msc-notes">⚠️ ${esc(j.notes)}</div>` : ''}
-    <div style="display:flex;gap:10px;margin-top:12px">
-      <button class="msc-rescan-btn" onclick="mscRescan()">🔄 Nuevo</button>
-      <button class="btn-yellow" style="flex:1;margin:0;padding:14px" onclick="mscAddToDiary()">+ Agregar al Diario</button>
-    </div>`;
-  r.style.display = 'block';
-  document.getElementById('msc-hint').style.display = 'none';
+function renderPortionGrid() {
+  const g = document.getElementById('pz-grid');
+  if (!g) return;
+  g.innerHTML = PORTIONS.map(p =>
+    `<button class="pz-chip" onclick="addPortion('${p.key}')">
+       <span class="pz-hand">${p.hand}</span>
+       <span class="pz-lbl">${p.label}</span>
+       <span class="pz-ref">${p.ref} · ${p.kcal} kcal</span>
+     </button>`).join('');
 }
 
-function startMainBarcodeDetection() {
-  const video = document.getElementById('main-scanner-video');
-  if (!video) return;
-  if (!('BarcodeDetector' in window)) {
-    /* Fallback manual */
-    mscShowManualBarcode();
-    return;
-  }
-  const detector = new BarcodeDetector({ formats: ['ean_13','ean_8','upc_a','upc_e','code_128','code_39'] });
-  let lastCode = '';
-  _mainBarcodeLoop = setInterval(async () => {
-    if (!video.videoWidth) return;
-    try {
-      const codes = await detector.detect(video);
-      if (codes.length && codes[0].rawValue !== lastCode) {
-        lastCode = codes[0].rawValue;
-        clearInterval(_mainBarcodeLoop); _mainBarcodeLoop = null;
-        await mscLookupBarcode(lastCode);
-      }
-    } catch(_) {}
-  }, 350);
+function _portionTotals() {
+  return _portionMeal.reduce((a, p) => ({
+    kcal: a.kcal + p.kcal, p: a.p + p.p, c: a.c + p.c, g: a.g + p.g
+  }), { kcal: 0, p: 0, c: 0, g: 0 });
 }
 
-function mscShowManualBarcode() {
-  mscShowResult('Ingresa el código manualmente', 0, 0, 0, 0);
-  const r = document.getElementById('msc-result');
-  if (r) {
-    r.innerHTML = `
-      <div class="msc-result-name">Ingresa el código de barras</div>
-      <input id="msc-manual-code" type="text" inputmode="numeric"
-             style="width:100%;border:1.5px solid #ddd;border-radius:12px;padding:10px 14px;font-size:16px;font-family:Inter,sans-serif;margin:10px 0;box-sizing:border-box"
-             placeholder="Ej: 7701234567890">
-      <button class="btn-yellow" style="width:100%;margin:0;padding:14px"
-              onclick="mscLookupBarcode(document.getElementById('msc-manual-code').value.trim())">
-        Buscar producto
-      </button>`;
-    r.style.display = 'block';
-  }
+function renderPortionTally() {
+  const el = document.getElementById('pz-tally');
+  if (!el) return;
+  if (!_portionMeal.length) { el.innerHTML = '<span class="pz-empty">Toca las porciones de tu plato</span>'; return; }
+  const t = _portionTotals();
+  el.innerHTML = `<div class="pz-total">${Math.round(t.kcal)} <span>kcal</span></div>
+    <div class="pz-macros">${Math.round(t.p)}g P · ${Math.round(t.c)}g C · ${Math.round(t.g)}g G · ${_portionMeal.length} ${_portionMeal.length===1?'porción':'porciones'}</div>`;
 }
 
-async function mscLookupBarcode(code) {
-  if (!code) return;
-  toast('🔍 Buscando producto...');
-  try {
-    const res = await fetch(`https://world.openfoodfacts.org/api/v2/product/${code}?fields=product_name,nutriments,serving_size`);
-    const data = await res.json();
-    if (data.status !== 1 || !data.product) { toast('❌ Producto no encontrado'); startMainBarcodeDetection(); return; }
-    const p = data.product;
-    const n = p.nutriments || {};
-    const name = p.product_name || 'Producto escaneado';
-    const per  = 100;
-    mscShowResult(
-      name,
-      Math.round(n['energy-kcal_100g'] || (n['energy_100g'] ? n['energy_100g'] / 4.184 : 0)),
-      Math.round(n.proteins_100g || 0),
-      Math.round(n.carbohydrates_100g || 0),
-      Math.round(n.fat_100g || 0)
-    );
-  } catch(e) {
-    toast('❌ Error al buscar el producto');
-  }
+function addPortion(key) {
+  const p = PORTIONS.find(x => x.key === key);
+  if (!p) return;
+  _portionMeal.push(p);
+  if (navigator.vibrate) navigator.vibrate(8);
+  renderPortionTally();
 }
 
-function mscShowResult(name, kcal, p, c, g) {
-  /* Usa el renderer enriquecido reutilizando la misma función */
-  mscShowDetailedResult({ food: name, kcal, p, c, g, confidence: 0.9, ingredients: [] });
+function undoLastPortion() {
+  if (!_portionMeal.length) return;
+  _portionMeal.pop();
+  renderPortionTally();
 }
 
-function mscHideResult() {
-  const r = document.getElementById('msc-result');
-  if (r) r.style.display = 'none';
-  const h = document.getElementById('msc-hint');
-  if (h) h.style.display = 'block';
-  _mainScanResult = null;
+function _currentMealSlot() {
+  const h = new Date().getHours();
+  if (h < 11) return 'desayuno';
+  if (h < 16) return 'almuerzo';
+  if (h < 21) return 'cena';
+  return 'snacks';
 }
 
-function mscRescan() {
-  mscHideResult();
-  setMainScanMode(_mainScanMode);
-}
-
-function mscAddToDiary() {
-  if (!_mainScanResult) return;
-  addToDiary(_mainScanResult, S.selectedMeal || 'desayuno');
-  mscHideResult();
-  toast('✅ ' + _mainScanResult.name + ' agregado');
+function savePortionsToDiary() {
+  if (!_portionMeal.length) { toast('Toca al menos una porción de tu plato'); return; }
+  const t = _portionTotals();
+  const counts = {};
+  _portionMeal.forEach(p => { counts[p.label] = (counts[p.label] || 0) + 1; });
+  const name = Object.entries(counts).map(([l, n]) => n > 1 ? `${n}× ${l}` : l).join(', ');
+  addToDiary({
+    name: 'Plato: ' + name,
+    kcal: Math.round(t.kcal), p: Math.round(t.p), c: Math.round(t.c), g: Math.round(t.g)
+  }, S.selectedMeal || _currentMealSlot());
+  _portionMeal = [];
+  toast('✅ Plato agregado al diario');
   closeScanner();
   goTab('diary');
 }
