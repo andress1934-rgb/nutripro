@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=72">
+  <link rel="stylesheet" href="styles.css?v=73">
 
   <!-- Aplica tema ANTES del primer render para evitar flash de color incorrecto -->
   <script>
@@ -1051,19 +1051,19 @@
           <div class="settings-group">
             <div class="settings-group-title">Configuración del Plan</div>
             <div class="setting-item" onclick="openSheet('sheet-nombre')">
-              <div class="setting-icon-wrap">👤</div>
+              <div class="setting-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5"/></svg></div>
               <div class="setting-label">Nombre</div>
               <div class="setting-val">Editar</div>
               <div class="setting-arrow">›</div>
             </div>
             <div class="setting-item" onclick="openSheet('sheet-peso-obj')">
-              <div class="setting-icon-wrap">🎯</div>
+              <div class="setting-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="3.5"/></svg></div>
               <div class="setting-label">Peso objetivo</div>
               <div class="setting-val" id="prof-objetivo">Definir</div>
               <div class="setting-arrow">›</div>
             </div>
             <div class="setting-item" onclick="openSheet('sheet-altura')">
-              <div class="setting-icon-wrap">📏</div>
+              <div class="setting-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="8" width="17" height="8" rx="2"/><path d="M8 8v2.5M12 8v3.5M16 8v2.5"/></svg></div>
               <div class="setting-label">Altura</div>
               <div class="setting-val">Editar</div>
               <div class="setting-arrow">›</div>
@@ -1072,12 +1072,12 @@
           <div class="settings-group">
             <div class="settings-group-title">Recordatorios</div>
             <div class="setting-item">
-              <div class="setting-icon-wrap">🔔</div>
+              <div class="setting-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 19a2 2 0 0 0 4 0"/></svg></div>
               <div class="setting-label">Recordatorio de comidas</div>
               <label class="toggle"><input type="checkbox" id="rem-meals" onchange="toggleMealReminder(this.checked)"><div class="toggle-slider"></div></label>
             </div>
             <div class="setting-item">
-              <div class="setting-icon-wrap">💧</div>
+              <div class="setting-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s6 6.5 6 10.5a6 6 0 0 1-12 0C6 9.5 12 3 12 3z"/></svg></div>
               <div class="setting-label">Recordatorio de agua</div>
               <label class="toggle"><input type="checkbox" id="rem-water" onchange="toggleWaterReminder(this.checked)"><div class="toggle-slider"></div></label>
             </div>
@@ -1085,7 +1085,7 @@
           <div class="settings-group">
             <div class="settings-group-title">Apariencia</div>
             <div class="setting-item">
-              <div class="setting-icon-wrap">🌙</div>
+              <div class="setting-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13a8 8 0 1 1-9-9 6.5 6.5 0 0 0 9 9z"/></svg></div>
               <div class="setting-label">Tema oscuro</div>
               <label class="toggle"><input type="checkbox" id="theme-check" onchange="toggleTheme()"><div class="toggle-slider"></div></label>
             </div>
@@ -1093,17 +1093,17 @@
           <div class="settings-group">
             <div class="settings-group-title">Cuenta</div>
             <div class="setting-item" onclick="openSheet('sheet-weight-history')">
-              <div class="setting-icon-wrap">📊</div>
+              <div class="setting-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16"/><path d="M4 15l4.5-4.5 3.5 3.5 6-6.5"/></svg></div>
               <div class="setting-label">Historial de Progreso</div>
               <div class="setting-arrow">›</div>
             </div>
             <div class="setting-item" onclick="resetProfile()">
-              <div class="setting-icon-wrap">🔄</div>
+              <div class="setting-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-.7 4"/><path d="M20 4.5V11h-6.5"/></svg></div>
               <div class="setting-label">Reiniciar perfil</div>
               <div class="setting-arrow">›</div>
             </div>
             <div class="setting-item" onclick="doLogout()">
-              <div class="setting-icon-wrap">🚪</div>
+              <div class="setting-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4H6a1.5 1.5 0 0 0-1.5 1.5v13A1.5 1.5 0 0 0 6 20h8"/><path d="M17 12H10"/><path d="M14.5 9l3 3-3 3"/></svg></div>
               <div class="setting-label">Cerrar sesión</div>
               <div class="setting-arrow">›</div>
             </div>
@@ -1466,8 +1466,8 @@
 
 </div><!-- /phone -->
 
-<script src="firebase.js?v=72"></script>
-<script src="app.js?v=72"></script>
+<script src="firebase.js?v=73"></script>
+<script src="app.js?v=73"></script>
 
 </body>
 </html>

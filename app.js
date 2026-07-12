@@ -240,6 +240,24 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   if (!navigator.onLine) showNet(false);
 
+  /* Barra reactiva al scroll: se contrae al bajar, se expande al subir (como
+     Instagram). Un solo listener en captura atrapa el scroll de cualquier vista. */
+  let _navLastScroll = 0;
+  const appEl = document.getElementById('s-app');
+  if (appEl) appEl.addEventListener('scroll', (e) => {
+    const st = e.target && e.target.scrollTop;
+    if (typeof st !== 'number') return;
+    const navs = [document.getElementById('navbar-train'), document.getElementById('navbar-nutri')];
+    if (st <= 8) navs.forEach(n => n && n.classList.remove('nav-shrunk'));
+    else if (st > _navLastScroll + 5) navs.forEach(n => n && n.classList.add('nav-shrunk'));
+    else if (st < _navLastScroll - 5) navs.forEach(n => n && n.classList.remove('nav-shrunk'));
+    _navLastScroll = st;
+  }, true);
+  /* Palpitación al tocar un ítem de la barra */
+  document.querySelectorAll('.nav-item').forEach(it => it.addEventListener('click', () => {
+    it.classList.remove('nav-pulse'); void it.offsetWidth; it.classList.add('nav-pulse');
+  }));
+
   /* Pre-construir el mapa corporal: los PNG se decodifican mientras el
      usuario sigue en el splash/dashboard y el tab Entreno abre instantáneo */
   initBodyMap();
