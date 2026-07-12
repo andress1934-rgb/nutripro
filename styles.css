@@ -927,19 +927,18 @@ html, body {
   bottom: calc(10px + env(safe-area-inset-bottom, 0px));
   border-radius: 28px;
   border: 1px solid rgba(255, 255, 255, .12);
-  /* Cristal translúcido de verdad: tinte muy bajo + blur medio para que se
-     vea CLARAMENTE lo que hay detrás (como la barra de Instagram sobre foto).
-     El blur alto lechoso hacía que leyera opaco; con 20px pasa el color. */
-  background: rgba(16, 17, 21, .16);
-  -webkit-backdrop-filter: blur(20px) saturate(150%);
-  backdrop-filter: blur(20px) saturate(150%);
+  /* Cristal translúcido: tinte muy bajo + blur ligero para que se vea claro
+     lo que hay detrás (como la barra de Instagram). Blur bajo = menos lechoso. */
+  background: rgba(16, 17, 21, .12);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
   /* Brillo interior en el borde superior: el "filo" del cristal */
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1), var(--shadow-m);
   display: flex; align-items: center;
   padding: 7px 6px;
   z-index: 50;
-  /* Movimiento al hacer scroll: se contrae al bajar, se expande al subir */
-  transition: padding .28s cubic-bezier(.4,0,.2,1), transform .28s cubic-bezier(.4,0,.2,1);
+  /* Movimiento al scroll: se contrae (más angosta y baja) al bajar, se expande al subir */
+  transition: padding .28s cubic-bezier(.4,0,.2,1), left .28s cubic-bezier(.4,0,.2,1), right .28s cubic-bezier(.4,0,.2,1);
 }
 .phone.light .bottom-nav {
   background: rgba(255, 255, 255, .28);
@@ -947,7 +946,7 @@ html, body {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6), var(--shadow-m);
 }
 /* Estado contraído: sin etiquetas, más compacta (estilo Instagram al scrollear) */
-.bottom-nav.nav-shrunk { padding-top: 3px; padding-bottom: 3px; }
+.bottom-nav.nav-shrunk { padding-top: 3px; padding-bottom: 3px; left: 42px; right: 42px; }
 .nav-label { max-height: 16px; overflow: hidden; transition: max-height .25s ease, opacity .2s ease; }
 .bottom-nav.nav-shrunk .nav-label { max-height: 0; opacity: 0; }
 .bottom-nav.nav-shrunk .nav-icon { padding-top: 3px; padding-bottom: 3px; }
