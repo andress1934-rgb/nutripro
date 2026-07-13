@@ -40,12 +40,27 @@ function saveState() {
   /* Marca que hubo una edición local: evita que un fbAutoSync en vuelo
      pise este cambio con datos más viejos de la nube */
   if (typeof _localWrites !== 'undefined') _localWrites++;
-  /* Sync to Firebase (non-blocking) */
+  /* Sync a Firebase con DEBOUNCE: localStorage ya guardó al instante (arriba);
+     la nube se agrupa. Antes cada toque (agua, check, comida) disparaba 3
+     escrituras al momento → 10 vasos = 30 writes. Ahora una ráfaga = 1 tanda.
+     Reduce ~3× las escrituras (coste Firebase) sin perder datos: se hace flush
+     al ocultar/cerrar la app. */
+  if (typeof fbCurrentUser !== 'undefined' && fbCurrentUser) {
+    if (_cloudSyncTimer) clearTimeout(_cloudSyncTimer);
+    _cloudSyncTimer = setTimeout(_flushCloudSync, 1500);
+  }
+}
+let _cloudSyncTimer = null;
+function _flushCloudSync() {
+  if (_cloudSyncTimer) { clearTimeout(_cloudSyncTimer); _cloudSyncTimer = null; }
   if (typeof fbCurrentUser !== 'undefined' && fbCurrentUser) {
     fbSaveUserProfile().catch(() => {});
     fbSaveDiary().catch(() => {});
   }
 }
+/* No perder el último cambio si el usuario cierra/oculta la app antes del debounce */
+window.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') _flushCloudSync(); });
+window.addEventListener('pagehide', _flushCloudSync);
 function loadState() {
   try {
     const raw = localStorage.getItem(STATE_KEY);
