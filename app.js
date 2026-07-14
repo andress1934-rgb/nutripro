@@ -2566,7 +2566,7 @@ async function openExTab() {
    Zonas en coordenadas naturales de cada imagen (front 616×1000, back 459×1000)
    ════════════════════════════════════════════════════════════ */
 const BM_VIEWS = {
-  front: { img: 'body-front.png?v=20', vb: '112 35 456 930', w: 456, h: 930, zones: [
+  front: { img: 'body-front.png?v=21', vb: '112 35 456 930', w: 456, h: 930, zones: [
     { bp:'shoulders',  label:'Hombros',    cx:235, cy:222, rx:32,  ry:28 },
     { bp:'shoulders',  label:'Hombros',    cx:445, cy:222, rx:32,  ry:28 },
     { bp:'chest',      label:'Pecho',      cx:340, cy:280, rx:76,  ry:46 },
