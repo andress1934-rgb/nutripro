@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=81">
+  <link rel="stylesheet" href="styles.css?v=82">
 
   <!-- Aplica tema ANTES del primer render para evitar flash de color incorrecto -->
   <script>
@@ -853,40 +853,28 @@
           <div class="dash-avatar" onclick="openChat()">🤖</div>
         </div>
         <div class="dash-scroll">
-          <!-- Calorie Ring Card -->
+          <!-- Medidor de calorías con rango meta (estilo Fitia) -->
           <div class="cal-ring-card">
-            <div class="donut-wrap">
-              <svg viewBox="0 0 100 100">
-                <circle class="donut-track" cx="50" cy="50" r="40" fill="none" stroke-width="10"/>
-                <circle id="ring-prot" cx="50" cy="50" r="40" fill="none" stroke="#F5C518" stroke-width="10" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="50"/>
-                <circle id="ring-cho" cx="50" cy="50" r="40" fill="none" stroke="#34C759" stroke-width="10" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="130" opacity=".7"/>
-                <circle id="ring-fat2" cx="50" cy="50" r="40" fill="none" stroke="#FF9500" stroke-width="10" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="200" opacity=".7"/>
+            <div class="gauge-wrap">
+              <svg class="gauge-svg" viewBox="0 0 200 118">
+                <defs><linearGradient id="gaugeGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#FBE7A6"/><stop offset="1" stop-color="#F4C75A"/></linearGradient></defs>
+                <path class="gauge-track" d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke-width="11" stroke-linecap="round"/>
+                <path id="gauge-fill" d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="url(#gaugeGrad)" stroke-width="11" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="251.3"/>
               </svg>
-              <div class="donut-center">
-                <div class="donut-kcal" id="ring-kcal">—</div>
-                <div class="donut-sub" id="ring-kcal-sub">kcal</div>
+              <div class="gauge-center">
+                <div class="gauge-kcal"><b id="ring-kcal">0</b></div>
+                <div class="gauge-sub" id="ring-kcal-sub">/ 0 kcal</div>
               </div>
+              <div class="gauge-range"><span id="gauge-lo">—</span><span id="gauge-hi">—</span></div>
             </div>
-            <div class="cal-ring-info">
-              <div class="cal-ring-title">Macros de Hoy</div>
-              <div class="macro-mini-row">
-                <div class="macro-mini-dot" style="background:#F5C518"></div>
-                <span class="macro-mini-name">Proteína</span>
-                <div class="macro-mini-track"><div class="macro-mini-fill" style="width:70%;background:#F5C518"></div></div>
-                <span class="macro-mini-val" id="l-prot">148g</span>
-              </div>
-              <div class="macro-mini-row">
-                <div class="macro-mini-dot" style="background:#34C759"></div>
-                <span class="macro-mini-name">Carbos</span>
-                <div class="macro-mini-track"><div class="macro-mini-fill" style="width:55%;background:#34C759"></div></div>
-                <span class="macro-mini-val" id="l-cho">220g</span>
-              </div>
-              <div class="macro-mini-row">
-                <div class="macro-mini-dot" style="background:#FF9500"></div>
-                <span class="macro-mini-name">Grasas</span>
-                <div class="macro-mini-track"><div class="macro-mini-fill" style="width:80%;background:#FF9500"></div></div>
-                <span class="macro-mini-val" id="l-fat">75g</span>
-              </div>
+            <div class="cal-ring-title">Calorías de hoy</div>
+            <div class="macro-bars">
+              <div class="mb-row"><span class="mb-name">Proteínas</span><span class="mb-val" id="l-prot">0 / 0 g</span></div>
+              <div class="mb-track"><div class="mb-fill" id="mb-prot" style="background:#F5C518"></div></div>
+              <div class="mb-row"><span class="mb-name">Carbos</span><span class="mb-val" id="l-cho">0 / 0 g</span></div>
+              <div class="mb-track"><div class="mb-fill" id="mb-cho" style="background:#34C759"></div></div>
+              <div class="mb-row"><span class="mb-name">Grasas</span><span class="mb-val" id="l-fat">0 / 0 g</span></div>
+              <div class="mb-track"><div class="mb-fill" id="mb-fat" style="background:#FF9500"></div></div>
             </div>
           </div>
 
@@ -1452,8 +1440,8 @@
 
 </div><!-- /phone -->
 
-<script src="firebase.js?v=81"></script>
-<script src="app.js?v=81"></script>
+<script src="firebase.js?v=82"></script>
+<script src="app.js?v=82"></script>
 
 </body>
 </html>

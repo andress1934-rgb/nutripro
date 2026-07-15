@@ -1029,28 +1029,32 @@ html, body {
 /* Calorie ring card */
 .cal-ring-card {
   background: var(--card); border-radius: var(--r);
-  padding: 20px; margin-bottom: 16px;
-  display: flex; align-items: center; gap: 18px;
+  padding: 18px 20px 20px; margin-bottom: 16px;
   box-shadow: var(--shadow-s);
 }
-.donut-wrap { position: relative; width: 112px; height: 112px; flex-shrink: 0; }
-.donut-wrap svg { width: 112px; height: 112px; transform: rotate(-90deg); }
-.donut-center {
-  position: absolute; inset: 0;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 2px;
+/* Medidor tipo gauge con rango meta */
+.gauge-wrap { position: relative; width: 100%; max-width: 260px; margin: 0 auto 4px; }
+.gauge-svg { width: 100%; display: block; }
+.gauge-track { stroke: rgba(128,128,128,.18); }
+#gauge-fill { transition: stroke-dashoffset 1s cubic-bezier(.16,1,.3,1); }
+.gauge-center {
+  position: absolute; left: 0; right: 0; top: 46%;
+  display: flex; flex-direction: column; align-items: center;
 }
-.donut-kcal { font-size: 21px; font-weight: 900; color: var(--dark); line-height: 1; }
-.donut-sub { font-size: 9px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
-
-.cal-ring-info { flex: 1; min-width: 0; }
-.cal-ring-title { font-size: 12px; font-weight: 700; color: var(--mid); margin-bottom: 10px; letter-spacing: .04em; text-transform: uppercase; }
-.macro-mini-row { display: flex; align-items: center; gap: 7px; margin-bottom: 9px; }
-.macro-mini-dot { width: 7px; height: 7px; border-radius: 2px; flex-shrink: 0; }
-.macro-mini-name { font-size: 11px; font-weight: 600; color: var(--mid); width: 44px; flex-shrink: 0; }
-.macro-mini-val { font-size: 12px; font-weight: 800; color: var(--dark); }
-.macro-mini-track { flex: 1; height: 6px; background: rgba(128,128,128,.15); border-radius: 4px; overflow: hidden; transition: background .3s; }
-.macro-mini-fill { height: 100%; border-radius: 4px; transition: width 1s cubic-bezier(.16,1,.3,1); }
+.gauge-kcal b { font-size: 32px; font-weight: 900; color: var(--dark); line-height: 1; }
+.gauge-sub { font-size: 12px; font-weight: 600; color: var(--muted); margin-top: 2px; }
+.gauge-range {
+  position: absolute; left: 4%; right: 4%; bottom: 6px;
+  display: flex; justify-content: space-between;
+  font-size: 11px; font-weight: 700; color: var(--muted);
+}
+.cal-ring-title { font-size: 12px; font-weight: 700; color: var(--mid); margin: 4px 0 12px; letter-spacing: .04em; text-transform: uppercase; text-align: center; }
+.macro-bars { display: flex; flex-direction: column; gap: 3px; }
+.mb-row { display: flex; justify-content: space-between; align-items: baseline; margin-top: 6px; }
+.mb-name { font-size: 12.5px; font-weight: 600; color: var(--mid); }
+.mb-val { font-size: 12.5px; font-weight: 800; color: var(--dark); }
+.mb-track { height: 7px; background: rgba(128,128,128,.15); border-radius: 4px; overflow: hidden; margin-bottom: 2px; }
+.mb-fill { height: 100%; width: 0; border-radius: 4px; transition: width 1s cubic-bezier(.16,1,.3,1); }
 
 /* Sec head */
 .sec-head { display: flex; align-items: center; justify-content: space-between; margin: 20px 0 12px; }

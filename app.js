@@ -1128,24 +1128,23 @@ function updateConsumedUI() {
   const pp = pct(t.p, S.prot), pc = pct(t.c, S.cho), pf = pct(t.g, S.fat);
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
 
-  /* Dashboard: centro del anillo y arcos por macro */
+  /* Dashboard: medidor de calorías con rango meta (±10% del objetivo) */
+  const target = S.tdee || 0;
   set('ring-kcal', Math.round(t.kcal).toLocaleString('es'));
-  set('ring-kcal-sub', S.tdee ? 'de ' + S.tdee.toLocaleString('es') : 'kcal');
-  const CIRC = 251.3;
-  const ring = (id, p) => {
-    const el = document.getElementById(id);
-    if (el) el.style.strokeDashoffset = (CIRC * (1 - p / 100)).toFixed(1);
-  };
-  ring('ring-prot', pp); ring('ring-cho', pc); ring('ring-fat2', pf);
+  set('ring-kcal-sub', '/ ' + (target ? target.toLocaleString('es') : '—') + ' kcal');
+  set('gauge-lo', target ? Math.round(target * 0.9).toLocaleString('es') : '');
+  set('gauge-hi', target ? Math.round(target * 1.1).toLocaleString('es') : '');
+  const ARC = 251.3;
+  const kcalPct = pct(t.kcal, target);
+  const gf = document.getElementById('gauge-fill');
+  if (gf) gf.style.strokeDashoffset = (ARC * (1 - kcalPct / 100)).toFixed(1);
 
-  /* Dashboard: filas mini de macros */
-  set('l-prot', Math.round(t.p) + 'g');
-  set('l-cho',  Math.round(t.c) + 'g');
-  set('l-fat',  Math.round(t.g) + 'g');
-  const minis = document.querySelectorAll('#s-dash .macro-mini-fill');
-  if (minis[0]) minis[0].style.width = pp + '%';
-  if (minis[1]) minis[1].style.width = pc + '%';
-  if (minis[2]) minis[2].style.width = pf + '%';
+  /* Dashboard: macros como barras "consumido / objetivo" */
+  set('l-prot', Math.round(t.p) + ' / ' + Math.round(S.prot || 0) + ' g');
+  set('l-cho',  Math.round(t.c) + ' / ' + Math.round(S.cho  || 0) + ' g');
+  set('l-fat',  Math.round(t.g) + ' / ' + Math.round(S.fat  || 0) + ' g');
+  const dpb = (id, p) => { const el = document.getElementById(id); if (el) el.style.width = p + '%'; };
+  dpb('mb-prot', pp); dpb('mb-cho', pc); dpb('mb-fat', pf);
 
   /* Tab Macros: consumidos + barras de progreso */
   set('mn-prot', Math.round(t.p));
