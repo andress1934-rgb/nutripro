@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=82">
+  <link rel="stylesheet" href="styles.css?v=83">
 
   <!-- Aplica tema ANTES del primer render para evitar flash de color incorrecto -->
   <script>
@@ -471,19 +471,21 @@
       <div class="results-check">✓</div>
       <div class="results-title">...y así será tu progreso</div>
       <div class="weight-chart-wrap">
-        <div class="weight-chart-labels">
-          <span id="chart-start-weight">70 kg</span>
-          <span id="chart-end-weight">65 kg</span>
+        <div class="prog-toplabels">
+          <span>Hoy</span>
+          <span>Tu meta 🏆</span>
         </div>
-        <svg class="weight-chart-svg" viewBox="0 0 300 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <polygon points="0,10 60,20 120,45 180,70 240,90 300,110 300,120 0,120" fill="rgba(245,197,24,0.2)"/>
-          <polyline points="0,10 60,20 120,45 180,70 240,90 300,110" stroke="#F5C518" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle cx="0" cy="10" r="5" fill="#F5C518"/>
-          <circle cx="300" cy="110" r="5" fill="#34C759"/>
+        <svg class="weight-chart-svg" viewBox="0 0 300 132" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs><linearGradient id="progGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(244,199,90,.30)"/><stop offset="1" stop-color="rgba(244,199,90,0)"/></linearGradient></defs>
+          <polygon id="prog-area" points="0,28 60,34 120,51 180,73 240,90 300,96 300,132 0,132" fill="url(#progGrad)"/>
+          <polyline id="prog-line" points="0,28 60,34 120,51 180,73 240,90 300,96" stroke="#F4C75A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle id="prog-start" cx="0" cy="28" r="5" fill="#8a877f"/>
+          <circle id="prog-end" cx="300" cy="96" r="6.5" fill="#F4C75A"/>
+          <text id="prog-trophy" x="288" y="82" font-size="17" text-anchor="middle">🏆</text>
         </svg>
-        <div class="weight-chart-labels" style="margin-top:8px">
-          <span style="color:var(--muted);font-size:11px">Hoy</span>
-          <span style="color:var(--green);font-size:11px;font-weight:700">Meta</span>
+        <div class="prog-badges">
+          <div class="prog-badge"><b id="chart-start-weight">70 kg</b><small>Peso actual</small></div>
+          <div class="prog-badge gold"><b id="chart-end-weight">65 kg</b><small>Objetivo</small></div>
         </div>
       </div>
       <div class="dot-indicators"><div class="dot-ind" onclick="goScreen('s-results')"></div><div class="dot-ind active" onclick="goScreen('s-progress-preview')"></div></div>
@@ -1440,8 +1442,8 @@
 
 </div><!-- /phone -->
 
-<script src="firebase.js?v=82"></script>
-<script src="app.js?v=82"></script>
+<script src="firebase.js?v=83"></script>
+<script src="app.js?v=83"></script>
 
 </body>
 </html>

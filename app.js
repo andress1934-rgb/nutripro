@@ -366,6 +366,7 @@ function goScreen(id) {
   /* Al llegar a "Personaliza tu objetivo": si no eligió peso objetivo, se usa
      un valor sugerido y se habilita el botón — antes quedaba gris sin aviso y
      el usuario no sabía por qué no podía continuar (auditoría v58) */
+  if (id === 's-progress-preview') renderProgressChart();
   if (id === 's-personalize' && (S.pesoObj == null)) {
     S.pesoObj = Math.round(+S.peso || 65);
     const dpo = document.getElementById('display-peso-obj');
@@ -889,8 +890,40 @@ function setPesoObj() {
   const ew = document.getElementById('chart-end-weight');
   if (sw) sw.textContent = S.peso + ' kg';
   if (ew) ew.textContent = val + ' kg';
+  renderProgressChart();
   closeSheet();
   saveState();
+}
+
+/* Gráfico "así será tu progreso": la curva refleja la dirección real de la
+   meta (bajar/subir/mantener) usando el peso actual y el objetivo del usuario
+   — datos propios, sin cifras inventadas. */
+function renderProgressChart() {
+  const line = document.getElementById('prog-line');
+  const area = document.getElementById('prog-area');
+  const cs = document.getElementById('prog-start');
+  const ce = document.getElementById('prog-end');
+  const tro = document.getElementById('prog-trophy');
+  if (!line) return;
+  const start = +S.peso || 70, goal = +S.pesoObj || start;
+  let y0, y1;
+  if (goal < start)      { y0 = 28; y1 = 96; }   /* perder: baja */
+  else if (goal > start) { y0 = 96; y1 = 28; }   /* ganar: sube */
+  else                   { y0 = 58; y1 = 58; }   /* mantener: plano */
+  const xs = [0, 60, 120, 180, 240, 300];
+  const pts = xs.map((x, i) => {
+    const t = i / 5, e = t * t * (3 - 2 * t);     /* smoothstep */
+    return x + ',' + (y0 + (y1 - y0) * e).toFixed(1);
+  });
+  line.setAttribute('points', pts.join(' '));
+  area.setAttribute('points', pts.join(' ') + ' 300,132 0,132');
+  cs.setAttribute('cy', y0);
+  ce.setAttribute('cy', y1);
+  if (tro) tro.setAttribute('y', (y1 - 14).toFixed(1));
+  const sw = document.getElementById('chart-start-weight');
+  const ew = document.getElementById('chart-end-weight');
+  if (sw) sw.textContent = start + ' kg';
+  if (ew) ew.textContent = goal + ' kg';
 }
 
 /* ══ RESET PROFILE ══ */
