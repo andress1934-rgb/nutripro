@@ -273,6 +273,11 @@ document.addEventListener('DOMContentLoaded', () => {
     it.classList.remove('nav-pulse'); void it.offsetWidth; it.classList.add('nav-pulse');
   }));
 
+  /* Deslizar entre Resultados ↔ "así será tu progreso" (los 2 puntitos son
+     páginas): swipe izquierda = siguiente, derecha = anterior. Sin tocar Continuar. */
+  _enableSwipeNav('s-results', 's-progress-preview', null);
+  _enableSwipeNav('s-progress-preview', 's-mealplan-intro', 's-results');
+
   /* Pre-construir el mapa corporal: los PNG se decodifican mientras el
      usuario sigue en el splash/dashboard y el tab Entreno abre instantáneo */
   initBodyMap();
@@ -895,6 +900,25 @@ function setPesoObj() {
   saveState();
 }
 
+/* Deslizar horizontal entre dos pantallas del onboarding sin tocar botones.
+   leftTarget = a dónde ir al deslizar a la IZQUIERDA (siguiente);
+   rightTarget = al deslizar a la DERECHA (anterior). */
+function _enableSwipeNav(screenId, leftTarget, rightTarget) {
+  const el = document.getElementById(screenId);
+  if (!el) return;
+  let x0 = null, y0 = null;
+  el.addEventListener('touchstart', e => { const t = e.touches[0]; x0 = t.clientX; y0 = t.clientY; }, { passive: true });
+  el.addEventListener('touchend', e => {
+    if (x0 === null) return;
+    const t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0;
+    x0 = null;
+    /* Solo swipe claramente horizontal (no interferir con el scroll vertical) */
+    if (Math.abs(dx) < 55 || Math.abs(dx) < Math.abs(dy) * 1.4) return;
+    if (dx < 0 && leftTarget) goScreen(leftTarget);
+    else if (dx > 0 && rightTarget) goScreen(rightTarget);
+  }, { passive: true });
+}
+
 /* Gráfico "así será tu progreso": la curva refleja la dirección real de la
    meta (bajar/subir/mantener) usando el peso actual y el objetivo del usuario
    — datos propios, sin cifras inventadas. */
@@ -906,15 +930,18 @@ function renderProgressChart() {
   const tro = document.getElementById('prog-trophy');
   if (!line) return;
   const start = +S.peso || 70, goal = +S.pesoObj || start;
-  let y0, y1;
-  if (goal < start)      { y0 = 28; y1 = 96; }   /* perder: baja */
-  else if (goal > start) { y0 = 96; y1 = 28; }   /* ganar: sube */
-  else                   { y0 = 58; y1 = 58; }   /* mantener: plano */
   const xs = [0, 60, 120, 180, 240, 300];
-  const pts = xs.map((x, i) => {
-    const t = i / 5, e = t * t * (3 - 2 * t);     /* smoothstep */
-    return x + ',' + (y0 + (y1 - y0) * e).toFixed(1);
-  });
+  let y0, y1, ys;
+  if (goal === start) {
+    /* mantener: onda suave que vuelve al mismo nivel (estable, no línea muerta) */
+    y0 = 58; y1 = 58;
+    ys = [58, 50, 62, 52, 60, 58];
+  } else {
+    if (goal < start) { y0 = 28; y1 = 96; }       /* perder: baja */
+    else              { y0 = 96; y1 = 28; }       /* ganar: sube */
+    ys = xs.map((x, i) => { const t = i / 5, e = t * t * (3 - 2 * t); return y0 + (y1 - y0) * e; });
+  }
+  const pts = xs.map((x, i) => x + ',' + ys[i].toFixed(1));
   line.setAttribute('points', pts.join(' '));
   area.setAttribute('points', pts.join(' ') + ' 300,132 0,132');
   cs.setAttribute('cy', y0);
