@@ -159,8 +159,8 @@ html, body {
 /* Círculo verde que se expande y contrae (transición a pantallas de éxito) */
 @keyframes greenRingExpand {
   0%   { transform: scale(0); opacity: 1; }
-  60%  { transform: scale(12); opacity: 1; }
-  100% { transform: scale(12); opacity: 0; }
+  55%  { transform: scale(20); opacity: 1; }   /* ×20 cubre esquinas de pantallas altas */
+  100% { transform: scale(20); opacity: 0; }
 }
 
 /* Anillos que pulsan hacia afuera en los iconos grandes */

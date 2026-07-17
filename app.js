@@ -371,6 +371,7 @@ function goScreen(id) {
   /* Al llegar a "Personaliza tu objetivo": si no eligió peso objetivo, se usa
      un valor sugerido y se habilita el botón — antes quedaba gris sin aviso y
      el usuario no sabía por qué no podía continuar (auditoría v58) */
+  if (id === 's-results') animateResultsChart();
   if (id === 's-progress-preview') renderProgressChart();
   if (id === 's-personalize' && (S.pesoObj == null)) {
     S.pesoObj = Math.round(+S.peso || 65);
@@ -917,6 +918,28 @@ function _enableSwipeNav(screenId, leftTarget, rightTarget) {
     if (dx < 0 && leftTarget) goScreen(leftTarget);
     else if (dx > 0 && rightTarget) goScreen(rightTarget);
   }, { passive: true });
+}
+
+/* Anima el gráfico de resultados: la línea se dibuja desde 0 (izquierda)
+   subiendo, en vez de aparecer estática. */
+function animateResultsChart() {
+  const line = document.getElementById('res-chart-line');
+  const area = document.getElementById('res-chart-area');
+  if (!line) return;
+  const len = line.getTotalLength ? line.getTotalLength() : 300;
+  line.style.transition = 'none';
+  line.style.strokeDasharray = len;
+  line.style.strokeDashoffset = len;
+  if (area) { area.style.transition = 'none'; area.style.opacity = '0'; }
+  /* reflow para reiniciar la animación */
+  void line.getBoundingClientRect();
+  /* setTimeout (no requestAnimationFrame): rAF se pausa en tabs en segundo
+     plano; setTimeout dispara igual y la animación arranca siempre. */
+  setTimeout(() => {
+    line.style.transition = 'stroke-dashoffset 1.1s cubic-bezier(.16,1,.3,1)';
+    line.style.strokeDashoffset = '0';
+    if (area) { area.style.transition = 'opacity .9s ease .25s'; area.style.opacity = '1'; }
+  }, 40);
 }
 
 /* Gráfico "así será tu progreso": la curva refleja la dirección real de la
