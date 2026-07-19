@@ -276,7 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
   /* Deslizar entre Resultados ↔ "así será tu progreso" (los 2 puntitos son
      páginas): swipe izquierda = siguiente, derecha = anterior. Sin tocar Continuar. */
   _enableSwipeNav('s-results', 's-progress-preview', null);
-  _enableSwipeNav('s-progress-preview', 's-mealplan-intro', 's-results');
+  _enableSwipeNav('s-progress-preview', 's-notifications', 's-results');
 
   /* Pre-construir el mapa corporal: los PNG se decodifican mientras el
      usuario sigue en el splash/dashboard y el tab Entreno abre instantáneo */
@@ -354,8 +354,7 @@ const SCREEN_ORDER = [
   's-boot','s-offline','s-login',
   's-welcome','s-goal','s-calorie-intro','s-profile',
   's-activity','s-lifestyle','s-diet','s-personalize','s-results',
-  's-progress-preview','s-mealplan-intro','s-meals-count',
-  's-foods','s-notifications',
+  's-progress-preview','s-notifications',
   's-register','s-app'
 ];
 
@@ -709,25 +708,6 @@ function selActivity(el, val, label) {
   el.classList.add('sel');
   actVal = val; S.act = val;
   setTimeout(() => goScreen('s-lifestyle'), 280);
-}
-
-function toggleCheck(el) {
-  el.classList.toggle('checked');
-  const circle = el.querySelector('.check-circle');
-  if (circle) circle.textContent = el.classList.contains('checked') ? '✓' : '';
-}
-
-/* ══ FOOD CHIPS ══ */
-function toggleChip(el) {
-  el.classList.toggle('sel');
-}
-
-function selectAllChips(btn) {
-  const grid = btn.closest('.chips-section-head').nextElementSibling;
-  const chips = grid.querySelectorAll('.food-chip');
-  const allSel = Array.from(chips).every(c => c.classList.contains('sel'));
-  chips.forEach(c => allSel ? c.classList.remove('sel') : c.classList.add('sel'));
-  btn.textContent = allSel ? 'Seleccionar todo' : 'Deseleccionar todo';
 }
 
 /* ══ BOTTOM SHEET MODALS ══ */

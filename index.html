@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=85">
+  <link rel="stylesheet" href="styles.css?v=86">
 
   <!-- Aplica tema ANTES del primer render para evitar flash de color incorrecto -->
   <script>
@@ -491,242 +491,6 @@
       </div>
       <div class="dot-indicators"><div class="dot-ind" onclick="goScreen('s-results')"></div><div class="dot-ind active" onclick="goScreen('s-progress-preview')"></div></div>
     </div>
-    <button class="btn-yellow" onclick="goScreen('s-mealplan-intro')">Continuar</button>
-    <div style="height:8px"></div>
-  </div>
-
-  <!-- ═══ 12. S-MEALPLAN-INTRO ═══ -->
-  <div class="screen" id="s-mealplan-intro">
-    <div class="ob-top" style="padding-bottom:0">
-      <button class="ob-back" onclick="goScreen('s-progress-preview')">←</button>
-    </div>
-    <div class="centered-screen">
-      <div class="pulse-ring-wrap" style="margin-bottom:36px">
-        <div class="pulse-ring"></div>
-        <div class="pulse-ring"></div>
-        <div class="pulse-ring"></div>
-        <div class="big-ring-peach" style="position:relative;z-index:1"><span class="anim-emoji">📋</span></div>
-      </div>
-      <div class="centered-title">Ahora, personalicemos tu plan de comidas para alcanzar tus calorías diarias</div>
-    </div>
-    <button class="btn-yellow" onclick="goScreen('s-meals-count')">Continuar</button>
-    <div style="height:32px"></div>
-  </div>
-
-  <!-- ═══ 13. S-MEALS-COUNT ═══ -->
-  <div class="screen" id="s-meals-count" style="overflow:hidden">
-    <div class="ob-top">
-      <button class="ob-back" onclick="goScreen('s-mealplan-intro')">←</button>
-    </div>
-    <div class="ob-progress" style="margin-top:12px">
-      <div class="ob-progress-fill" style="width:100%"></div>
-    </div>
-    <div class="ob-body">
-      <div class="ob-icon-circle" style="margin-bottom:16px">🍽️</div>
-      <div class="ob-title">¿Cuántas comidas al día deseas?</div>
-      <div class="ob-sub">Elige al menos 2 comidas principales</div>
-
-      <div class="check-row checked" onclick="toggleCheck(this)">
-        <div class="check-circle">✓</div>
-        <div>
-          <div class="check-row-label">Desayuno</div>
-          <div class="check-row-sub">Principal</div>
-        </div>
-      </div>
-      <div class="check-row checked" onclick="toggleCheck(this)">
-        <div class="check-circle">✓</div>
-        <div>
-          <div class="check-row-label">Almuerzo</div>
-          <div class="check-row-sub">Principal</div>
-        </div>
-      </div>
-      <div class="check-row checked" onclick="toggleCheck(this)">
-        <div class="check-circle">✓</div>
-        <div>
-          <div class="check-row-label">Cena</div>
-          <div class="check-row-sub">Principal</div>
-        </div>
-      </div>
-      <div class="check-row checked" onclick="toggleCheck(this)">
-        <div class="check-circle">✓</div>
-        <div>
-          <div class="check-row-label">Snacks</div>
-          <div class="check-row-sub">Opcional</div>
-        </div>
-      </div>
-      <div class="ob-footnote" style="text-align:left;margin:8px 0 20px">No te preocupes, luego lo puedes cambiar</div>
-    </div>
-    <button class="btn-yellow" onclick="goScreen('s-foods')">Continuar</button>
-    <div style="height:8px"></div>
-  </div>
-
-  <!-- ═══ 15. S-FOODS ═══ -->
-  <div class="screen" id="s-foods" style="overflow:hidden">
-    <div class="ob-top">
-      <button class="ob-back" onclick="goScreen('s-meals-count')">←</button>
-    </div>
-    <div class="ob-progress" style="margin-top:12px">
-      <div class="ob-progress-fill" style="width:100%"></div>
-    </div>
-    <div class="ob-body">
-      <div class="ob-icon-circle" style="margin-bottom:16px">🍎</div>
-      <div class="ob-title">Selecciona tus alimentos disponibles</div>
-      <div class="ob-sub">Tu plan depende de tus elecciones</div>
-
-      <!-- Proteínas -->
-      <div class="chips-section-head">
-        <div class="chips-section-title">Proteínas</div>
-        <div class="chips-select-all" onclick="selectAllChips(this)">Seleccionar todo</div>
-      </div>
-      <div class="chips-grid">
-        <div class="food-chip" onclick="toggleChip(this)">🍗 Pollo</div>
-        <div class="food-chip" onclick="toggleChip(this)">🥩 Carne</div>
-        <div class="food-chip" onclick="toggleChip(this)">🐟 Pescado</div>
-        <div class="food-chip" onclick="toggleChip(this)">🐠 Atún</div>
-        <div class="food-chip" onclick="toggleChip(this)">🦐 Camarones</div>
-        <div class="food-chip" onclick="toggleChip(this)">🥚 Huevo</div>
-        <div class="food-chip" onclick="toggleChip(this)">🦃 Pavo</div>
-        <div class="food-chip" onclick="toggleChip(this)">🐷 Cerdo</div>
-        <div class="food-chip" onclick="toggleChip(this)">🍖 Jamón</div>
-        <div class="food-chip" onclick="toggleChip(this)">🫘 Tofu</div>
-        <div class="food-chip" onclick="toggleChip(this)">🌿 Carne De Soya</div>
-        <div class="food-chip" onclick="toggleChip(this)">🍄 Tempeh</div>
-        <div class="food-chip" onclick="toggleChip(this)">🌾 Seitán</div>
-        <div class="food-chip" onclick="toggleChip(this)">💪 Proteína En Polvo</div>
-      </div>
-
-      <!-- Carbohidratos -->
-      <div class="chips-section-head">
-        <div class="chips-section-title">Carbohidratos</div>
-        <div class="chips-select-all" onclick="selectAllChips(this)">Seleccionar todo</div>
-      </div>
-      <div class="chips-grid">
-        <div class="food-chip" onclick="toggleChip(this)">🍚 Arroz</div>
-        <div class="food-chip" onclick="toggleChip(this)">🥔 Papa</div>
-        <div class="food-chip" onclick="toggleChip(this)">🍠 Camote</div>
-        <div class="food-chip" onclick="toggleChip(this)">🌿 Yuca</div>
-        <div class="food-chip" onclick="toggleChip(this)">🫘 Lentejas</div>
-        <div class="food-chip" onclick="toggleChip(this)">🫘 Frijoles</div>
-        <div class="food-chip" onclick="toggleChip(this)">🫘 Garbanzos</div>
-        <div class="food-chip" onclick="toggleChip(this)">🌱 Arvejas</div>
-        <div class="food-chip" onclick="toggleChip(this)">🌾 Quinua</div>
-        <div class="food-chip" onclick="toggleChip(this)">🍝 Pasta</div>
-        <div class="food-chip" onclick="toggleChip(this)">🌽 Choclo</div>
-        <div class="food-chip" onclick="toggleChip(this)">🍿 Canguil</div>
-        <div class="food-chip" onclick="toggleChip(this)">🌾 Avena</div>
-        <div class="food-chip" onclick="toggleChip(this)">🍞 Pan</div>
-        <div class="food-chip" onclick="toggleChip(this)">🫓 Tortilla</div>
-        <div class="food-chip" onclick="toggleChip(this)">🥣 Cereal</div>
-      </div>
-
-      <!-- Grasas -->
-      <div class="chips-section-head">
-        <div class="chips-section-title">Grasas</div>
-        <div class="chips-select-all" onclick="selectAllChips(this)">Seleccionar todo</div>
-      </div>
-      <div class="chips-grid">
-        <div class="food-chip" onclick="toggleChip(this)">🥑 Aguacate</div>
-        <div class="food-chip" onclick="toggleChip(this)">🥜 Maní</div>
-        <div class="food-chip" onclick="toggleChip(this)">🥜 Mantequilla De Maní</div>
-        <div class="food-chip" onclick="toggleChip(this)">🌰 Almendras</div>
-        <div class="food-chip" onclick="toggleChip(this)">🌰 Nueces Pecanas</div>
-        <div class="food-chip" onclick="toggleChip(this)">🥜 Marañón</div>
-        <div class="food-chip" onclick="toggleChip(this)">🌰 Nueces</div>
-        <div class="food-chip" onclick="toggleChip(this)">🫒 Aceitunas</div>
-        <div class="food-chip" onclick="toggleChip(this)">🌱 Chía</div>
-        <div class="food-chip" onclick="toggleChip(this)">🍫 Chocolate</div>
-      </div>
-
-      <!-- Frutas -->
-      <div class="chips-section-head">
-        <div class="chips-section-title">Frutas</div>
-        <div class="chips-select-all" onclick="selectAllChips(this)">Seleccionar todo</div>
-      </div>
-      <div class="chips-grid">
-        <div class="food-chip" onclick="toggleChip(this)">🍌 Banano</div>
-        <div class="food-chip" onclick="toggleChip(this)">🍓 Fresas</div>
-        <div class="food-chip" onclick="toggleChip(this)">🍎 Manzana</div>
-        <div class="food-chip" onclick="toggleChip(this)">🫐 Arándanos</div>
-        <div class="food-chip" onclick="toggleChip(this)">🍍 Piña</div>
-        <div class="food-chip" onclick="toggleChip(this)">🍈 Papaya</div>
-        <div class="food-chip" onclick="toggleChip(this)">🍊 Mandarina</div>
-        <div class="food-chip" onclick="toggleChip(this)">🍊 Naranja</div>
-        <div class="food-chip" onclick="toggleChip(this)">🥝 Kiwi</div>
-        <div class="food-chip" onclick="toggleChip(this)">🥭 Mango</div>
-        <div class="food-chip" onclick="toggleChip(this)">🍉 Sandía</div>
-        <div class="food-chip" onclick="toggleChip(this)">🍐 Pera</div>
-        <div class="food-chip" onclick="toggleChip(this)">🍑 Durazno</div>
-        <div class="food-chip" onclick="toggleChip(this)">🍇 Uvas</div>
-        <div class="food-chip" onclick="toggleChip(this)">🌺 Granadilla</div>
-        <div class="food-chip" onclick="toggleChip(this)">🍈 Melón</div>
-        <div class="food-chip" onclick="toggleChip(this)">🌴 Dátiles</div>
-        <div class="food-chip" onclick="toggleChip(this)">🐉 Pitahaya</div>
-      </div>
-
-      <!-- Verduras -->
-      <div class="chips-section-head">
-        <div class="chips-section-title">Verduras</div>
-        <div class="chips-select-all" onclick="selectAllChips(this)">Seleccionar todo</div>
-      </div>
-      <div class="chips-grid">
-        <div class="food-chip" onclick="toggleChip(this)">🥬 Lechuga</div>
-        <div class="food-chip" onclick="toggleChip(this)">🍅 Tomate</div>
-        <div class="food-chip" onclick="toggleChip(this)">🥦 Brócoli</div>
-        <div class="food-chip" onclick="toggleChip(this)">🥕 Zanahoria</div>
-        <div class="food-chip" onclick="toggleChip(this)">🌿 Espinaca</div>
-        <div class="food-chip" onclick="toggleChip(this)">🧅 Cebolla</div>
-        <div class="food-chip" onclick="toggleChip(this)">🥒 Pepino</div>
-        <div class="food-chip" onclick="toggleChip(this)">🥒 Calabacín</div>
-        <div class="food-chip" onclick="toggleChip(this)">🥬 Repollo</div>
-        <div class="food-chip" onclick="toggleChip(this)">🌿 Acelga</div>
-        <div class="food-chip" onclick="toggleChip(this)">🌱 Espárrago</div>
-        <div class="food-chip" onclick="toggleChip(this)">🌿 Apio</div>
-        <div class="food-chip" onclick="toggleChip(this)">🌿 Cebollín</div>
-        <div class="food-chip" onclick="toggleChip(this)">🌸 Alcachofa</div>
-        <div class="food-chip" onclick="toggleChip(this)">🌿 Albahaca</div>
-        <div class="food-chip" onclick="toggleChip(this)">🥦 Coliflor</div>
-        <div class="food-chip" onclick="toggleChip(this)">🎃 Zapallo</div>
-        <div class="food-chip" onclick="toggleChip(this)">🫑 Pimiento</div>
-        <div class="food-chip" onclick="toggleChip(this)">🌿 Vainitas</div>
-        <div class="food-chip" onclick="toggleChip(this)">🫜 Remolacha</div>
-        <div class="food-chip" onclick="toggleChip(this)">🌶️ Rábano</div>
-        <div class="food-chip" onclick="toggleChip(this)">🍆 Berenjena</div>
-        <div class="food-chip" onclick="toggleChip(this)">🍄 Champiñones</div>
-      </div>
-
-      <!-- Bebidas y Lácteos -->
-      <div class="chips-section-head">
-        <div class="chips-section-title">Bebidas y Lácteos</div>
-        <div class="chips-select-all" onclick="selectAllChips(this)">Seleccionar todo</div>
-      </div>
-      <div class="chips-grid">
-        <div class="food-chip" onclick="toggleChip(this)">🥛 Leche</div>
-        <div class="food-chip" onclick="toggleChip(this)">🥛 Yogurt</div>
-        <div class="food-chip" onclick="toggleChip(this)">🧀 Queso Blanco</div>
-        <div class="food-chip" onclick="toggleChip(this)">🧀 Queso Amarillo</div>
-        <div class="food-chip" onclick="toggleChip(this)">🌰 Bebida De Almendras</div>
-        <div class="food-chip" onclick="toggleChip(this)">🌿 Bebida De Soya</div>
-        <div class="food-chip" onclick="toggleChip(this)">🥥 Bebida De Coco</div>
-      </div>
-
-      <!-- Condimentos -->
-      <div class="chips-section-head">
-        <div class="chips-section-title">Condimentos</div>
-        <div class="chips-select-all" onclick="selectAllChips(this)">Seleccionar todo</div>
-      </div>
-      <div class="chips-grid">
-        <div class="food-chip" onclick="toggleChip(this)">🌭 Mostaza</div>
-        <div class="food-chip" onclick="toggleChip(this)">🍶 Salsa De Soya</div>
-        <div class="food-chip" onclick="toggleChip(this)">🍅 Salsa De Tomate</div>
-        <div class="food-chip" onclick="toggleChip(this)">🌶️ Pimentón</div>
-        <div class="food-chip" onclick="toggleChip(this)">🌿 Canela</div>
-        <div class="food-chip" onclick="toggleChip(this)">🌿 Cúrcuma</div>
-        <div class="food-chip" onclick="toggleChip(this)">🍫 Cacao En Polvo</div>
-        <div class="food-chip" onclick="toggleChip(this)">🌿 Curry</div>
-      </div>
-
-      <div style="height:24px"></div>
-    </div>
     <button class="btn-yellow" onclick="goScreen('s-notifications')">Continuar</button>
     <div style="height:8px"></div>
   </div>
@@ -734,7 +498,7 @@
   <!-- ═══ 19. S-NOTIFICATIONS ═══ -->
   <div class="screen" id="s-notifications" style="overflow:hidden">
     <div class="ob-top">
-      <button class="ob-back-circle" onclick="goScreen('s-foods')">←</button>
+      <button class="ob-back-circle" onclick="goScreen('s-progress-preview')">←</button>
     </div>
     <div class="ob-body">
       <div class="ob-icon-circle" style="margin-bottom:16px;width:56px;height:56px;font-size:28px">🔔</div>
@@ -1443,8 +1207,8 @@
 
 </div><!-- /phone -->
 
-<script src="firebase.js?v=85"></script>
-<script src="app.js?v=85"></script>
+<script src="firebase.js?v=86"></script>
+<script src="app.js?v=86"></script>
 
 </body>
 </html>
