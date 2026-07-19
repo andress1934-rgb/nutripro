@@ -204,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const coachSec = document.getElementById('drawer-coach-sec');
         if (coachSec) coachSec.style.display = 'none';
         if (_currentScreenId === 's-boot') {
-          goScreen(navigator.onLine ? 's-login' : 's-offline');
+          _resumeOnboardingOrLogin();
         } else if (_currentScreenId === 's-app') {
           /* Sesión revocada remotamente (token, cambio de contraseña, cuenta
              deshabilitada). Limpiar estado + localStorage antes de ir a login:
@@ -225,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (typeof prev.waterFilled === 'number') waterFilled = prev.waterFilled;
       enterApp();
     } else {
-      goScreen(navigator.onLine ? 's-login' : 's-offline');
+      _resumeOnboardingOrLogin();
     }
   }
   /* Red de seguridad: si Firebase nunca responde (CDN caído, red muerta),
@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (typeof prev.waterFilled === 'number') waterFilled = prev.waterFilled;
       enterApp();
     } else {
-      goScreen(navigator.onLine ? 's-login' : 's-offline');
+      _resumeOnboardingOrLogin();
     }
   }, 7000);
 
@@ -353,13 +353,52 @@ let currentTab = 'dash';
 const SCREEN_ORDER = [
   's-boot','s-offline','s-login',
   's-welcome','s-goal','s-calorie-intro','s-profile',
-  's-activity','s-lifestyle','s-diet','s-personalize','s-results',
+  's-activity','s-diet','s-personalize','s-results',
   's-progress-preview','s-notifications',
   's-register','s-app'
 ];
 
 /* Pantallas que disparan el flash verde al entrar */
 const SUCCESS_SCREENS = new Set(['s-results','s-progress-preview']);
+
+/* ── Borrador del onboarding (autoguardado, v87) ──
+   Antes de crear la cuenta no hay sesión Firebase, así que saveState() no
+   corre (solo se activa con S.onboarded=true) → recargar a mitad de registro
+   perdía todo sin aviso. Este borrador SOLO vive en localStorage de este
+   dispositivo (nunca sale a la nube, misma privacidad de siempre) y permite
+   retomar donde quedó. */
+const DRAFT_KEY = 'nutripro-onboarding-draft';
+const DRAFT_SCREENS = new Set(['s-goal','s-calorie-intro','s-profile','s-activity','s-diet','s-personalize','s-results','s-progress-preview','s-notifications','s-register']);
+const DRAFT_FIELDS = ['peso','talla','edad','sexo','act','obj','objLabel','dietType','pesoObj'];
+function _saveOnboardingDraft(screenId) {
+  if (typeof fbCurrentUser !== 'undefined' && fbCurrentUser) return; /* ya tiene cuenta: flujo normal */
+  try {
+    const snap = { screen: screenId };
+    DRAFT_FIELDS.forEach(k => { snap[k] = S[k]; });
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(snap));
+  } catch(_) {}
+}
+function _loadOnboardingDraft() {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    const d = JSON.parse(raw);
+    return (d && d.screen && DRAFT_SCREENS.has(d.screen)) ? d : null;
+  } catch(_) { return null; }
+}
+function _clearOnboardingDraft() { try { localStorage.removeItem(DRAFT_KEY); } catch(_) {} }
+
+/* Sin sesión: retoma el registro donde quedó si hay un borrador guardado en
+   este dispositivo; si no, login (u offline sin red). */
+function _resumeOnboardingOrLogin() {
+  const draft = _loadOnboardingDraft();
+  if (draft) {
+    DRAFT_FIELDS.forEach(k => { if (draft[k] !== undefined) S[k] = draft[k]; });
+    goScreen(draft.screen);
+  } else {
+    goScreen(navigator.onLine ? 's-login' : 's-offline');
+  }
+}
 
 let _currentScreenId = 's-boot';
 
@@ -397,6 +436,7 @@ function goScreen(id) {
   }
 
   _currentScreenId = id;
+  if (DRAFT_SCREENS.has(id)) _saveOnboardingDraft(id);
 }
 
 function _showGreenFlash(callback) {
@@ -707,7 +747,7 @@ function selActivity(el, val, label) {
   document.querySelectorAll('#s-activity .opt-card').forEach(c => c.classList.remove('sel'));
   el.classList.add('sel');
   actVal = val; S.act = val;
-  setTimeout(() => goScreen('s-lifestyle'), 280);
+  setTimeout(() => goScreen('s-diet'), 280);
 }
 
 /* ══ BOTTOM SHEET MODALS ══ */
@@ -1081,6 +1121,7 @@ async function finishSetup() {
       return;
     }
   }
+  _clearOnboardingDraft();
   S.onboarded = true;
   calcMetrics();
   goScreen('s-app');

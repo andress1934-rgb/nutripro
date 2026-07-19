@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=86">
+  <link rel="stylesheet" href="styles.css?v=87">
 
   <!-- Aplica tema ANTES del primer render para evitar flash de color incorrecto -->
   <script>
@@ -157,7 +157,7 @@
       <div style="flex:1"></div>
     </div>
     <div class="ob-progress" style="margin-top:12px">
-      <div class="ob-progress-fill" style="width:12.5%"></div>
+      <div class="ob-progress-fill" style="width:20%"></div>
     </div>
     <div class="ob-body">
       <div class="ob-icon-circle" style="margin-bottom:16px">🎯</div>
@@ -213,7 +213,7 @@
       <button class="ob-back" onclick="goScreen('s-calorie-intro')">←</button>
     </div>
     <div class="ob-progress" style="margin-top:12px">
-      <div class="ob-progress-fill" style="width:37.5%"></div>
+      <div class="ob-progress-fill" style="width:40%"></div>
     </div>
     <div class="ob-body">
       <div class="ob-icon-circle" style="margin-bottom:16px">📋</div>
@@ -256,7 +256,7 @@
       <button class="ob-back" onclick="goScreen('s-profile')">←</button>
     </div>
     <div class="ob-progress" style="margin-top:12px">
-      <div class="ob-progress-fill" style="width:50%"></div>
+      <div class="ob-progress-fill" style="width:60%"></div>
     </div>
     <div class="ob-body">
       <div class="ob-icon-circle" style="margin-bottom:16px">💪</div>
@@ -286,65 +286,13 @@
     </div>
   </div>
 
-  <!-- ═══ 7. S-LIFESTYLE ═══ -->
-  <div class="screen" id="s-lifestyle" style="overflow:hidden">
+  <!-- ═══ 8. S-DIET ═══ -->
+  <div class="screen" id="s-diet" style="overflow:hidden">
     <div class="ob-top">
       <button class="ob-back" onclick="goScreen('s-activity')">←</button>
     </div>
     <div class="ob-progress" style="margin-top:12px">
-      <div class="ob-progress-fill" style="width:62.5%"></div>
-    </div>
-    <div class="ob-body">
-      <div class="ob-icon-circle" style="margin-bottom:16px">🧍</div>
-      <div class="ob-title">¿Cuál es tu estilo de vida?</div>
-      <div class="ob-sub">Solo toma en consideración tu movimiento diario, no tus entrenamientos.</div>
-
-      <div class="opt-card" onclick="selRow(this);setTimeout(()=>goScreen('s-diet'),280)">
-        <div class="opt-card-icon">🧑‍💻</div>
-        <div class="opt-card-info">
-          <div class="opt-card-title">Mayormente sentado</div>
-          <div class="opt-card-sub">Trabajo de escritorio o desde casa</div>
-        </div>
-      </div>
-      <div class="opt-card" onclick="selRow(this);setTimeout(()=>goScreen('s-diet'),280)">
-        <div class="opt-card-icon">🚶</div>
-        <div class="opt-card-info">
-          <div class="opt-card-title">A veces de pie</div>
-          <div class="opt-card-sub">Mezcla de estar sentado y moverte</div>
-        </div>
-      </div>
-      <div class="opt-card" onclick="selRow(this);setTimeout(()=>goScreen('s-diet'),280)">
-        <div class="opt-card-icon">🚶‍♂️</div>
-        <div class="opt-card-info">
-          <div class="opt-card-title">Mayormente de pie</div>
-          <div class="opt-card-sub">De pie o caminando con regularidad</div>
-        </div>
-      </div>
-      <div class="opt-card" onclick="selRow(this);setTimeout(()=>goScreen('s-diet'),280)">
-        <div class="opt-card-icon">🏃</div>
-        <div class="opt-card-info">
-          <div class="opt-card-title">En movimiento todo el día</div>
-          <div class="opt-card-sub">Trabajo físico o caminatas frecuentes</div>
-        </div>
-      </div>
-      <div class="opt-card" onclick="selRow(this);setTimeout(()=>goScreen('s-diet'),280)">
-        <div class="opt-card-icon">👷</div>
-        <div class="opt-card-info">
-          <div class="opt-card-title">Trabajo físico intenso</div>
-          <div class="opt-card-sub">Labor pesada</div>
-        </div>
-      </div>
-      <div style="height:20px"></div>
-    </div>
-  </div>
-
-  <!-- ═══ 8. S-DIET ═══ -->
-  <div class="screen" id="s-diet" style="overflow:hidden">
-    <div class="ob-top">
-      <button class="ob-back" onclick="goScreen('s-lifestyle')">←</button>
-    </div>
-    <div class="ob-progress" style="margin-top:12px">
-      <div class="ob-progress-fill" style="width:75%"></div>
+      <div class="ob-progress-fill" style="width:80%"></div>
     </div>
     <div class="ob-body">
       <div class="ob-icon-circle" style="margin-bottom:16px">🍴</div>
@@ -395,7 +343,7 @@
       <button class="ob-back" onclick="goScreen('s-diet')">←</button>
     </div>
     <div class="ob-progress" style="margin-top:12px">
-      <div class="ob-progress-fill" style="width:87.5%"></div>
+      <div class="ob-progress-fill" style="width:100%"></div>
     </div>
     <div class="ob-body">
       <div class="ob-icon-circle" style="margin-bottom:16px">✏️</div>
@@ -1207,8 +1155,8 @@
 
 </div><!-- /phone -->
 
-<script src="firebase.js?v=86"></script>
-<script src="app.js?v=86"></script>
+<script src="firebase.js?v=87"></script>
+<script src="app.js?v=87"></script>
 
 </body>
 </html>
