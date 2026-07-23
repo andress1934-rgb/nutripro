@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=91">
+  <link rel="stylesheet" href="styles.css?v=92">
 
   <!-- Aplica tema ANTES del primer render para evitar flash de color incorrecto -->
   <script>
@@ -737,7 +737,7 @@
         <div class="top-bar"><div class="top-bar-title">Mi Perfil</div><button class="top-icon-btn" onclick="openSheet('sheet-peso')">✏️</button></div>
         <div style="flex:1;overflow-y:auto;padding:0 20px 100px">
           <div class="profile-card">
-            <button class="profile-avatar" onclick="pickAvatar()" aria-label="Cambiar foto de perfil">
+            <button class="profile-avatar" onclick="openAvatarSheet()" aria-label="Cambiar o quitar foto de perfil">
               <img id="prof-photo" alt="" style="display:none">
               <svg id="prof-photo-fallback" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c0-3.6 3.1-6.4 7-6.4s7 2.8 7 6.4"/></svg>
               <span class="avatar-cam" aria-hidden="true">
@@ -954,6 +954,16 @@
     </div>
   </div>
 
+  <!-- Foto de perfil: cambiar o quitar -->
+  <div class="bottom-sheet" id="sheet-avatar">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Foto de perfil</div>
+    <div class="sheet-options">
+      <div class="sheet-option" onclick="closeSheet();pickAvatar()">📷 Cambiar foto</div>
+      <div class="sheet-option" id="sheet-avatar-remove" onclick="removeAvatar()" style="display:none">🗑️ Quitar foto</div>
+    </div>
+  </div>
+
   <!-- Edad -->
   <div class="bottom-sheet" id="sheet-edad">
     <div class="sheet-handle"></div>
@@ -1155,8 +1165,8 @@
 
 </div><!-- /phone -->
 
-<script src="firebase.js?v=91"></script>
-<script src="app.js?v=91"></script>
+<script src="firebase.js?v=92"></script>
+<script src="app.js?v=92"></script>
 
 </body>
 </html>

@@ -561,6 +561,18 @@ function renderAvatar() {
   else { img.style.display = 'none'; fb.style.display = 'block'; }
 }
 function pickAvatar() { document.getElementById('avatar-input')?.click(); }
+function openAvatarSheet() {
+  const removeOpt = document.getElementById('sheet-avatar-remove');
+  if (removeOpt) removeOpt.style.display = S.photo ? '' : 'none';
+  openSheet('sheet-avatar');
+}
+function removeAvatar() {
+  S.photo = null;
+  renderAvatar();
+  saveState();
+  closeSheet();
+  toast('✓ Foto eliminada');
+}
 function onAvatarFile(input) {
   const file = input.files && input.files[0];
   input.value = '';
