@@ -2236,13 +2236,16 @@ const PORTIONS = [
   { key:'fat',   hand:'👍', label:'Grasas',   ref:'1 pulgar', kcal:100, p:0,  c:0,  g:11 },
   { key:'dairy', hand:'🥛', label:'Lácteos',  ref:'1 vaso',   kcal:110, p:8,  c:9,  g:5 },
 ];
-let _portionMeal = [];
+/* Cantidad por porción (key -> nº de unidades), no una lista de toques:
+   así "colocas" cuántas palmas/puños hay en el plato, con el valor en vivo,
+   en vez de tocar a ciegas y perder la cuenta. */
+let _portionCounts = {};
 
 function openScanner() {
   const screen = document.getElementById('s-scanner');
   if (!screen) return;
   S.logDate = todayKey();
-  _portionMeal = [];
+  _portionCounts = {};
   screen.style.opacity = '1';
   screen.style.pointerEvents = 'all';
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -2289,40 +2292,60 @@ function stopMainScan() {
 function renderPortionGrid() {
   const g = document.getElementById('pz-grid');
   if (!g) return;
-  g.innerHTML = PORTIONS.map(p =>
-    `<button class="pz-chip" onclick="addPortion('${p.key}')">
+  g.innerHTML = PORTIONS.map(p => {
+    const n = _portionCounts[p.key] || 0;
+    return `<div class="pz-row${n ? ' pz-row-active' : ''}" id="pz-row-${p.key}">
        <span class="pz-hand">${p.hand}</span>
-       <span class="pz-lbl">${p.label}</span>
-       <span class="pz-ref">${p.ref} · ${p.kcal} kcal</span>
-     </button>`).join('');
+       <div class="pz-row-info">
+         <span class="pz-lbl">${p.label}</span>
+         <span class="pz-ref">${p.ref} · <b id="pz-kcal-${p.key}">${n * p.kcal}</b> kcal</span>
+       </div>
+       <div class="pz-stepper">
+         <button class="pz-step" onclick="changePortion('${p.key}',-1)" aria-label="Quitar una porción de ${p.label}">−</button>
+         <span class="pz-count" id="pz-count-${p.key}">${n}</span>
+         <button class="pz-step" onclick="changePortion('${p.key}',1)" aria-label="Añadir una porción de ${p.label}">+</button>
+       </div>
+     </div>`;
+  }).join('');
 }
 
 function _portionTotals() {
-  return _portionMeal.reduce((a, p) => ({
-    kcal: a.kcal + p.kcal, p: a.p + p.p, c: a.c + p.c, g: a.g + p.g
-  }), { kcal: 0, p: 0, c: 0, g: 0 });
+  return PORTIONS.reduce((a, p) => {
+    const n = _portionCounts[p.key] || 0;
+    return { kcal: a.kcal + n * p.kcal, p: a.p + n * p.p, c: a.c + n * p.c, g: a.g + n * p.g };
+  }, { kcal: 0, p: 0, c: 0, g: 0 });
 }
+
+function _portionCount() { return Object.values(_portionCounts).reduce((a, n) => a + n, 0); }
 
 function renderPortionTally() {
   const el = document.getElementById('pz-tally');
   if (!el) return;
-  if (!_portionMeal.length) { el.innerHTML = '<span class="pz-empty">Toca las porciones de tu plato</span>'; return; }
+  const total = _portionCount();
+  if (!total) { el.innerHTML = '<span class="pz-empty">Ajusta cuántas porciones hay en tu plato</span>'; return; }
   const t = _portionTotals();
   el.innerHTML = `<div class="pz-total">${Math.round(t.kcal)} <span>kcal</span></div>
-    <div class="pz-macros">${Math.round(t.p)}g P · ${Math.round(t.c)}g C · ${Math.round(t.g)}g G · ${_portionMeal.length} ${_portionMeal.length===1?'porción':'porciones'}</div>`;
+    <div class="pz-macros">${Math.round(t.p)}g P · ${Math.round(t.c)}g C · ${Math.round(t.g)}g G · ${total} ${total===1?'porción':'porciones'}</div>`;
 }
 
-function addPortion(key) {
+function changePortion(key, delta) {
   const p = PORTIONS.find(x => x.key === key);
   if (!p) return;
-  _portionMeal.push(p);
-  if (navigator.vibrate) navigator.vibrate(8);
+  const n = Math.max(0, (_portionCounts[key] || 0) + delta);
+  _portionCounts[key] = n;
+  const countEl = document.getElementById('pz-count-' + key);
+  const kcalEl  = document.getElementById('pz-kcal-' + key);
+  const rowEl   = document.getElementById('pz-row-' + key);
+  if (countEl) countEl.textContent = n;
+  if (kcalEl)  kcalEl.textContent  = n * p.kcal;
+  if (rowEl)   rowEl.classList.toggle('pz-row-active', n > 0);
+  if (delta > 0 && navigator.vibrate) navigator.vibrate(8);
   renderPortionTally();
 }
 
-function undoLastPortion() {
-  if (!_portionMeal.length) return;
-  _portionMeal.pop();
+function resetPortions() {
+  _portionCounts = {};
+  renderPortionGrid();
   renderPortionTally();
 }
 
@@ -2335,16 +2358,16 @@ function _currentMealSlot() {
 }
 
 function savePortionsToDiary() {
-  if (!_portionMeal.length) { toast('Toca al menos una porción de tu plato'); return; }
+  if (!_portionCount()) { toast('Ajusta al menos una porción de tu plato'); return; }
   const t = _portionTotals();
-  const counts = {};
-  _portionMeal.forEach(p => { counts[p.label] = (counts[p.label] || 0) + 1; });
-  const name = Object.entries(counts).map(([l, n]) => n > 1 ? `${n}× ${l}` : l).join(', ');
+  const name = PORTIONS.filter(p => _portionCounts[p.key] > 0)
+    .map(p => { const n = _portionCounts[p.key]; return n > 1 ? `${n}× ${p.label}` : p.label; })
+    .join(', ');
   addToDiary({
     name: 'Plato: ' + name,
     kcal: Math.round(t.kcal), p: Math.round(t.p), c: Math.round(t.c), g: Math.round(t.g)
   }, S.selectedMeal || _currentMealSlot());
-  _portionMeal = [];
+  _portionCounts = {};
   toast('✅ Plato agregado al diario');
   closeScanner();
   goTab('diary');
