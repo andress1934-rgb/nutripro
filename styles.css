@@ -204,17 +204,17 @@ html, body {
   z-index: 2;
 }
 .screen.is-entering {
-  animation: screenEnter .38s cubic-bezier(.4,0,.2,1) both;
+  animation: screenEnter .5s cubic-bezier(.4,0,.2,1) both;
 }
 .screen.is-entering-back {
-  animation: screenEnterBack .38s cubic-bezier(.4,0,.2,1) both;
+  animation: screenEnterBack .5s cubic-bezier(.4,0,.2,1) both;
 }
 .screen.is-exiting {
-  animation: screenExit .38s cubic-bezier(.4,0,.2,1) both;
+  animation: screenExit .5s cubic-bezier(.4,0,.2,1) both;
   z-index: 1; pointer-events: none;
 }
 .screen.is-exiting-back {
-  animation: screenExitBack .38s cubic-bezier(.4,0,.2,1) both;
+  animation: screenExitBack .5s cubic-bezier(.4,0,.2,1) both;
   z-index: 1; pointer-events: none;
 }
 #s-app.active { display: flex; flex-direction: column; }
@@ -222,37 +222,37 @@ html, body {
 /* ── Elementos internos: se animan al entrar ── */
 .screen.is-entering .ob-icon-circle,
 .screen.is-entering-back .ob-icon-circle {
-  animation: popIn .5s .12s cubic-bezier(.34,1.56,.64,1) both;
+  animation: popIn .6s .16s cubic-bezier(.34,1.56,.64,1) both;
 }
 .screen.is-entering .ob-title,
-.screen.is-entering-back .ob-title       { animation: fadeUp .36s .16s ease both; }
+.screen.is-entering-back .ob-title       { animation: fadeUp .45s .26s ease both; }
 .screen.is-entering .ob-sub,
-.screen.is-entering-back .ob-sub         { animation: fadeUp .36s .22s ease both; }
+.screen.is-entering-back .ob-sub         { animation: fadeUp .45s .34s ease both; }
 
 /* Stagger por índice --si (puesto en JS): robusto ante cualquier nº de
    elementos previos y funciona también al navegar hacia atrás. */
 .screen.is-entering      .opt-card,
 .screen.is-entering-back .opt-card {
-  animation: fadeUp .32s ease both;
-  animation-delay: calc(.18s + var(--si, 0) * .06s);
+  animation: fadeUp .42s ease both;
+  animation-delay: calc(.26s + var(--si, 0) * .09s);
 }
 .screen.is-entering      .row-sel,
 .screen.is-entering-back .row-sel {
-  animation: fadeUp .30s ease both;
-  animation-delay: calc(.16s + var(--si, 0) * .06s);
+  animation: fadeUp .4s ease both;
+  animation-delay: calc(.24s + var(--si, 0) * .09s);
 }
 
 .screen.is-entering .results-card,
-.screen.is-entering .weight-chart-wrap   { animation: fadeUp .4s .25s ease both; }
-.screen.is-entering .centered-title      { animation: fadeUp .36s .28s ease both; }
-.screen.is-entering .btn-yellow          { animation: fadeUp .32s .34s ease both; }
-.screen.is-entering .ob-footnote         { animation: fadeUp .28s .4s ease both; }
+.screen.is-entering .weight-chart-wrap   { animation: fadeUp .55s .35s ease both; }
+.screen.is-entering .centered-title      { animation: fadeUp .48s .4s ease both; }
+.screen.is-entering .btn-yellow          { animation: fadeUp .42s .5s ease both; }
+.screen.is-entering .ob-footnote         { animation: fadeUp .36s .58s ease both; }
 
 /* Chips con stagger por índice --si */
 .screen.is-entering      .chips-grid .food-chip,
 .screen.is-entering-back .chips-grid .food-chip {
-  animation: chipIn .25s ease both;
-  animation-delay: calc(.12s + var(--si, 0) * .03s);
+  animation: chipIn .32s ease both;
+  animation-delay: calc(.16s + var(--si, 0) * .04s);
 }
 
 /* Respeta usuarios con movimiento reducido: revela sin animación */
@@ -280,7 +280,7 @@ html, body {
   opacity: 0;
 }
 #green-flash.run {
-  animation: greenRingExpand .65s cubic-bezier(.4,0,.6,1) forwards;
+  animation: greenRingExpand 1s cubic-bezier(.4,0,.6,1) forwards;
 }
 
 /* ══════════════════════════════════════════

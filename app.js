@@ -445,9 +445,9 @@ function _showGreenFlash(callback) {
   void flash.offsetWidth; /* reflow */
   flash.classList.add('run');
   /* Ejecutar la transición de pantalla a mitad del flash */
-  setTimeout(callback, 200);
+  setTimeout(callback, 310);
   /* Limpiar después */
-  setTimeout(() => flash.classList.remove('run'), 700);
+  setTimeout(() => flash.classList.remove('run'), 1050);
 }
 
 function _transitionTo(prev, next, forward) {
@@ -733,7 +733,7 @@ function selGoal(el, goal) {
   const objs   = { perder: -1, musculo: 1, mantener: 0 };
   S.obj = objs[goal] || 0;
   S.objLabel = labels[goal] || 'Perder Grasa';
-  setTimeout(() => goScreen('s-calorie-intro'), 280);
+  setTimeout(() => goScreen('s-calorie-intro'), 450);
 }
 
 /* Marca visual de tarjeta seleccionada (estilo de vida, dieta) */
@@ -747,7 +747,7 @@ function selActivity(el, val, label) {
   document.querySelectorAll('#s-activity .opt-card').forEach(c => c.classList.remove('sel'));
   el.classList.add('sel');
   actVal = val; S.act = val;
-  setTimeout(() => goScreen('s-diet'), 280);
+  setTimeout(() => goScreen('s-diet'), 450);
 }
 
 /* ══ BOTTOM SHEET MODALS ══ */
@@ -956,9 +956,9 @@ function animateResultsChart() {
   /* setTimeout (no requestAnimationFrame): rAF se pausa en tabs en segundo
      plano; setTimeout dispara igual y la animación arranca siempre. */
   setTimeout(() => {
-    line.style.transition = 'stroke-dashoffset 1.1s cubic-bezier(.16,1,.3,1)';
+    line.style.transition = 'stroke-dashoffset 1.9s cubic-bezier(.16,1,.3,1)';
     line.style.strokeDashoffset = '0';
-    if (area) { area.style.transition = 'opacity .9s ease .25s'; area.style.opacity = '1'; }
+    if (area) { area.style.transition = 'opacity 1.5s ease .4s'; area.style.opacity = '1'; }
   }, 40);
 }
 
