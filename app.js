@@ -4,6 +4,16 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   });
 }
 
+/* ponytail: número de WhatsApp del coach sin configurar (formato 593XXXXXXXXX, sin '+').
+   Completar esta línea activa el botón "Escríbele a tu coach". */
+const COACH_WHATSAPP = '';
+
+function contactCoach() {
+  if (!COACH_WHATSAPP) { toast('⚠️ Falta configurar el WhatsApp del coach'); return; }
+  const msg = encodeURIComponent(`Hola, soy ${S.nombre || 'un cliente'} de Imperium 👋`);
+  window.open(`https://wa.me/${COACH_WHATSAPP}?text=${msg}`, '_blank');
+}
+
 /* ── Helper: escape HTML para prevenir XSS ── */
 function esc(s) {
   if (s == null) return '';
@@ -369,7 +379,7 @@ const SUCCESS_SCREENS = new Set(['s-results','s-progress-preview']);
    retomar donde quedó. */
 const DRAFT_KEY = 'nutripro-onboarding-draft';
 const DRAFT_SCREENS = new Set(['s-goal','s-calorie-intro','s-profile','s-activity','s-diet','s-personalize','s-results','s-progress-preview','s-notifications','s-register']);
-const DRAFT_FIELDS = ['peso','talla','edad','sexo','act','obj','objLabel','dietType','pesoObj'];
+const DRAFT_FIELDS = ['nombre','peso','talla','edad','sexo','act','obj','objLabel','dietType','pesoObj'];
 function _saveOnboardingDraft(screenId) {
   if (typeof fbCurrentUser !== 'undefined' && fbCurrentUser) return; /* ya tiene cuenta: flujo normal */
   try {
@@ -401,6 +411,13 @@ function _resumeOnboardingOrLogin() {
 }
 
 let _currentScreenId = 's-boot';
+
+function startOnboarding() {
+  const inp = document.getElementById('ob-nombre');
+  const val = inp ? inp.value.trim().slice(0, 40) : '';
+  if (val) S.nombre = val;
+  goScreen('s-goal');
+}
 
 function goScreen(id) {
   if (id === _currentScreenId) return;
@@ -1250,6 +1267,15 @@ function updateConsumedUI() {
   set('ring-kcal-sub', '/ ' + (target ? target.toLocaleString('es') : '—') + ' kcal');
   set('gauge-lo', target ? Math.round(target * 0.9).toLocaleString('es') : '');
   set('gauge-hi', target ? Math.round(target * 1.1).toLocaleString('es') : '');
+  const remainEl = document.getElementById('ring-kcal-remain');
+  if (remainEl) {
+    if (!target) { remainEl.textContent = ''; }
+    else {
+      const remain = Math.round(target - t.kcal);
+      remainEl.classList.toggle('over', remain < 0);
+      remainEl.textContent = remain >= 0 ? `Te quedan ${remain.toLocaleString('es')} kcal` : `${Math.abs(remain).toLocaleString('es')} kcal de más`;
+    }
+  }
   const ARC = 251.3;
   const kcalPct = pct(t.kcal, target);
   const gf = document.getElementById('gauge-fill');
@@ -1591,7 +1617,7 @@ function nutriBotReply(q) {
     return `🌟 Los pilares de salud óptima, ${n}:\n\n1. 💤 Sueño: 7–9h de calidad\n2. 🥗 Nutrición: alimentos reales, proteína suficiente\n3. 🏋️ Ejercicio: fuerza + cardio + movilidad\n4. 💧 Hidratación: ${ag}L/día\n5. 🧘 Gestión del estrés: cortisol alto destruye músculo\n\nNo hace falta ser perfecto. Un 80% de consistencia da el 95% de los resultados. ¡Tú puedes! 🚀`;
 
   if (/hola|buenos|buenas|hello|hi|saludos|hey/i.test(t))
-    return `¡Hola ${n}! 🌿 Soy tu Coach nutricional.\n\nPuedo ayudarte con tus macros (tienes meta de ${pr}g proteína/día), tu TDEE de ${td} kcal, suplementación, planes de comida, hidratación y más.\n\n¿Qué quieres optimizar hoy? 💪`;
+    return `¡Hola ${n}! 🌿 Soy el Asistente automático de Imperium.\n\nPuedo ayudarte con tus macros (tienes meta de ${pr}g proteína/día), tu TDEE de ${td} kcal, suplementación, planes de comida, hidratación y más. Para algo de tu plan específico, escríbele a tu coach.\n\n¿Qué quieres optimizar hoy? 💪`;
 
   if (/gracias|thanks|genial|perfecto|excelente|chevere|chévere/i.test(t))
     return `¡De nada, ${n}! 🙌 Para eso estoy aquí. Recuerda: la nutrición es la base de todo rendimiento. Si tienes más dudas, ¡aquí estaré! 🌿 Sigue adelante, ¡lo estás haciendo genial! 🚀`;
@@ -1838,7 +1864,7 @@ function openFoodLog(meal) {
     if (titleEl) titleEl.textContent = 'Agregar a ' + (labels[S.selectedMeal] || 'Diario');
     const overlay = document.getElementById('flog-overlay');
     if (overlay) overlay.classList.add('open');
-    switchFlogTab('recetas');   /* siempre abrir en la primera pestaña */
+    switchFlogTab('buscar');   /* Buscar es más rápido para registrar que Recetas */
     buildRecipeGrid();
   } catch(e) {
     console.error('openFoodLog error:', e);
@@ -2704,7 +2730,7 @@ async function openExTab() {
    Zonas en coordenadas naturales de cada imagen (front 616×1000, back 459×1000)
    ════════════════════════════════════════════════════════════ */
 const BM_VIEWS = {
-  front: { img: 'body-front.png?v=23', vb: '112 35 456 930', w: 456, h: 930, zones: [
+  front: { img: 'body-front.png?v=24', vb: '112 35 456 930', w: 456, h: 930, zones: [
     { bp:'shoulders',  label:'Hombros',    cx:235, cy:222, rx:32,  ry:28 },
     { bp:'shoulders',  label:'Hombros',    cx:445, cy:222, rx:32,  ry:28 },
     { bp:'chest',      label:'Pecho',      cx:340, cy:280, rx:76,  ry:46 },

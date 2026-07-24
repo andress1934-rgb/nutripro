@@ -1,4 +1,4 @@
-const CACHE = 'nutripro-v93';
+const CACHE = 'nutripro-v94';
 const FILES = [
   './',
   './index.html',

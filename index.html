@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=93">
+  <link rel="stylesheet" href="styles.css?v=94">
 
   <!-- Aplica tema ANTES del primer render para evitar flash de color incorrecto -->
   <script>
@@ -141,8 +141,13 @@
 
     <!-- Contenido inferior -->
     <div class="welcome-bottom">
-      <div class="welcome-title">Come mejor,<br>obtén resultados</div>
-      <button class="btn-yellow welcome-cta" onclick="goScreen('s-goal')">Comenzar</button>
+      <div class="welcome-title">Entrena y come<br>con tu coach real</div>
+      <div class="welcome-subtitle">Tu entrenador arma tu plan y ve tu progreso — no es una calculadora genérica</div>
+      <div class="login-inp-wrap" style="margin-bottom:14px">
+        <span class="login-inp-icon">👋</span>
+        <input class="login-inp" id="ob-nombre" type="text" maxlength="40" placeholder="¿Cómo te llamas?" autocomplete="name">
+      </div>
+      <button class="btn-yellow welcome-cta" onclick="startOnboarding()">Comenzar</button>
       <div class="welcome-signin">
         ¿Ya tienes una cuenta?&nbsp;<span onclick="goScreen('s-login')">Inicia Sesión</span>
       </div>
@@ -157,7 +162,7 @@
       <div style="flex:1"></div>
     </div>
     <div class="ob-progress" style="margin-top:12px">
-      <div class="ob-progress-fill" style="width:20%"></div>
+      <div class="ob-progress-fill" style="width:10%"></div>
     </div>
     <div class="ob-body">
       <div class="ob-icon-circle" style="margin-bottom:22px">🎯</div>
@@ -213,7 +218,7 @@
       <button class="ob-back" onclick="goScreen('s-calorie-intro')">←</button>
     </div>
     <div class="ob-progress" style="margin-top:12px">
-      <div class="ob-progress-fill" style="width:40%"></div>
+      <div class="ob-progress-fill" style="width:30%"></div>
     </div>
     <div class="ob-body">
       <div class="ob-icon-circle" style="margin-bottom:22px">📋</div>
@@ -256,7 +261,7 @@
       <button class="ob-back" onclick="goScreen('s-profile')">←</button>
     </div>
     <div class="ob-progress" style="margin-top:12px">
-      <div class="ob-progress-fill" style="width:60%"></div>
+      <div class="ob-progress-fill" style="width:40%"></div>
     </div>
     <div class="ob-body">
       <div class="ob-icon-circle" style="margin-bottom:22px">💪</div>
@@ -292,7 +297,7 @@
       <button class="ob-back" onclick="goScreen('s-activity')">←</button>
     </div>
     <div class="ob-progress" style="margin-top:12px">
-      <div class="ob-progress-fill" style="width:80%"></div>
+      <div class="ob-progress-fill" style="width:50%"></div>
     </div>
     <div class="ob-body">
       <div class="ob-icon-circle" style="margin-bottom:22px">🍴</div>
@@ -343,7 +348,7 @@
       <button class="ob-back" onclick="goScreen('s-diet')">←</button>
     </div>
     <div class="ob-progress" style="margin-top:12px">
-      <div class="ob-progress-fill" style="width:100%"></div>
+      <div class="ob-progress-fill" style="width:60%"></div>
     </div>
     <div class="ob-body">
       <div class="ob-icon-circle" style="margin-bottom:22px">✏️</div>
@@ -481,8 +486,11 @@
     </div>
     <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px">
       <div class="results-check" style="margin-bottom:20px">✓</div>
-      <div style="font-size:20px;font-weight:800;color:var(--dark);text-align:center;line-height:1.3;margin-bottom:32px">
+      <div style="font-size:20px;font-weight:800;color:var(--dark);text-align:center;line-height:1.3;margin-bottom:10px">
         ¡Todo listo! Únete ahora para obtener tu plan personalizado
+      </div>
+      <div style="font-size:13.5px;color:var(--muted);text-align:center;line-height:1.5;margin-bottom:32px;padding:0 8px">
+        Tu coach revisará tu plan y podrá ajustarlo según tu progreso
       </div>
     </div>
     <div class="login-form" style="width:100%">
@@ -546,6 +554,10 @@
             <span class="drawer-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5"/></svg></span>
             <div><div class="drawer-item-t">Perfil</div><div class="drawer-item-s">Ajustes y datos</div></div>
           </button>
+          <button class="drawer-item" onclick="contactCoach()">
+            <span class="drawer-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12a8.5 8.5 0 1 1-3.4-6.8"/><path d="M20.5 3.5 12 12l-3 1 1-3z"/></svg></span>
+            <div><div class="drawer-item-t">Tu coach</div><div class="drawer-item-s">Escríbele por WhatsApp</div></div>
+          </button>
 
           <!-- Solo visible para cuentas en la colección `admins` (el coach) -->
           <div id="drawer-coach-sec" style="display:none">
@@ -579,6 +591,7 @@
               <div class="gauge-center">
                 <div class="gauge-kcal"><b id="ring-kcal">0</b></div>
                 <div class="gauge-sub" id="ring-kcal-sub">/ 0 kcal</div>
+                <div class="gauge-remain" id="ring-kcal-remain"></div>
               </div>
               <div class="gauge-range"><span id="gauge-lo">—</span><span id="gauge-hi">—</span></div>
             </div>
@@ -628,7 +641,7 @@
               <div><div class="mbcard-title">Proteínas</div><div class="mbcard-sub">2.2 g/kg peso corporal</div></div>
             </div>
             <div class="mbcard-progress-track"><div class="mbcard-progress-fill" id="pb-prot" style="width:0%"></div></div>
-            <div class="mbcard-nums"><span><b id="mn-prot">148</b>g consumidos</span><span><span id="mn-prot-meta">172</span>g meta</span></div>
+            <div class="mbcard-nums"><span><b id="mn-prot">0</b>g consumidos</span><span><span id="mn-prot-meta">0</span>g meta</span></div>
             <div class="mbcard-sources">🥩 Pollo · 🥚 Huevos · 🐟 Atún · 🥛 Whey · 🫘 Legumbres</div>
           </div>
           <div class="macro-big-card">
@@ -637,7 +650,7 @@
               <div><div class="mbcard-title">Carbohidratos</div><div class="mbcard-sub">Energía principal</div></div>
             </div>
             <div class="mbcard-progress-track"><div class="mbcard-progress-fill" id="pb-cho" style="width:0%"></div></div>
-            <div class="mbcard-nums"><span><b id="mn-cho">220</b>g consumidos</span><span><span id="mn-cho-meta">320</span>g meta</span></div>
+            <div class="mbcard-nums"><span><b id="mn-cho">0</b>g consumidos</span><span><span id="mn-cho-meta">0</span>g meta</span></div>
             <div class="mbcard-sources">🍚 Arroz · 🌾 Avena · 🍌 Plátano · 🥔 Papa · 🍎 Frutas</div>
           </div>
           <div class="macro-big-card">
@@ -646,7 +659,7 @@
               <div><div class="mbcard-title">Grasas</div><div class="mbcard-sub">Hormonas y vitaminas</div></div>
             </div>
             <div class="mbcard-progress-track"><div class="mbcard-progress-fill" id="pb-fat" style="width:0%"></div></div>
-            <div class="mbcard-nums"><span><b id="mn-fat">65</b>g consumidos</span><span><span id="mn-fat-meta">75</span>g meta</span></div>
+            <div class="mbcard-nums"><span><b id="mn-fat">0</b>g consumidos</span><span><span id="mn-fat-meta">0</span>g meta</span></div>
             <div class="mbcard-sources">🫒 Aceite oliva · 🥑 Aguacate · 🐟 Salmón · 🌰 Nueces</div>
           </div>
           <div style="height:12px"></div>
@@ -1033,12 +1046,12 @@
     <div class="flog-content" id="flog-content">
 
       <!-- TAB: RECETAS -->
-      <div class="flog-tab-pane active" id="ftab-recetas">
+      <div class="flog-tab-pane" id="ftab-recetas">
         <div class="recipe-grid" id="recipe-grid"></div>
       </div>
 
       <!-- TAB: BUSCAR -->
-      <div class="flog-tab-pane" id="ftab-buscar">
+      <div class="flog-tab-pane active" id="ftab-buscar">
         <div class="fsearch-bar">
           <span class="fsearch-icon">🔍</span>
           <input class="fsearch-inp" id="fsearch-inp" type="text" placeholder="Buscar alimento..." oninput="searchFoodDB(this.value)">
@@ -1094,10 +1107,10 @@
 
     <!-- Bottom tab bar -->
     <div class="flog-tabs">
-      <button class="flog-tab active" id="flt-recetas" onclick="switchFlogTab('recetas')">
+      <button class="flog-tab" id="flt-recetas" onclick="switchFlogTab('recetas')">
         <span>📖</span><span>Recetas</span>
       </button>
-      <button class="flog-tab" id="flt-buscar" onclick="switchFlogTab('buscar')">
+      <button class="flog-tab active" id="flt-buscar" onclick="switchFlogTab('buscar')">
         <span>🔍</span><span>Buscar</span>
       </button>
       <button class="flog-tab" id="flt-escaner" onclick="switchFlogTab('escaner')">
@@ -1135,14 +1148,15 @@
     <div class="chat-sheet-head">
       <div class="chat-avatar">🤖</div>
       <div>
-        <div class="chat-head-name">Coach</div>
-        <div class="chat-head-status"><div class="chat-status-dot"></div>Tu asistente de nutrición</div>
+        <div class="chat-head-name">Asistente</div>
+        <div class="chat-head-status"><div class="chat-status-dot"></div>Respuestas automáticas, no es tu coach</div>
       </div>
       <button class="chat-close" onclick="closeChat()">✕</button>
     </div>
+    <div class="chat-coach-link" onclick="contactCoach()">💬 ¿Necesitas a tu coach de verdad? Escríbele por WhatsApp</div>
     <div class="chat-msgs-area" id="chat-msgs">
       <div class="chat-bubble-wrap ai">
-        <div class="chat-bub">¡Hola! 🌿 Soy tu nutricionista IA.<br><br>Puedo explicar tus métricas, calcular macros o responder dudas sobre nutrición. ¿En qué te ayudo?</div>
+        <div class="chat-bub">¡Hola! 🌿 Soy el Asistente automático de Imperium.<br><br>Puedo explicar tus métricas, calcular macros o responder dudas generales. Para algo específico de tu plan, escríbele a tu coach arriba 👆</div>
         <div class="chat-bub-time">Ahora</div>
       </div>
     </div>
@@ -1165,8 +1179,8 @@
 
 </div><!-- /phone -->
 
-<script src="firebase.js?v=93"></script>
-<script src="app.js?v=93"></script>
+<script src="firebase.js?v=94"></script>
+<script src="app.js?v=94"></script>
 
 </body>
 </html>
