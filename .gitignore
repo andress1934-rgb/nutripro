@@ -8,3 +8,7 @@ a/
 # Sistema
 Thumbs.db
 .DS_Store
+
+# Worker de Cloudflare (camara IA) — dependencias locales, no se publican
+worker/node_modules/
+worker/.wrangler/

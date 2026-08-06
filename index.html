@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=96">
+  <link rel="stylesheet" href="styles.css?v=97">
 
   <!-- Aplica tema ANTES del primer render para evitar flash de color incorrecto -->
   <script>
@@ -1103,6 +1103,47 @@
         </div>
       </div>
 
+      <!-- TAB: FOTO (IA) -->
+      <div class="flog-tab-pane" id="ftab-foto">
+        <div class="foto-wrap">
+
+          <!-- Estado 1: captura -->
+          <div id="foto-capture">
+            <video id="foto-video" autoplay playsinline muted style="display:none"></video>
+            <canvas id="foto-canvas" style="display:none"></canvas>
+            <div class="foto-placeholder" id="foto-placeholder">
+              <div class="scanner-frame-icon">📸</div>
+              <div class="scanner-hint">Toma una foto de tu plato y la IA identifica los alimentos</div>
+              <div class="foto-tip">Tip: si incluyes un cubierto en la foto, la estimación de tamaño es más precisa</div>
+              <button class="btn-yellow" style="width:auto;padding:12px 26px;margin:8px 0 0" onclick="startFotoCamera()">Activar cámara</button>
+            </div>
+            <button class="foto-shutter" id="foto-shutter" style="display:none" onclick="captureFotoPlato()" aria-label="Tomar foto">
+              <span></span>
+            </button>
+          </div>
+
+          <!-- Estado 2: analizando -->
+          <div id="foto-analyzing" style="display:none">
+            <img id="foto-preview-img" class="foto-preview-img" alt="">
+            <div class="foto-analyzing-row">
+              <div class="spinner"></div>
+              <div>Analizando tu plato con IA…</div>
+            </div>
+          </div>
+
+          <!-- Estado 3: resultado editable -->
+          <div id="foto-result" style="display:none">
+            <img id="foto-result-img" class="foto-preview-img foto-preview-img-sm" alt="">
+            <div class="foto-confidence" id="foto-confidence" style="display:none"></div>
+            <div id="foto-items-list"></div>
+            <div class="foto-totals" id="foto-totals"></div>
+            <button class="btn-yellow" style="margin:12px 0 6px;width:100%" onclick="addFotoItemsToDiary()">Agregar al Diario</button>
+            <button class="btn-outline" style="width:100%" onclick="retryFotoPlato()">Tomar otra foto</button>
+          </div>
+
+        </div>
+      </div>
+
     </div><!-- /flog-content -->
 
     <!-- Bottom tab bar -->
@@ -1112,6 +1153,9 @@
       </button>
       <button class="flog-tab active" id="flt-buscar" onclick="switchFlogTab('buscar')">
         <span>🔍</span><span>Buscar</span>
+      </button>
+      <button class="flog-tab" id="flt-foto" onclick="switchFlogTab('foto')">
+        <span>📸</span><span>Foto</span>
       </button>
       <button class="flog-tab" id="flt-escaner" onclick="switchFlogTab('escaner')">
         <span>📷</span><span>Escáner</span>
@@ -1179,8 +1223,8 @@
 
 </div><!-- /phone -->
 
-<script src="firebase.js?v=96"></script>
-<script src="app.js?v=96"></script>
+<script src="firebase.js?v=97"></script>
+<script src="app.js?v=97"></script>
 
 </body>
 </html>

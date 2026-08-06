@@ -8,6 +8,10 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
    Completar esta línea activa el botón "Escríbele a tu coach". */
 const COACH_WHATSAPP = '';
 
+/* URL del Worker de Cloudflare que analiza fotos de comida con Claude Vision
+   (ver worker/README.md). Se completa despues de correr "wrangler deploy". */
+const CAMERA_WORKER_URL = '';
+
 function contactCoach() {
   if (!COACH_WHATSAPP) { toast('⚠️ Falta configurar el WhatsApp del coach'); return; }
   const msg = encodeURIComponent(`Hola, soy ${S.nombre || 'un cliente'} de Imperium 👋`);
@@ -1866,6 +1870,8 @@ function openFoodLog(meal) {
     if (overlay) overlay.classList.add('open');
     switchFlogTab('buscar');   /* Buscar es más rápido para registrar que Recetas */
     buildRecipeGrid();
+    _fotoItems = null;
+    resetFotoUI();
   } catch(e) {
     console.error('openFoodLog error:', e);
   }
@@ -1876,6 +1882,7 @@ function closeFoodLog() {
     const overlay = document.getElementById('flog-overlay');
     if (overlay) overlay.classList.remove('open');
     stopCamera();
+    stopFotoCamera();
     /* Olvidar el día apuntado: si no, una comida añadida luego desde el
        dashboard se registraría en el día pasado que se estaba viendo. */
     S.logDate = null;
@@ -1888,6 +1895,7 @@ function switchFlogTab(tab) {
   document.getElementById('ftab-' + tab)?.classList.add('active');
   document.getElementById('flt-' + tab)?.classList.add('active');
   try { if (tab !== 'escaner') stopCamera(); } catch(_) {}
+  try { if (tab !== 'foto') stopFotoCamera(); } catch(_) {}
 }
 
 /* ── TAB 1: RECETAS ── */
@@ -2196,6 +2204,173 @@ function showScannerResult(item) {
 function addFoodFromScanner() {
   if (!_scannerResult) return;
   addToDiary(_scannerResult, S.selectedMeal);
+  closeFoodLog();
+}
+
+/* ── TAB FOTO: cámara con IA (Claude Vision vía Cloudflare Worker) ── */
+let _fotoStream = null;
+let _fotoItems = null;   /* resultado editable: [{name, grams, kcal, prot, carbs, fat, _perGram}] */
+
+async function startFotoCamera() {
+  const video = document.getElementById('foto-video');
+  const placeholder = document.getElementById('foto-placeholder');
+  const shutter = document.getElementById('foto-shutter');
+  try {
+    _fotoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    video.srcObject = _fotoStream;
+    video.style.display = 'block';
+    placeholder.style.display = 'none';
+    shutter.style.display = 'block';
+  } catch (err) {
+    toast('📷 Cámara no disponible: ' + err.message);
+  }
+}
+
+function stopFotoCamera() {
+  if (_fotoStream) { _fotoStream.getTracks().forEach(t => t.stop()); _fotoStream = null; }
+  const video = document.getElementById('foto-video');
+  if (video) { video.style.display = 'none'; video.srcObject = null; }
+  const placeholder = document.getElementById('foto-placeholder');
+  if (placeholder) placeholder.style.display = 'flex';
+  const shutter = document.getElementById('foto-shutter');
+  if (shutter) shutter.style.display = 'none';
+}
+
+function resetFotoUI() {
+  const cap = document.getElementById('foto-capture');
+  const an = document.getElementById('foto-analyzing');
+  const res = document.getElementById('foto-result');
+  if (cap) cap.style.display = 'block';
+  if (an) an.style.display = 'none';
+  if (res) res.style.display = 'none';
+}
+
+function retryFotoPlato() {
+  _fotoItems = null;
+  resetFotoUI();
+  startFotoCamera();
+}
+
+async function captureFotoPlato() {
+  const video = document.getElementById('foto-video');
+  if (!video || !video.videoWidth) { toast('⚠️ Cámara no lista todavía'); return; }
+  const canvas = document.getElementById('foto-canvas');
+  /* Redimensiona al lado mayor ~1024px: detalle de sobra para la IA, subida rápida */
+  const MAX_SIDE = 1024;
+  const scale = Math.min(1, MAX_SIDE / Math.max(video.videoWidth, video.videoHeight));
+  canvas.width = Math.round(video.videoWidth * scale);
+  canvas.height = Math.round(video.videoHeight * scale);
+  canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+  const dataUrl = canvas.toDataURL('image/jpeg', .82);
+
+  stopFotoCamera();
+  document.getElementById('foto-capture').style.display = 'none';
+  document.getElementById('foto-analyzing').style.display = 'block';
+  document.getElementById('foto-preview-img').src = dataUrl;
+
+  await analyzeFotoPlato(dataUrl);
+}
+
+async function analyzeFotoPlato(dataUrl) {
+  if (!CAMERA_WORKER_URL) {
+    toast('⚠️ La cámara con IA aún no está configurada. Usa el estimador por porciones.');
+    resetFotoUI();
+    return;
+  }
+  if (!navigator.onLine) {
+    toast('📡 Sin conexión — usa el estimador por porciones mientras tanto');
+    resetFotoUI();
+    return;
+  }
+  try {
+    const base64 = dataUrl.split(',')[1];
+    const token = fbCurrentUser ? await fbCurrentUser.getIdToken() : null;
+    if (!token) { toast('⚠️ Inicia sesión para usar la cámara con IA'); resetFotoUI(); return; }
+
+    const res = await fetch(CAMERA_WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ image: base64, mediaType: 'image/jpeg' }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Error del servidor');
+
+    _fotoItems = (data.items || []).map(it => {
+      const g = it.grams || 1;
+      return {
+        name: it.name, grams: Math.round(it.grams), kcal: Math.round(it.kcal),
+        prot: Math.round(it.prot * 10) / 10, carbs: Math.round(it.carbs * 10) / 10, fat: Math.round(it.fat * 10) / 10,
+        _perGram: { kcal: it.kcal / g, prot: it.prot / g, carbs: it.carbs / g, fat: it.fat / g },
+      };
+    });
+
+    document.getElementById('foto-analyzing').style.display = 'none';
+    document.getElementById('foto-result').style.display = 'block';
+    document.getElementById('foto-result-img').src = dataUrl;
+    const confEl = document.getElementById('foto-confidence');
+    if (data.confidence_note) { confEl.textContent = '💡 ' + data.confidence_note; confEl.style.display = 'block'; }
+    else if (confEl) { confEl.style.display = 'none'; }
+    renderFotoItems();
+  } catch (err) {
+    toast('⚠️ ' + (err.message || 'No se pudo analizar la foto'));
+    resetFotoUI();
+  }
+}
+
+function renderFotoItems() {
+  const box = document.getElementById('foto-items-list');
+  if (!box) return;
+  if (!_fotoItems || !_fotoItems.length) {
+    box.innerHTML = '<div class="pz-empty">No se detectó comida en la foto. Intenta con mejor luz o más de cerca.</div>';
+  } else {
+    box.innerHTML = _fotoItems.map((it, i) => `
+      <div class="foto-item-row">
+        <div class="foto-item-info">
+          <div class="foto-item-name">${esc(it.name)}</div>
+          <div class="foto-item-macros"><b>${it.kcal}</b> kcal · P${it.prot}g · C${it.carbs}g · G${it.fat}g</div>
+        </div>
+        <div class="pz-stepper">
+          <button class="pz-step" onclick="changeFotoGrams(${i},-10)">−</button>
+          <span class="pz-count">${it.grams}g</span>
+          <button class="pz-step" onclick="changeFotoGrams(${i},10)">+</button>
+        </div>
+        <button class="foto-item-remove" onclick="removeFotoItem(${i})">✕</button>
+      </div>`).join('');
+  }
+  renderFotoTotals();
+}
+
+function changeFotoGrams(i, delta) {
+  const it = _fotoItems && _fotoItems[i]; if (!it) return;
+  it.grams = Math.max(0, it.grams + delta);
+  it.kcal = Math.round(it._perGram.kcal * it.grams);
+  it.prot = Math.round(it._perGram.prot * it.grams * 10) / 10;
+  it.carbs = Math.round(it._perGram.carbs * it.grams * 10) / 10;
+  it.fat = Math.round(it._perGram.fat * it.grams * 10) / 10;
+  renderFotoItems();
+}
+
+function removeFotoItem(i) {
+  if (!_fotoItems) return;
+  _fotoItems.splice(i, 1);
+  renderFotoItems();
+}
+
+function renderFotoTotals() {
+  const el = document.getElementById('foto-totals');
+  if (!el) return;
+  const t = (_fotoItems || []).reduce((a, it) => ({
+    kcal: a.kcal + it.kcal, prot: a.prot + it.prot, carbs: a.carbs + it.carbs, fat: a.fat + it.fat,
+  }), { kcal: 0, prot: 0, carbs: 0, fat: 0 });
+  el.innerHTML = `<span>Total del plato</span><b>${Math.round(t.kcal)} kcal</b>`;
+}
+
+function addFotoItemsToDiary() {
+  if (!_fotoItems || !_fotoItems.length) { toast('No hay alimentos para agregar'); return; }
+  const n = _fotoItems.length;
+  _fotoItems.forEach(it => addToDiary({ name: it.name, kcal: it.kcal, p: it.prot, c: it.carbs, g: it.fat }, S.selectedMeal, true));
+  toast(`✅ ${n} alimento${n === 1 ? '' : 's'} añadido${n === 1 ? '' : 's'} a ${S.selectedMeal}`);
+  _fotoItems = null;
   closeFoodLog();
 }
 

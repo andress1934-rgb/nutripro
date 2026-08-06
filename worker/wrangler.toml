@@ -1,0 +1,12 @@
+name = "imperium-camera-ia"
+main = "src/index.js"
+compatibility_date = "2026-08-01"
+
+[vars]
+FIREBASE_PROJECT_ID = "nutripro-4759a"
+
+# Se crea con: wrangler kv namespace create RATE_LIMIT_KV
+# y el id que devuelva se pega abajo (ver README.md paso 3).
+[[kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "PENDIENTE_PEGAR_AQUI"
