@@ -1,9 +1,11 @@
 {
   "name": "imperium-camera-ia",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "test": "node test.mjs"
   },
   "dependencies": {
     "jose": "^5.9.6"

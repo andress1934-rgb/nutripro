@@ -344,6 +344,10 @@ function resetSessionState() {
   waterFilled = 0;
   _diaryViewKey = null;
   _rtInit = false;
+  /* Borrador de onboarding de la sesión anterior: si quedó uno sin usar,
+     no debe sobrevivir al logout (ver DRAFT_MAX_AGE_MS más abajo para el
+     caso — más común — de abandono sin llegar a cerrar sesión nunca) */
+  if (typeof _clearOnboardingDraft === 'function') _clearOnboardingDraft();
   /* Filtros y selecciones de UI del usuario anterior (auditoría v58):
      sin esto, el siguiente usuario veía chips/filtros pre-seleccionados */
   _exFilter = 'all'; _exSearch = ''; _exPage = 0; _bmSel = null;
@@ -384,10 +388,17 @@ const SUCCESS_SCREENS = new Set(['s-results','s-progress-preview']);
 const DRAFT_KEY = 'nutripro-onboarding-draft';
 const DRAFT_SCREENS = new Set(['s-goal','s-calorie-intro','s-profile','s-activity','s-diet','s-personalize','s-results','s-progress-preview','s-notifications','s-register']);
 const DRAFT_FIELDS = ['nombre','peso','talla','edad','sexo','act','obj','objLabel','dietType','pesoObj'];
+/* Vencimiento del borrador: si alguien empieza el registro (nombre, peso,
+   edad...) y lo abandona SIN cerrar sesión (nunca la abrió), el borrador
+   quedaba en el dispositivo para siempre — el siguiente que abriera la app
+   ahí veía esos datos precargados. Con dueño no hay (aún no hay cuenta), así
+   que la única defensa posible es una caducidad corta. */
+const DRAFT_MAX_AGE_MS = 30 * 60 * 1000;
+
 function _saveOnboardingDraft(screenId) {
   if (typeof fbCurrentUser !== 'undefined' && fbCurrentUser) return; /* ya tiene cuenta: flujo normal */
   try {
-    const snap = { screen: screenId };
+    const snap = { screen: screenId, ts: Date.now() };
     DRAFT_FIELDS.forEach(k => { snap[k] = S[k]; });
     localStorage.setItem(DRAFT_KEY, JSON.stringify(snap));
   } catch(_) {}
@@ -397,7 +408,9 @@ function _loadOnboardingDraft() {
     const raw = localStorage.getItem(DRAFT_KEY);
     if (!raw) return null;
     const d = JSON.parse(raw);
-    return (d && d.screen && DRAFT_SCREENS.has(d.screen)) ? d : null;
+    if (!d || !d.screen || !DRAFT_SCREENS.has(d.screen)) return null;
+    if (!d.ts || Date.now() - d.ts > DRAFT_MAX_AGE_MS) { _clearOnboardingDraft(); return null; }
+    return d;
   } catch(_) { return null; }
 }
 function _clearOnboardingDraft() { try { localStorage.removeItem(DRAFT_KEY); } catch(_) {} }

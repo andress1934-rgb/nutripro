@@ -66,14 +66,19 @@ async function verifyFirebaseToken(authHeader, env) {
 }
 
 /* ponytail: contador simple en KV (no Durable Objects) — una carrera rara
-   deja pasar 1-2 fotos de más en un limite de 20/dia, aceptable a esta escala. */
-async function checkAndIncrementRateLimit(uid, env) {
+   deja pasar 1-2 fotos de más en un limite de 20/dia, aceptable a esta escala.
+   Separado en leer/incrementar: se lee temprano (rechazo barato si ya no
+   queda cupo) y se incrementa solo justo antes de llamar a Anthropic — así
+   una imagen invalida o un cuerpo malformado (que nunca llega a costar nada)
+   ya no gasta una foto del limite diario del cliente. */
+async function getRateLimitStatus(uid, env) {
   const day = new Date().toISOString().slice(0, 10);
   const key = `rl:${uid}:${day}`;
   const current = parseInt((await env.RATE_LIMIT_KV.get(key)) || '0', 10);
-  if (current >= DAILY_LIMIT) return false;
+  return { key, current, allowed: current < DAILY_LIMIT };
+}
+async function incrementRateLimit(key, current, env) {
   await env.RATE_LIMIT_KV.put(key, String(current + 1), { expirationTtl: 172800 }); // 2 dias de margen
-  return true;
 }
 
 const RESULT_SCHEMA = {
@@ -112,6 +117,40 @@ Si hay un cubierto, mano, o plato de tamano estandar visible en la foto, usalo c
 
 Nunca inventes alimentos que no se ven en la foto. Si la imagen no muestra comida real (esta vacia, borrosa, o es otra cosa), responde con items: [] y explica por que en confidence_note.`;
 
+/* Error "seguro": su mensaje SÍ puede mostrarse al cliente tal cual.
+   Cualquier otro error (fallo de red, detalle interno de la API de Anthropic,
+   JSON malformado) se trata como NO seguro por defecto — ver el catch en
+   el handler principal, que es el único lugar que decide qué llega al cliente. */
+function safeError(msg) {
+  const e = new Error(msg);
+  e.safe = true;
+  return e;
+}
+
+/* Los numeros que devuelve el modelo son datos NO confiables (input del
+   propio modelo, que a su vez interpreta una imagen) — se acotan aqui, en la
+   frontera del Worker, para que todo consumidor aguas abajo (el diario del
+   cliente) reciba siempre valores finitos y en rango razonable de un plato. */
+function clampNum(n, min, max) {
+  n = Number(n);
+  if (!Number.isFinite(n)) return min;
+  return Math.min(Math.max(n, min), max);
+}
+function sanitizeResult(parsed) {
+  const items = Array.isArray(parsed && parsed.items) ? parsed.items : [];
+  return {
+    items: items.slice(0, 20).map(it => ({
+      name: String((it && it.name) || 'Alimento').slice(0, 80),
+      grams: clampNum(it && it.grams, 0, 3000),
+      kcal: clampNum(it && it.kcal, 0, 5000),
+      prot: clampNum(it && it.prot, 0, 500),
+      carbs: clampNum(it && it.carbs, 0, 800),
+      fat: clampNum(it && it.fat, 0, 500),
+    })),
+    confidence_note: String((parsed && parsed.confidence_note) || '').slice(0, 300),
+  };
+}
+
 async function callClaudeVision(base64Image, mediaType, env) {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -137,15 +176,28 @@ async function callClaudeVision(base64Image, mediaType, env) {
 
   const body = await res.json();
   if (!res.ok) {
-    throw new Error(`Anthropic API ${res.status}: ${body?.error?.message || 'error desconocido'}`);
+    console.error('Anthropic API error', res.status, body);
+    throw new Error('anthropic_api_error');
   }
   if (body.stop_reason === 'refusal') {
-    throw new Error('La IA no pudo analizar esta imagen (rechazada por seguridad).');
+    throw safeError('La IA no pudo analizar esta imagen (rechazada por seguridad).');
   }
   const textBlock = body.content.find(b => b.type === 'text');
-  if (!textBlock) throw new Error('Respuesta sin contenido de texto.');
-  return JSON.parse(textBlock.text);
+  if (!textBlock) {
+    console.error('Respuesta de Anthropic sin bloque de texto', body);
+    throw new Error('no_text_block');
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(textBlock.text);
+  } catch (e) {
+    console.error('JSON invalido de Anthropic', textBlock.text);
+    throw new Error('invalid_json');
+  }
+  return sanitizeResult(parsed);
 }
+
+export { clampNum, sanitizeResult };
 
 export default {
   async fetch(request, env) {
@@ -163,8 +215,12 @@ export default {
       return json({ error: 'No autenticado' }, 401, origin);
     }
 
-    const allowed = await checkAndIncrementRateLimit(uid, env);
-    if (!allowed) {
+    /* Lectura barata: rechaza temprano si ya no queda cupo, SIN gastar nada
+       todavía — el incremento real pasa mas abajo, solo si la peticion es
+       valida y realmente va a llegar a Anthropic (ver comentario en
+       getRateLimitStatus/incrementRateLimit). */
+    const rl = await getRateLimitStatus(uid, env);
+    if (!rl.allowed) {
       return json({ error: `Llegaste al limite de ${DAILY_LIMIT} fotos por hoy. Usa el estimador por porciones mientras tanto.` }, 429, origin);
     }
 
@@ -184,11 +240,21 @@ export default {
     }
     const safeMediaType = ['image/jpeg', 'image/png', 'image/webp'].includes(mediaType) ? mediaType : 'image/jpeg';
 
+    /* A partir de aqui la peticion es valida y SI va a llegar a Anthropic
+       (costo real) — recien aqui se gasta la foto del limite diario. */
+    await incrementRateLimit(rl.key, rl.current, env);
+
     try {
       const result = await callClaudeVision(image, safeMediaType, env);
       return json(result, 200, origin);
     } catch (e) {
-      return json({ error: e.message || 'Error analizando la imagen' }, 502, origin);
+      /* Unico punto de decision de que error es seguro mostrarle al cliente.
+         Por defecto NUNCA se expone e.message (puede traer detalle interno
+         de la API de Anthropic) — solo los errores marcados .safe (ver
+         safeError arriba) tienen su mensaje pensado para el usuario final. */
+      if (!e.safe) console.error('callClaudeVision error:', e);
+      const msg = e.safe ? e.message : 'No se pudo analizar la foto. Intenta de nuevo o usa el estimador por porciones.';
+      return json({ error: msg }, 502, origin);
     }
   },
 };
