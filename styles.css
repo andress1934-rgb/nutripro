@@ -18,7 +18,7 @@
   --green:      #2FD98C;   /* mismo verde que --accent: un solo verde para toda la marca */
   --red:        #FF5247;
   --orange:     #FFA82B;
-  --icon-bg:    #10241B;   /* grafito tibio para chips de icono */
+  --icon-bg:    #F4F1E9;   /* chip de icono claro: no compite con el color propio del emoji */
   --icon-fg:    #2FD98C;
   --border:     rgba(255,255,255,.07);
   --shadow-s:   0 2px 10px rgba(0,0,0,.55);
@@ -37,7 +37,7 @@
   --accent:#2FD98C; --accent-l:rgba(47,217,140,.12); --accent-d:#5CE6A6;
   --white:#15161A; --dark:#F4F1E9; --mid:#B9B6AE; --muted:#7E7C77;
   --green:#2FD98C; --red:#FF5247; --orange:#FFA82B;
-  --icon-bg:#10241B; --icon-fg:#2FD98C;
+  --icon-bg:#F4F1E9; --icon-fg:#2FD98C;
   --border:rgba(255,255,255,.07);
   --shadow-s:0 2px 10px rgba(0,0,0,.55);
   --shadow-m:0 8px 28px rgba(0,0,0,.62);
@@ -50,7 +50,7 @@
   --accent:#12B76A; --accent-l:#D3F5E4; --accent-d:#087443;
   --white:#FFFFFF; --dark:#1A1A1A; --mid:#555555; --muted:#888888;
   --green:#12B76A; --red:#FF3B30; --orange:#FF9500;
-  --icon-bg:#D3F5E4; --icon-fg:#087443;
+  --icon-bg:#FFFFFF; --icon-fg:#087443;
   --border:rgba(26,26,26,.08);
   --shadow-s:0 2px 12px rgba(26,26,26,.07);
   --shadow-m:0 6px 24px rgba(26,26,26,.10);
@@ -382,8 +382,8 @@ html, body {
   50%     { transform: translateY(-5px) rotate(2deg); }
 }
 @keyframes iconAura {
-  0%,100% { box-shadow: 0 0 0 0 rgba(245,197,24,0); }
-  50%     { box-shadow: 0 0 16px 2px rgba(245,197,24,.38); }
+  0%,100% { box-shadow: 0 0 0 0 rgba(47,217,140,0); }
+  50%     { box-shadow: 0 0 16px 2px rgba(47,217,140,.38); }
 }
 
 /* — Accesibilidad: respeta a quien prefiere menos movimiento — */
@@ -493,7 +493,7 @@ html, body {
   display: flex; align-items: center; justify-content: center;
   font-size: 22px; flex-shrink: 0;
 }
-.opt-card.sel .opt-card-icon { background: rgba(245,197,24,.25); }
+.opt-card.sel .opt-card-icon { background: rgba(47,217,140,.25); }
 .opt-card-info { flex: 1; min-width: 0; }
 .opt-card-title { font-size: 15px; font-weight: 700; color: var(--dark); margin-bottom: 2px; }
 .opt-card-sub { font-size: 12px; font-weight: 400; color: var(--muted); line-height: 1.4; }
@@ -1721,7 +1721,7 @@ html, body {
 }
 .scanner-line {
   position: absolute; left: 0; right: 0; height: 2px;
-  background: rgba(245,197,24,.7); animation: scanLine 2s linear infinite;
+  background: rgba(47,217,140,.7); animation: scanLine 2s linear infinite;
 }
 .scanner-result-card {
   position: absolute; bottom: 0; left: 0; right: 0;
@@ -1919,7 +1919,7 @@ html, body {
   background: var(--accent);
   display: flex; align-items: center; justify-content: center;
   margin: -18px auto 2px;
-  box-shadow: 0 4px 20px rgba(245,197,24,.5);
+  box-shadow: 0 4px 20px rgba(47,217,140,.5);
   transition: transform .15s;
 }
 .nav-scanner-btn:active .nav-scanner-ring { transform: scale(.92); }
@@ -2024,7 +2024,7 @@ html, body {
 }
 .msc-mode-btn.active {
   background: var(--accent); color: #1A1A1A;
-  box-shadow: 0 2px 10px rgba(245,197,24,.4);
+  box-shadow: 0 2px 10px rgba(47,217,140,.4);
 }
 
 /* Shutter button */
