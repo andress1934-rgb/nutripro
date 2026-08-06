@@ -18,8 +18,6 @@
   --green:      #2FD98C;   /* mismo verde que --accent: un solo verde para toda la marca */
   --red:        #FF5247;
   --orange:     #FFA82B;
-  --icon-bg:    #F4F1E9;   /* chip de icono claro: no compite con el color propio del emoji */
-  --icon-fg:    #2FD98C;
   --border:     rgba(255,255,255,.07);
   --shadow-s:   0 2px 10px rgba(0,0,0,.55);
   --shadow-m:   0 8px 28px rgba(0,0,0,.62);
@@ -37,7 +35,6 @@
   --accent:#2FD98C; --accent-l:rgba(47,217,140,.12); --accent-d:#5CE6A6;
   --white:#15161A; --dark:#F4F1E9; --mid:#B9B6AE; --muted:#7E7C77;
   --green:#2FD98C; --red:#FF5247; --orange:#FFA82B;
-  --icon-bg:#F4F1E9; --icon-fg:#2FD98C;
   --border:rgba(255,255,255,.07);
   --shadow-s:0 2px 10px rgba(0,0,0,.55);
   --shadow-m:0 8px 28px rgba(0,0,0,.62);
@@ -50,7 +47,6 @@
   --accent:#12B76A; --accent-l:#D3F5E4; --accent-d:#087443;
   --white:#FFFFFF; --dark:#1A1A1A; --mid:#555555; --muted:#888888;
   --green:#12B76A; --red:#FF3B30; --orange:#FF9500;
-  --icon-bg:#FFFFFF; --icon-fg:#087443;
   --border:rgba(26,26,26,.08);
   --shadow-s:0 2px 12px rgba(26,26,26,.07);
   --shadow-m:0 6px 24px rgba(26,26,26,.10);
@@ -458,10 +454,9 @@ html, body {
 }
 
 .ob-icon-circle {
-  width: 52px; height: 52px; border-radius: 50%;
-  background: var(--icon-bg);
+  width: 52px; height: 52px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 26px; flex-shrink: 0;
+  font-size: 34px; flex-shrink: 0;
 }
 
 .ob-body { padding: 20px 20px 0; flex: 1; overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain; }
@@ -488,12 +483,10 @@ html, body {
   border-color: var(--accent);
 }
 .opt-card-icon {
-  width: 46px; height: 46px; border-radius: 50%;
-  background: var(--icon-bg);
+  width: 46px; height: 46px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 22px; flex-shrink: 0;
+  font-size: 30px; flex-shrink: 0;
 }
-.opt-card.sel .opt-card-icon { background: rgba(47,217,140,.25); }
 .opt-card-info { flex: 1; min-width: 0; }
 .opt-card-title { font-size: 15px; font-weight: 700; color: var(--dark); margin-bottom: 2px; }
 .opt-card-sub { font-size: 12px; font-weight: 400; color: var(--muted); line-height: 1.4; }
@@ -519,10 +512,9 @@ html, body {
 }
 .row-sel:active { background: var(--card2); }
 .row-sel-icon {
-  width: 38px; height: 38px; border-radius: 50%;
-  background: var(--icon-bg);
+  width: 38px; height: 38px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 18px; flex-shrink: 0;
+  font-size: 24px; flex-shrink: 0;
 }
 .row-sel-label { flex: 1; font-size: 14px; font-weight: 600; color: var(--dark); }
 .row-sel-val { font-size: 14px; font-weight: 500; color: var(--muted); margin-right: 4px; }
@@ -882,9 +874,9 @@ html, body {
   box-shadow: var(--shadow-s);
 }
 .notif-card-icon {
-  width: 36px; height: 36px; border-radius: 10px;
-  background: var(--icon-bg); display: flex; align-items: center;
-  justify-content: center; font-size: 18px; flex-shrink: 0;
+  width: 36px; height: 36px;
+  display: flex; align-items: center;
+  justify-content: center; font-size: 24px; flex-shrink: 0;
 }
 .notif-card-title { font-size: 13px; font-weight: 600; color: var(--dark); }
 .notif-card-sub { font-size: 11px; color: var(--muted); }
@@ -1041,9 +1033,9 @@ html, body {
 .dash-greeting-sub { font-size: 12px; font-weight: 500; color: var(--muted); margin-bottom: 2px; }
 .dash-greeting-name { font-size: 22px; font-weight: 800; color: var(--dark); letter-spacing: -.02em; }
 .dash-avatar {
-  width: 44px; height: 44px; border-radius: 50%;
-  background: var(--icon-bg); display: flex; align-items: center;
-  justify-content: center; font-size: 22px; cursor: pointer;
+  width: 44px; height: 44px;
+  display: flex; align-items: center;
+  justify-content: center; font-size: 30px; cursor: pointer;
 }
 
 /* Calorie ring card */
@@ -1193,10 +1185,9 @@ html, body {
 }
 .mbcard-top { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
 .mbcard-icon {
-  width: 46px; height: 46px; border-radius: 14px;
-  background: var(--icon-bg);
+  width: 46px; height: 46px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 22px; flex-shrink: 0;
+  font-size: 30px; flex-shrink: 0;
 }
 .mbcard-title { font-size: 16px; font-weight: 700; color: var(--dark); }
 .mbcard-sub { font-size: 11px; color: var(--muted); }
@@ -1393,7 +1384,7 @@ html, body {
 .chat-overlay.open .chat-sheet { transform: translateY(0); }
 .chat-handle { width: 36px; height: 4px; background: var(--card2); border-radius: 2px; margin: 14px auto 0; flex-shrink: 0; }
 .chat-sheet-head { padding: 14px 18px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-.chat-avatar { width: 44px; height: 44px; background: var(--icon-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+.chat-avatar { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 30px; }
 .chat-head-name { font-size: 15px; font-weight: 700; color: var(--dark); }
 .chat-head-status { font-size: 11px; color: var(--muted); font-weight: 500; display: flex; align-items: center; gap: 4px; }
 .chat-status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: blink 1.5s infinite; }
