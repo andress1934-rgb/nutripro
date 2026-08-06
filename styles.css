@@ -255,12 +255,16 @@ html, body {
   animation-delay: calc(.16s + var(--si, 0) * .04s);
 }
 
-/* Respeta usuarios con movimiento reducido: revela sin animación */
+/* Respeta usuarios con movimiento reducido: revela sin animación.
+   Cubre tanto el deslizamiento de pantalla completa (lo mas mareante)
+   como el revelado escalonado de su contenido interno. */
 @media (prefers-reduced-motion: reduce) {
-  .screen.is-entering .opt-card, .screen.is-entering-back .opt-card,
-  .screen.is-entering .row-sel,  .screen.is-entering-back .row-sel,
-  .screen.is-entering .chips-grid .food-chip,
-  .screen.is-entering-back .chips-grid .food-chip { animation: none !important; }
+  .screen.is-entering, .screen.is-entering-back,
+  .screen.is-exiting,  .screen.is-exiting-back,
+  .screen.is-entering *, .screen.is-entering-back *,
+  .screen.is-exiting *,  .screen.is-exiting-back * {
+    animation: none !important;
+  }
 }
 
 /* Track del anillo de calorías: adapta al tema (era rgba(26,26,26) hardcodeado) */
