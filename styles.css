@@ -4,22 +4,22 @@
 ───────────────────────────────────────── */
 
 :root {
-  /* ───── OBSIDIAN & GOLD — TEMA PRINCIPAL (oscuro premium) ───── */
+  /* ───── OBSIDIAN & EMERALD — TEMA PRINCIPAL (oscuro premium) ───── */
   --bg:         #0A0B0D;   /* obsidiana fría, no negro plano */
   --card:       #15161A;   /* superficie elevada */
   --card2:      #1E2025;   /* superficie más elevada */
-  --accent:     #F4C75A;   /* oro champán */
-  --accent-l:   rgba(244,199,90,.12);  /* relleno tintado sutil */
-  --accent-d:   #F0CE7A;   /* oro brillante para texto-acento */
+  --accent:     #2FD98C;   /* esmeralda */
+  --accent-l:   rgba(47,217,140,.12);  /* relleno tintado sutil */
+  --accent-d:   #5CE6A6;   /* esmeralda brillante para texto-acento */
   --white:      #15161A;   /* "blanco" semántico = panel, no blanco real */
   --dark:       #F4F1E9;   /* texto blanco cálido */
   --mid:        #B9B6AE;   /* texto secundario */
   --muted:      #7E7C77;   /* texto terciario */
-  --green:      #34D77F;
+  --green:      #2FD98C;   /* mismo verde que --accent: un solo verde para toda la marca */
   --red:        #FF5247;
   --orange:     #FFA82B;
-  --icon-bg:    #241E10;   /* grafito tibio para chips de icono */
-  --icon-fg:    #F4C75A;
+  --icon-bg:    #10241B;   /* grafito tibio para chips de icono */
+  --icon-fg:    #2FD98C;
   --border:     rgba(255,255,255,.07);
   --shadow-s:   0 2px 10px rgba(0,0,0,.55);
   --shadow-m:   0 8px 28px rgba(0,0,0,.62);
@@ -34,10 +34,10 @@
 ───────────────────────────────────────── */
 .phone.dark {
   --bg:#0A0B0D; --card:#15161A; --card2:#1E2025;
-  --accent:#F4C75A; --accent-l:rgba(244,199,90,.12); --accent-d:#F0CE7A;
+  --accent:#2FD98C; --accent-l:rgba(47,217,140,.12); --accent-d:#5CE6A6;
   --white:#15161A; --dark:#F4F1E9; --mid:#B9B6AE; --muted:#7E7C77;
-  --green:#34D77F; --red:#FF5247; --orange:#FFA82B;
-  --icon-bg:#241E10; --icon-fg:#F4C75A;
+  --green:#2FD98C; --red:#FF5247; --orange:#FFA82B;
+  --icon-bg:#10241B; --icon-fg:#2FD98C;
   --border:rgba(255,255,255,.07);
   --shadow-s:0 2px 10px rgba(0,0,0,.55);
   --shadow-m:0 8px 28px rgba(0,0,0,.62);
@@ -47,10 +47,10 @@
 /* ───── TEMA CLARO opcional (cálido) — se activa con .phone.light ───── */
 .phone.light {
   --bg:#F7F5ED; --card:#EEEAE0; --card2:#E8E4D8;
-  --accent:#F5C518; --accent-l:#FFF3C4; --accent-d:#C17F00;
+  --accent:#12B76A; --accent-l:#D3F5E4; --accent-d:#087443;
   --white:#FFFFFF; --dark:#1A1A1A; --mid:#555555; --muted:#888888;
-  --green:#34C759; --red:#FF3B30; --orange:#FF9500;
-  --icon-bg:#FDE8C0; --icon-fg:#C17F00;
+  --green:#12B76A; --red:#FF3B30; --orange:#FF9500;
+  --icon-bg:#D3F5E4; --icon-fg:#087443;
   --border:rgba(26,26,26,.08);
   --shadow-s:0 2px 12px rgba(26,26,26,.07);
   --shadow-m:0 6px 24px rgba(26,26,26,.10);
@@ -575,9 +575,9 @@ html, body {
   cursor: pointer; transition: transform .15s, box-shadow .15s;
   flex-shrink: 0;
   /* Halo dorado suave: el botón principal "emite luz" */
-  box-shadow: 0 8px 28px rgba(244, 199, 90, .22);
+  box-shadow: 0 8px 28px rgba(47,217,140, .22);
 }
-.btn-yellow:active { transform: scale(.98); box-shadow: 0 4px 14px rgba(244, 199, 90, .18); }
+.btn-yellow:active { transform: scale(.98); box-shadow: 0 4px 14px rgba(47,217,140, .18); }
 .btn-yellow:disabled { background: var(--card2); color: var(--muted); }
 
 .btn-yellow-sm {
@@ -657,7 +657,7 @@ html, body {
 }
 .welcome-logo-mark {
   width: 38px; height: 38px; background: #0E0F13;
-  border: 1px solid rgba(244,199,90,.28);
+  border: 1px solid rgba(47,217,140,.28);
   border-radius: 10px; display: flex;
   align-items: center; justify-content: center; padding: 7px;
 }
@@ -739,7 +739,7 @@ html, body {
 }
 .big-ring-peach {
   width: 180px; height: 180px; border-radius: 50%;
-  background: linear-gradient(135deg, #FDE8C0, #F4A261);
+  background: linear-gradient(135deg, #D3F5E4, #F4A261);
   display: flex; align-items: center; justify-content: center;
   font-size: 70px; margin-bottom: 32px; flex-shrink: 0;
   position: relative;
@@ -851,7 +851,7 @@ html, body {
 .prog-badge b { font-size: 20px; font-weight: 900; color: var(--dark); line-height: 1; }
 .prog-badge small { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-top: 3px; }
 .prog-badge.gold { text-align: right; }
-.prog-badge.gold b { background: linear-gradient(135deg,#FBE7A6,#F4C75A 45%,#C99A3A); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.prog-badge.gold b { background: linear-gradient(135deg,#A8F5D1,#2FD98C 45%,#189A63); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
 
 /* ─────────────────────────────────────────
    S-RATING
@@ -1148,7 +1148,7 @@ html, body {
 }
 .stat-tile:nth-child(1)::after { background: linear-gradient(90deg, #FF5247, #FF7A52); }
 .stat-tile:nth-child(2)::after { background: linear-gradient(90deg, #44A8FF, #64B8FF); }
-.stat-tile:nth-child(3)::after { background: linear-gradient(90deg, #F4C75A, #F0CE7A); }
+.stat-tile:nth-child(3)::after { background: linear-gradient(90deg, #2FD98C, #5CE6A6); }
 .stat-tile-icon { font-size: 20px; margin-bottom: 6px; }
 .stat-tile-val { font-size: 18px; font-weight: 900; color: var(--dark); line-height: 1; }
 .stat-tile-lbl { font-size: 10px; font-weight: 500; color: var(--muted); margin-top: 3px; text-transform: uppercase; letter-spacing: .06em; }
@@ -1209,8 +1209,8 @@ html, body {
   background: var(--accent);
   transition: width 1.2s cubic-bezier(.16,1,.3,1);
 }
-#pb-prot { background: linear-gradient(90deg, #D4960A 0%, #F4C75A 100%); }
-#pb-cho  { background: linear-gradient(90deg, #1CA94A 0%, #34D77F 100%); }
+#pb-prot { background: linear-gradient(90deg, #189A63 0%, #2FD98C 100%); }
+#pb-cho  { background: linear-gradient(90deg, #1F6FBD 0%, #4C9EFF 100%); }
 #pb-fat  { background: linear-gradient(90deg, #D97000 0%, #FFA82B 100%); }
 .mbcard-nums { display: flex; justify-content: space-between; font-size: 12px; font-weight: 500; color: var(--muted); }
 .mbcard-nums b { font-size: 18px; font-weight: 800; color: var(--dark); }
@@ -2050,7 +2050,7 @@ html, body {
 }
 .login-inp-wrap:focus-within {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(244, 199, 90, .14);
+  box-shadow: 0 0 0 3px rgba(47,217,140, .14);
 }
 .login-inp-icon { font-size: 16px; flex-shrink: 0; }
 .login-inp {
@@ -2108,11 +2108,11 @@ html, body {
 .phone.dark .key-add,
 .phone.dark .chat-bubble-wrap.user .chat-bub,
 .phone.dark .chat-send-btn,
-.phone.dark .week-day-col.sel .week-day-num { color: #17130A; }
+.phone.dark .week-day-col.sel .week-day-num { color: #042A1A; }
 
 /* 2. Número hero de calorías: barrido de oro cepillado (el momento "poder") */
 .phone.dark .donut-kcal {
-  background: linear-gradient(135deg, #FBE7A6 0%, #F4C75A 45%, #C99A3A 100%);
+  background: linear-gradient(135deg, #A8F5D1 0%, #2FD98C 45%, #189A63 100%);
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: transparent;
 }
@@ -2120,15 +2120,15 @@ html, body {
 /* 3. CTA principal: gradiente dorado con resplandor confiado */
 .phone.dark .btn-yellow:not(:disabled),
 .phone.dark .btn-yellow-sm {
-  background: linear-gradient(135deg, #F8D77A 0%, #F4C75A 52%, #D6A23E 100%);
-  box-shadow: 0 8px 26px rgba(244,199,90,.26), inset 0 1px 0 rgba(255,255,255,.40);
+  background: linear-gradient(135deg, #7EE8B8 0%, #2FD98C 52%, #189A63 100%);
+  box-shadow: 0 8px 26px rgba(47,217,140,.26), inset 0 1px 0 rgba(255,255,255,.40);
 }
 
 /* 4. Barra de navegación: vidrio esmerilado + glifo dorado con halo */
 /* (El fondo de cristal del nav vive en la regla base .bottom-nav —
    el gradiente casi opaco que había aquí anulaba la transparencia) */
 .phone.dark .nav-item.active .nav-icon {
-  filter: drop-shadow(0 0 8px rgba(244,199,90,.5));
+  filter: drop-shadow(0 0 8px rgba(47,217,140,.5));
 }
 
 /* 5. Tarjetas: hairline superior de luz + sombra → profundidad "fresada" */
@@ -2143,12 +2143,12 @@ html, body {
 }
 
 /* 6. Anillo de macros con leve aura dorada */
-.phone.dark .donut-wrap svg { filter: drop-shadow(0 0 7px rgba(244,199,90,.14)); }
+.phone.dark .donut-wrap svg { filter: drop-shadow(0 0 7px rgba(47,217,140,.14)); }
 
 /* 7. Estado seleccionado: relleno tintado de oro con anillo definitorio */
 .phone.dark .opt-card.sel {
   background: var(--accent-l);
-  border-color: rgba(244,199,90,.38);
+  border-color: rgba(47,217,140,.38);
 }
 
 /* 8. Avisos (toast): píldora oscura de vidrio con borde dorado sutil.
@@ -2156,7 +2156,7 @@ html, body {
 .phone.dark .toast-pill {
   background: rgba(21,22,26,.96);
   color: var(--dark);
-  border: 1px solid rgba(244,199,90,.22);
+  border: 1px solid rgba(47,217,140,.22);
   box-shadow: var(--shadow-l);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
@@ -2196,7 +2196,7 @@ html, body {
   font-family: inherit;
 }
 .ex-chip.active {
-  background: var(--accent); color: #1A1400;
+  background: var(--accent); color: #042A1A;
   border-color: var(--accent);
 }
 
@@ -2321,7 +2321,7 @@ html, body {
 }
 .ex-step-num {
   min-width: 22px; height: 22px; background: var(--accent);
-  color: #1A1400; border-radius: 50%; font-size: 11px;
+  color: #042A1A; border-radius: 50%; font-size: 11px;
   font-weight: 700; display: flex; align-items: center;
   justify-content: center; flex-shrink: 0; margin-top: 1px;
 }
@@ -2341,7 +2341,7 @@ html, body {
   color: var(--mid); font-family: inherit; font-size: 13px; font-weight: 600;
   padding: 9px; border-radius: 9px; transition: .2s;
 }
-.ex-seg button.active { background: var(--accent); color: #17130A; }
+.ex-seg button.active { background: var(--accent); color: #042A1A; }
 
 #ex-bodyview {
   flex: 1; display: flex; flex-direction: column;
@@ -2380,7 +2380,7 @@ html, body {
   border-radius: 14px; padding: 8px 10px;
   transition: background .2s, border-color .2s;
 }
-.pz-row-active { background: rgba(244,199,90,.1); border-color: rgba(244,199,90,.3); }
+.pz-row-active { background: rgba(47,217,140,.1); border-color: rgba(47,217,140,.3); }
 .pz-hand { font-size: 24px; line-height: 1; flex-shrink: 0; }
 .pz-row-info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .pz-lbl { font-size: 13px; font-weight: 700; color: #fff; }
@@ -2394,7 +2394,7 @@ html, body {
   display: flex; align-items: center; justify-content: center;
   transition: transform .15s cubic-bezier(.34,1.56,.64,1), background .15s;
 }
-.pz-step:active { transform: scale(.88); background: rgba(244,199,90,.25); }
+.pz-step:active { transform: scale(.88); background: rgba(47,217,140,.25); }
 .pz-count { font-size: 15px; font-weight: 800; color: #fff; min-width: 16px; text-align: center; }
 .pz-actions { display: flex; gap: 10px; align-items: stretch; }
 .pz-undo {
@@ -2421,8 +2421,8 @@ html, body {
 }
 .bm-toggle button:active { transform: scale(.94); }
 .bm-toggle button.active {
-  background: var(--accent); color: #17130A;
-  box-shadow: 0 2px 9px rgba(244,199,90,.3), inset 0 1px 0 rgba(255,255,255,.35);
+  background: var(--accent); color: #042A1A;
+  box-shadow: 0 2px 9px rgba(47,217,140,.3), inset 0 1px 0 rgba(255,255,255,.35);
 }
 .phone.light .bm-toggle { background: rgba(0,0,0,.04); border-color: rgba(0,0,0,.06); }
 
@@ -2448,12 +2448,12 @@ html, body {
   position: absolute; inset: 0; width: 100%; height: 100%;
 }
 .bm-zone {
-  fill: rgba(244,199,90,0); stroke: rgba(244,199,90,0); stroke-width: 2;
+  fill: rgba(47,217,140,0); stroke: rgba(47,217,140,0); stroke-width: 2;
   cursor: pointer; transition: fill .18s, stroke .18s;
 }
-.bm-zone:hover { fill: rgba(244,199,90,.18); stroke: rgba(244,199,90,.4); }
+.bm-zone:hover { fill: rgba(47,217,140,.18); stroke: rgba(47,217,140,.4); }
 .bm-zone.active {
-  fill: rgba(244,199,90,.34); stroke: var(--accent); stroke-width: 2.5;
+  fill: rgba(47,217,140,.34); stroke: var(--accent); stroke-width: 2.5;
 }
 .bm-hint {
   /* Flota sobre la pastilla de navegación sin empujar el layout */
@@ -2529,7 +2529,7 @@ html, body {
   display: flex; align-items: center;
 }
 .drawer-vip {
-  background: var(--accent); color: #17130A; font-size: 9px; font-weight: 800;
+  background: var(--accent); color: #042A1A; font-size: 9px; font-weight: 800;
   padding: 2px 6px; border-radius: 5px; margin-left: 6px; letter-spacing: .04em;
 }
 .drawer-item {
@@ -2539,7 +2539,7 @@ html, body {
   transition: background .15s, transform .18s cubic-bezier(.34,1.56,.64,1);
   font-family: inherit;
 }
-.drawer-item:active { background: rgba(244,199,90,.08); transform: scale(.97); }
+.drawer-item:active { background: rgba(47,217,140,.08); transform: scale(.97); }
 .drawer-ic {
   width: 36px; height: 36px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
@@ -2568,8 +2568,8 @@ html, body {
 }
 .rt-chip:active { transform: scale(.95); }
 .rt-chip.active {
-  background: var(--accent); color: #17130A; border-color: var(--accent);
-  box-shadow: 0 3px 11px rgba(244,199,90,.28), inset 0 1px 0 rgba(255,255,255,.35);
+  background: var(--accent); color: #042A1A; border-color: var(--accent);
+  box-shadow: 0 3px 11px rgba(47,217,140,.28), inset 0 1px 0 rgba(255,255,255,.35);
 }
 .phone.light .rt-chip { background: rgba(0,0,0,.04); border-color: rgba(0,0,0,.08); }
 
@@ -2583,7 +2583,7 @@ html, body {
 .rt-meta { font-size: 12px; color: var(--accent-d); font-weight: 600; margin-top: 3px; }
 .rt-note {
   font-size: 12px; color: var(--mid); line-height: 1.5; margin-top: 10px;
-  background: var(--accent-l); border: 1px solid rgba(244,199,90,.2);
+  background: var(--accent-l); border: 1px solid rgba(47,217,140,.2);
   border-radius: 10px; padding: 9px 12px;
 }
 .rt-day { margin-top: 18px; }
@@ -2630,7 +2630,7 @@ html, body {
 .cr-q:first-child { margin-top: 4px; }
 .cr-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .cr-gen {
-  width: 100%; margin-top: 22px; background: var(--accent); color: #17130A;
+  width: 100%; margin-top: 22px; background: var(--accent); color: #042A1A;
   border: none; border-radius: 14px; padding: 14px; font-family: inherit;
   font-size: 15px; font-weight: 700; cursor: pointer;
 }
@@ -2750,8 +2750,8 @@ html, body {
   body {
     /* !important: applyTheme() pone el fondo inline y taparía el ambiental */
     background:
-      radial-gradient(1100px 750px at 18% -8%, rgba(244,199,90,.08), transparent 60%),
-      radial-gradient(900px 650px at 108% 108%, rgba(244,199,90,.05), transparent 60%),
+      radial-gradient(1100px 750px at 18% -8%, rgba(47,217,140,.08), transparent 60%),
+      radial-gradient(900px 650px at 108% 108%, rgba(47,217,140,.05), transparent 60%),
       #060709 !important;
   }
   .phone {

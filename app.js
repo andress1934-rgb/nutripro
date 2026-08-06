@@ -1319,7 +1319,7 @@ function animateCalorieCount() {
 const MACRO_INFO = {
   prot: { key:'prot', label:'Proteínas',     kcalPerG:4, color:'#E9806E',
           desc:'Construye y repara músculo. Te mantiene saciado por más tiempo.' },
-  cho:  { key:'cho',  label:'Carbohidratos', kcalPerG:4, color:'#F5C518',
+  cho:  { key:'cho',  label:'Carbohidratos', kcalPerG:4, color:'#12B76A',
           desc:'Tu fuente principal de energía para entrenar con intensidad.' },
   fat:  { key:'fat',  label:'Grasas',        kcalPerG:9, color:'#7FB069',
           desc:'Esenciales para tus hormonas y la absorción de vitaminas.' },
@@ -2824,7 +2824,7 @@ async function selectMuscle(bp, label) {
   const n = pool.filter(e => e.bodyPart === bp).length;
   const hint = document.getElementById('bm-hint');
   if (hint) hint.innerHTML =
-    `<button onclick="goMuscleList()" style="background:var(--accent);color:#17130A;border:none;font-family:inherit;font-size:13px;font-weight:700;padding:10px 22px;border-radius:30px;cursor:pointer">Ver ${n} ejercicio${n===1?'':'s'} de ${label} →</button>`;
+    `<button onclick="goMuscleList()" style="background:var(--accent);color:#042A1A;border:none;font-family:inherit;font-size:13px;font-weight:700;padding:10px 22px;border-radius:30px;cursor:pointer">Ver ${n} ejercicio${n===1?'':'s'} de ${label} →</button>`;
 }
 
 function goMuscleList() {
@@ -3032,7 +3032,7 @@ function renderRoutine() {
         line2: ex.nota || '' };
   const done = assigned ? _getTrainDone() : {};
   box.innerHTML =
-    (assigned ? `<div style="background:var(--accent-l);border:1px solid rgba(244,199,90,.3);border-radius:10px;padding:9px 12px;font-size:12px;color:var(--accent-d);font-weight:600;margin:10px 0 2px">★ Asignada por tu coach — marca cada ejercicio al hacerlo${nota ? '. ' + esc(nota) : ''}</div>` : '') +
+    (assigned ? `<div style="background:var(--accent-l);border:1px solid rgba(47,217,140,.3);border-radius:10px;padding:9px 12px;font-size:12px;color:var(--accent-d);font-weight:600;margin:10px 0 2px">★ Asignada por tu coach — marca cada ejercicio al hacerlo${nota ? '. ' + esc(nota) : ''}</div>` : '') +
     `<div class="rt-head">
        <div class="rt-name">${title}</div>
        <div class="rt-meta">${meta}</div>
